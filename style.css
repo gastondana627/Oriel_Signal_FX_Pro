@@ -1,0 +1,263 @@
+/* Make the scene fill the entire page */
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #111; /* Dark background */
+}
+
+#graph-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+/* Style for the play button */
+#play-pause-button {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%); /* This centers the button */
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-family: sans-serif;
+    color: white;
+    background-color: #8309D5;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    z-index: 100;
+    transition: background-color 0.3s ease;
+}
+
+/* --- Control Panel Styles --- */
+.control-panel {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 100;
+    font-family: sans-serif;
+    color: white;
+}
+
+.control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.control label {
+    font-size: 0.9rem;
+}
+
+.control-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.shape-selector {
+    display: flex;
+    gap: 5px;
+}
+
+.shape-btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    background-color: #555;
+    color: white;
+    border: 1px solid #777;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#randomize-button {
+    width: 100%;
+    padding: 8px;
+    font-size: 0.9rem;
+    background-color: #8309D5;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.upload-btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    background-color: #555;
+    color: white;
+    border: 1px solid #777;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+}
+
+#download-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-family: sans-serif;
+    color: white;
+    background-color: #8309D5;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    z-index: 100;
+}
+
+.dynamic-color {
+    transition: background-color 0.3s ease;
+}
+
+/* --- Styles for Buy Me A Coffee & QR Code --- */
+#bmac-button {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    font-family: sans-serif;
+    text-align: center;
+    background-color: #8309D5; /* Default color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-sizing: border-box; /* Ensures padding is included in the width */
+}
+
+#bmac-qrcode {
+    position: absolute;
+    left: 105%; /* Position it to the right of the control panel */
+    top: 0;
+    width: 150px;
+    height: 150px;
+    border-radius: 10px;
+    transition: opacity 0.3s ease;
+}
+
+.qrcode-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* --- Styles for Progress Modal & Download Counter --- */
+.modal-hidden {
+    display: none !important;
+}
+
+#progress-modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex; align-items: center; justify-content: center; z-index: 1001;
+}
+
+.modal-content {
+    background-color: #222; padding: 30px; border-radius: 10px;
+    color: white; text-align: center; font-family: sans-serif;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.progress-bar {
+    width: 300px; height: 20px; background-color: #444; border-radius: 10px; overflow: hidden; margin: 15px 0;
+}
+
+.progress-bar-inner {
+    width: 0%; height: 100%; background-color: #8309D5; transition: width 0.2s linear;
+}
+
+#downloads-remaining {
+    font-size: 0.8rem;
+    text-align: center;
+    opacity: 0.7;
+    margin: 10px 0 0 0;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 600px) {
+    .control-panel {
+        top: 10px;
+        left: 10px;
+        right: 10px; /* Allow it to span the width */
+        width: auto;
+        gap: 10px;
+    }
+
+    #play-pause-button, #download-button {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+}
+
+.modal-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    background-color: #555;
+    color: white;
+    border: 1px solid #777;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+
+
+
+.hidden {
+    display: none;
+}
+
+.modal-content {
+    position: relative; /* Needed for the close button */
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+
+
+/* --- Add these new rules for the Modal Menu --- */
+.hidden {
+    display: none !important;
+}
+.modal-content {
+    position: relative;
+}
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}

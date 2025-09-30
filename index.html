@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oriel_FX - Audio Visualizer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div id="graph-container"></div>
+    <button id="play-pause-button">Play Music</button>
+
+    <div class="control-panel">
+        <div class="control-group">
+            <div class="control"><label for="glowColor">Glow Color</label><input type="color" id="glowColor" value="#8309D5"></div>
+            <div class="control"><label for="pulse">Pulse Intensity</label><input type="range" id="pulse" min="0" max="3" step="0.1" value="1.5"></div>
+        </div>
+        <div class="control-group shape-selector"></div>
+        <button id="randomize-button" class="dynamic-color">Randomize</button>
+        <div class="control">
+            <label for="audioUpload" class="upload-btn">Upload Audio</label>
+            <input type="file" id="audioUpload" accept="audio/*" style="display: none;">
+        </div>
+        <p id="downloads-remaining"></p>
+        <a href="https://www.buymeacoffee.com/gastondana627" target="_blank" id="bmac-button" class="dynamic-color">✨ Buy Me a Coffee</a>
+    </div>
+
+    <img src="assets/qr-code.png" id="bmac-qrcode" class="qrcode-hidden">
+    <button id="download-button" class="dynamic-color">Download</button>
+
+    <div id="progress-modal" class="modal-hidden">
+        <div class="modal-content">
+            <button id="close-modal-btn" class="close-button">&times;</button>
+            <div id="choice-view">
+                <h3 id="modal-title">Choose Download Format</h3>
+                <div class="modal-buttons">
+                    <button id="download-gif-button" class="modal-button">Download GIF (30s)</button>
+                    <button id="download-mp3-button" class="modal-button">Download MP3</button>
+                </div>
+            </div>
+            <div id="progress-view" class="hidden">
+                <h3>Creating Your Masterpiece...</h3>
+                <div class="progress-bar"><div id="progress-bar-inner"></div></div>
+                <p id="modal-status">Recording...</p>
+            </div>
+        </div>
+    </div>
+
+    <audio id="background-music" src="assets/music_fx_a_trap_beat_with_a_heavy_bass_butwith_techno-2.wav" loop></audio>
+
+    <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js"></script>
+    <script src="graph.js"></script>
+</body>
+</html>
