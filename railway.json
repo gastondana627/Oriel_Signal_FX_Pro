@@ -3,8 +3,12 @@
   "build": {
     "builder": "NIXPACKS",
     "nixpacksConfig": {
-      "providers": ["python"],
-      "buildCmd": "pip install -r backend/requirements.txt"
+      "phases": {
+        "setup": {
+          "pkgs": ["python3", "pip"],
+          "cmds": ["pip install -r backend/requirements.txt"]
+        }
+      }
     }
   },
   "deploy": {
