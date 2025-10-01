@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Visualizer Tests</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-results {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .btn {
+            background: #6f42c1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5a32a3;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .status.running {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status.passed {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.failed {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .test-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 4px solid #ddd;
+            background: #f8f9fa;
+        }
+        
+        .test-item.passed {
+            border-left-color: #28a745;
+        }
+        
+        .test-item.failed {
+            border-left-color: #dc3545;
+        }
+        
+        .error-details {
+            color: #721c24;
+            font-size: 14px;
+            margin-top: 5px;
+            font-family: monospace;
+        }
+        
+        .summary {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6f42c1, #e83e8c);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .console-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        /* Mock UI elements for testing */
+        .mock-ui {
+            display: none;
+        }
+        
+        .visualizer-container {
+            background: #000;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        #visualizer {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            border-radius: 5px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            background: #6f42c1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .control-btn:hover {
+            background: #5a32a3;
+        }
+        
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+        }
+        
+        .notification {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 5px 0;
+            color: white;
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .notification.success {
+            background: #28a745;
+        }
+        
+        .premium-settings {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .upgrade-prompt {
+            text-align: center;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎵 Integration Visualizer Tests</h1>
+        <p>Testing visualizer integration and user experience</p>
+    </div>
+
+    <div class="test-controls">
+        <h3>Test Controls</h3>
+        <button id="run-tests" class="btn">Run All Tests</button>
+        <button id="clear-results" class="btn">Clear Results</button>
+        <button id="export-results" class="btn">Export Results</button>
+        
+        <div id="test-status" class="status" style="display: none;"></div>
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+    </div>
+
+    <div class="test-results">
+        <h3>Test Results</h3>
+        <div id="test-summary" class="summary" style="display: none;"></div>
+        <div id="test-details"></div>
+        <div id="console-output" class="console-output" style="display: none;"></div>
+    </div>
+
+    <!-- Mock UI Elements for Testing -->
+    <div class="mock-ui">
+        <!-- Visualizer Container -->
+        <div class="visualizer-container">
+            <canvas id="visualizer" width="800" height="300"></canvas>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button id="play-btn" class="control-btn">▶ Play</button>
+            <button id="pause-btn" class="control-btn">⏸ Pause</button>
+            <input type="file" id="audio-file" accept="audio/*" style="display: none;">
+            <button id="load-file" class="control-btn" onclick="document.getElementById('audio-file').click()">📁 Load File</button>
+            <button id="download-gif" class="control-btn">📥 Download GIF</button>
+            <button id="download-mp4" class="control-btn">📥 Download MP4</button>
+        </div>
+
+        <!-- Premium Settings -->
+        <div id="premium-settings" class="premium-settings">
+            <div class="upgrade-prompt">
+                <h4>🌟 Premium Features</h4>
+                <p>Upgrade to unlock advanced visualizer settings</p>
+                <button class="btn">Upgrade Now</button>
+            </div>
+        </div>
+
+        <!-- Custom Presets -->
+        <div id="custom-presets" class="hidden">
+            <h4>Custom Presets</h4>
+            <select>
+                <option>Waves</option>
+                <option>Bars</option>
+                <option>Particles</option>
+            </select>
+        </div>
+
+        <!-- Login Modal -->
+        <div id="login-modal" class="auth-modal">
+            <h3>Login</h3>
+            <form>
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+
+        <!-- Notification Container -->
+        <div id="notification-container"></div>
+    </div>
+
+    <!-- Include required dependencies -->
+    <script src="app-config.js"></script>
+    <script src="api-client.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="feature-manager.js"></script>
+    <script src="integration-visualizer-tests.js"></script>
+
+    <script>
+        class VisualizerTestRunner {
+            constructor() {
+                this.isRunning = false;
+                this.consoleOutput = [];
+                this.originalConsoleLog = console.log;
+                this.setupEventListeners();
+                this.setupMockVisualizer();
+            }
+
+            setupEventListeners() {
+                document.getElementById('run-tests').addEventListener('click', () => this.runTests());
+                document.getElementById('clear-results').addEventListener('click', () => this.clearResults());
+                document.getElementById('export-results').addEventListener('click', () => this.exportResults());
+            }
+
+            setupMockVisualizer() {
+                // Setup mock visualizer functionality
+                const canvas = document.getElementById('visualizer');
+                const ctx = canvas.getContext('2d');
+                
+                // Mock animation loop
+                let animationId;
+                window.animate = () => {
+                    // Simple animation for testing
+                    ctx.fillStyle = `hsl(${Date.now() % 360}, 50%, 50%)`;
+                    ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 10, 10);
+                    animationId = requestAnimationFrame(window.animate);
+                };
+
+                // Mock pause/resume functions
+                window.pauseVisualizer = () => {
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                    }
+                };
+
+                window.resumeVisualizer = () => {
+                    window.animate();
+                };
+
+                // Setup control event listeners
+                document.getElementById('play-btn').addEventListener('click', () => {
+                    window.animate();
+                });
+
+                document.getElementById('pause-btn').addEventListener('click', () => {
+                    window.pauseVisualizer();
+                });
+
+                // Setup modal interactions
+                const loginModal = document.getElementById('login-modal');
+                
+                // Mock login button (would normally be in main UI)
+                const mockLoginBtn = document.createElement('button');
+                mockLoginBtn.textContent = 'Login';
+                mockLoginBtn.addEventListener('click', () => {
+                    loginModal.style.display = 'block';
+                    window.pauseVisualizer();
+                });
+
+                // Close modal
+                loginModal.addEventListener('click', (e) => {
+                    if (e.target === loginModal) {
+                        loginModal.style.display = 'none';
+                        window.resumeVisualizer();
+                    }
+                });
+
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    const canvas = document.getElementById('visualizer');
+                    // Mock responsive behavior
+                    canvas.style.width = '100%';
+                    canvas.style.height = Math.min(300, window.innerHeight * 0.4) + 'px';
+                });
+            }
+
+            async runTests() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.clearResults();
+                this.showStatus('Running visualizer integration tests...', 'running');
+                
+                // Capture console output
+                this.consoleOutput = [];
+                console.log = (...args) => {
+                    this.consoleOutput.push(args.join(' '));
+                    this.originalConsoleLog(...args);
+                    this.updateConsoleOutput();
+                };
+
+                try {
+                    const testSuite = new IntegrationVisualizerTests();
+                    await testSuite.runAllTests();
+                    
+                    this.displayResults(testSuite.testResults);
+                    this.showStatus('Visualizer integration tests completed!', 'passed');
+                } catch (error) {
+                    this.showStatus(`Visualizer tests failed: ${error.message}`, 'failed');
+                    console.error('Visualizer test execution error:', error);
+                } finally {
+                    // Restore console.log
+                    console.log = this.originalConsoleLog;
+                    this.isRunning = false;
+                    document.getElementById('run-tests').disabled = false;
+                }
+            }
+
+            showStatus(message, type) {
+                const statusEl = document.getElementById('test-status');
+                statusEl.textContent = message;
+                statusEl.className = `status ${type}`;
+                statusEl.style.display = 'block';
+                
+                document.getElementById('run-tests').disabled = this.isRunning;
+            }
+
+            displayResults(results) {
+                const passed = results.filter(r => r.status === 'PASSED').length;
+                const failed = results.filter(r => r.status === 'FAILED').length;
+                const total = results.length;
+                const successRate = ((passed / total) * 100).toFixed(1);
+
+                // Update progress bar
+                document.getElementById('progress-fill').style.width = `${successRate}%`;
+
+                // Show summary
+                const summaryEl = document.getElementById('test-summary');
+                summaryEl.innerHTML = `
+                    <h4>Visualizer Integration Test Summary</h4>
+                    <p><strong>Total Tests:</strong> ${total}</p>
+                    <p><strong>Passed:</strong> ${passed}</p>
+                    <p><strong>Failed:</strong> ${failed}</p>
+                    <p><strong>Success Rate:</strong> ${successRate}%</p>
+                `;
+                summaryEl.style.display = 'block';
+
+                // Show detailed results
+                const detailsEl = document.getElementById('test-details');
+                detailsEl.innerHTML = results.map(result => `
+                    <div class="test-item ${result.status.toLowerCase()}">
+                        <strong>${result.test}</strong>
+                        <span style="float: right;">${result.status}</span>
+                        ${result.error ? `<div class="error-details">${result.error}</div>` : ''}
+                    </div>
+                `).join('');
+
+                // Show console output
+                document.getElementById('console-output').style.display = 'block';
+            }
+
+            updateConsoleOutput() {
+                const consoleEl = document.getElementById('console-output');
+                consoleEl.innerHTML = this.consoleOutput.map(line => 
+                    `<div>${this.escapeHtml(line)}</div>`
+                ).join('');
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            }
+
+            clearResults() {
+                document.getElementById('test-summary').style.display = 'none';
+                document.getElementById('test-details').innerHTML = '';
+                document.getElementById('console-output').innerHTML = '';
+                document.getElementById('console-output').style.display = 'none';
+                document.getElementById('progress-fill').style.width = '0%';
+                document.getElementById('test-status').style.display = 'none';
+                this.consoleOutput = [];
+            }
+
+            exportResults() {
+                const results = localStorage.getItem('integration_visualizer_test_results');
+                if (!results) {
+                    alert('No test results to export. Run tests first.');
+                    return;
+                }
+
+                const blob = new Blob([results], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `integration-visualizer-test-results-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize test runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new VisualizerTestRunner();
+        });
+    </script>
+</body>
+</html>

@@ -705,6 +705,71 @@
         </div>
     </div>
 
+    <!-- Welcome/Onboarding Modal -->
+    <div id="welcome-modal" class="auth-modal modal-hidden">
+        <div class="auth-modal-content">
+            <button type="button" id="welcome-close-btn" class="close-button">&times;</button>
+            <div class="auth-header">
+                <h2>🎉 Welcome to Oriel FX!</h2>
+                <p>Your account has been created successfully</p>
+            </div>
+            
+            <div class="welcome-content">
+                <div class="welcome-section">
+                    <h3>🎵 What is Oriel FX?</h3>
+                    <p>Oriel FX is a powerful audio visualizer that creates stunning visual representations of your music. Transform any audio into mesmerizing animations with customizable shapes, colors, and effects.</p>
+                </div>
+                
+                <div class="welcome-section">
+                    <h3>✨ What can you do?</h3>
+                    <ul class="welcome-features">
+                        <li><strong>🎨 Create Visualizations:</strong> Upload your music and watch it come to life with dynamic visual effects</li>
+                        <li><strong>🎛️ Customize Everything:</strong> Change colors, shapes, pulse intensity, and more</li>
+                        <li><strong>📱 Download & Share:</strong> Export your creations as GIF, MP4, or other formats</li>
+                        <li><strong>🚀 Upgrade for More:</strong> Get longer recordings, premium formats, and unlimited downloads</li>
+                    </ul>
+                </div>
+                
+                <div class="welcome-section">
+                    <h3>🎯 Your Current Plan</h3>
+                    <div class="plan-summary">
+                        <div class="plan-info">
+                            <span class="plan-name">Free Plan</span>
+                            <span class="plan-benefits">3 downloads per month • 30-second recordings • GIF & MP3 exports</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="welcome-section">
+                    <h3>🚀 Ready to get started?</h3>
+                    <div class="welcome-steps">
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <span class="step-text">Click "Play Music" to start the visualizer</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <span class="step-text">Customize colors and shapes to your liking</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <span class="step-text">Click "Download" to save your creation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="welcome-actions">
+                <button type="button" id="start-creating-btn" class="auth-submit-btn">
+                    🎨 Start Creating
+                </button>
+                <button type="button" id="view-dashboard-btn" class="auth-submit-btn secondary">
+                    📊 View Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
     <audio id="background-music" src="assets/music_fx_a_trap_beat_with_a_heavy_bass_butwith_techno-2.wav" loop></audio>
 
     <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
@@ -719,8 +784,21 @@
     <script src="payment-manager.js"></script>
     <script src="payment-ui.js"></script>
     <script src="payment-integration.js"></script>
+    <script src="feature-manager.js"></script>
+    <script src="premium-recording.js"></script>
+    <script src="premium-customization.js"></script>
+    <script src="checkout-flow.js"></script>
+    <script src="sync-manager.js"></script>
+    <script src="offline-manager.js"></script>
     <script src="preferences-manager.js"></script>
     <script src="dashboard-ui.js"></script>
+    
+    <!-- Analytics and Monitoring -->
+    <script src="analytics-manager.js"></script>
+    <script src="error-monitor.js"></script>
+    <script src="performance-monitor.js"></script>
+    <script src="monitoring-integration.js"></script>
+    
     <script src="saas-init.js"></script>
     <!-- Main Application Scripts -->
     <script src="script.js"></script>

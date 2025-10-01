@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Authentication Tests</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-results {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .status.running {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status.passed {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.failed {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .test-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 4px solid #ddd;
+            background: #f8f9fa;
+        }
+        
+        .test-item.passed {
+            border-left-color: #28a745;
+        }
+        
+        .test-item.failed {
+            border-left-color: #dc3545;
+        }
+        
+        .error-details {
+            color: #721c24;
+            font-size: 14px;
+            margin-top: 5px;
+            font-family: monospace;
+        }
+        
+        .summary {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .console-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        /* Mock UI elements for testing */
+        .mock-ui {
+            display: none;
+        }
+        
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        
+        .user-bar {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Integration Authentication Tests</h1>
+        <p>Comprehensive testing of user registration and authentication flows</p>
+    </div>
+
+    <div class="test-controls">
+        <h3>Test Controls</h3>
+        <button id="run-tests" class="btn">Run All Tests</button>
+        <button id="clear-results" class="btn">Clear Results</button>
+        <button id="export-results" class="btn">Export Results</button>
+        
+        <div id="test-status" class="status" style="display: none;"></div>
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+    </div>
+
+    <div class="test-results">
+        <h3>Test Results</h3>
+        <div id="test-summary" class="summary" style="display: none;"></div>
+        <div id="test-details"></div>
+        <div id="console-output" class="console-output" style="display: none;"></div>
+    </div>
+
+    <!-- Mock UI Elements for Testing -->
+    <div class="mock-ui">
+        <!-- User Status Bar -->
+        <div id="user-status" class="user-bar">
+            <div id="anonymous-status">
+                <span>3 free downloads remaining</span>
+                <button id="login-btn">Login</button>
+                <button id="register-btn">Sign Up</button>
+            </div>
+            
+            <div id="authenticated-status" class="hidden">
+                <span id="user-email">user@example.com</span>
+                <span id="user-credits">25 credits</span>
+                <button id="dashboard-btn">Dashboard</button>
+                <button id="logout-btn">Logout</button>
+            </div>
+        </div>
+
+        <!-- Login Modal -->
+        <div id="login-modal" class="auth-modal">
+            <h3>Login</h3>
+            <form id="login-form">
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <p>Don't have an account? <a href="#" id="show-register">Sign up</a></p>
+        </div>
+
+        <!-- Register Modal -->
+        <div id="register-modal" class="auth-modal">
+            <h3>Create Account</h3>
+            <form id="register-form">
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Password" required>
+                <button type="submit">Create Account</button>
+            </form>
+            <p>Already have an account? <a href="#" id="show-login">Login</a></p>
+        </div>
+    </div>
+
+    <!-- Include required dependencies -->
+    <script src="app-config.js"></script>
+    <script src="api-client.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="auth-manager.js"></script>
+    <script src="integration-auth-tests.js"></script>
+
+    <script>
+        class TestRunner {
+            constructor() {
+                this.isRunning = false;
+                this.consoleOutput = [];
+                this.originalConsoleLog = console.log;
+                this.setupEventListeners();
+                this.setupMockUI();
+            }
+
+            setupEventListeners() {
+                document.getElementById('run-tests').addEventListener('click', () => this.runTests());
+                document.getElementById('clear-results').addEventListener('click', () => this.clearResults());
+                document.getElementById('export-results').addEventListener('click', () => this.exportResults());
+            }
+
+            setupMockUI() {
+                // Setup mock UI interactions
+                document.getElementById('login-btn').addEventListener('click', () => {
+                    document.getElementById('login-modal').style.display = 'block';
+                });
+
+                document.getElementById('register-btn').addEventListener('click', () => {
+                    document.getElementById('register-modal').style.display = 'block';
+                });
+
+                document.getElementById('show-register').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('login-modal').style.display = 'none';
+                    document.getElementById('register-modal').style.display = 'block';
+                });
+
+                document.getElementById('show-login').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('register-modal').style.display = 'none';
+                    document.getElementById('login-modal').style.display = 'block';
+                });
+
+                // Close modals when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('auth-modal')) {
+                        e.target.style.display = 'none';
+                    }
+                });
+            }
+
+            async runTests() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.clearResults();
+                this.showStatus('Running tests...', 'running');
+                
+                // Capture console output
+                this.consoleOutput = [];
+                console.log = (...args) => {
+                    this.consoleOutput.push(args.join(' '));
+                    this.originalConsoleLog(...args);
+                    this.updateConsoleOutput();
+                };
+
+                try {
+                    const testSuite = new IntegrationAuthTests();
+                    await testSuite.runAllTests();
+                    
+                    this.displayResults(testSuite.testResults);
+                    this.showStatus('Tests completed!', 'passed');
+                } catch (error) {
+                    this.showStatus(`Tests failed: ${error.message}`, 'failed');
+                    console.error('Test execution error:', error);
+                } finally {
+                    // Restore console.log
+                    console.log = this.originalConsoleLog;
+                    this.isRunning = false;
+                    document.getElementById('run-tests').disabled = false;
+                }
+            }
+
+            showStatus(message, type) {
+                const statusEl = document.getElementById('test-status');
+                statusEl.textContent = message;
+                statusEl.className = `status ${type}`;
+                statusEl.style.display = 'block';
+                
+                document.getElementById('run-tests').disabled = this.isRunning;
+            }
+
+            displayResults(results) {
+                const passed = results.filter(r => r.status === 'PASSED').length;
+                const failed = results.filter(r => r.status === 'FAILED').length;
+                const total = results.length;
+                const successRate = ((passed / total) * 100).toFixed(1);
+
+                // Update progress bar
+                document.getElementById('progress-fill').style.width = `${successRate}%`;
+
+                // Show summary
+                const summaryEl = document.getElementById('test-summary');
+                summaryEl.innerHTML = `
+                    <h4>Test Summary</h4>
+                    <p><strong>Total Tests:</strong> ${total}</p>
+                    <p><strong>Passed:</strong> ${passed}</p>
+                    <p><strong>Failed:</strong> ${failed}</p>
+                    <p><strong>Success Rate:</strong> ${successRate}%</p>
+                `;
+                summaryEl.style.display = 'block';
+
+                // Show detailed results
+                const detailsEl = document.getElementById('test-details');
+                detailsEl.innerHTML = results.map(result => `
+                    <div class="test-item ${result.status.toLowerCase()}">
+                        <strong>${result.test}</strong>
+                        <span style="float: right;">${result.status}</span>
+                        ${result.error ? `<div class="error-details">${result.error}</div>` : ''}
+                    </div>
+                `).join('');
+
+                // Show console output
+                document.getElementById('console-output').style.display = 'block';
+            }
+
+            updateConsoleOutput() {
+                const consoleEl = document.getElementById('console-output');
+                consoleEl.innerHTML = this.consoleOutput.map(line => 
+                    `<div>${this.escapeHtml(line)}</div>`
+                ).join('');
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            }
+
+            clearResults() {
+                document.getElementById('test-summary').style.display = 'none';
+                document.getElementById('test-details').innerHTML = '';
+                document.getElementById('console-output').innerHTML = '';
+                document.getElementById('console-output').style.display = 'none';
+                document.getElementById('progress-fill').style.width = '0%';
+                document.getElementById('test-status').style.display = 'none';
+                this.consoleOutput = [];
+            }
+
+            exportResults() {
+                const results = localStorage.getItem('integration_auth_test_results');
+                if (!results) {
+                    alert('No test results to export. Run tests first.');
+                    return;
+                }
+
+                const blob = new Blob([results], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `integration-auth-test-results-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize test runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new TestRunner();
+        });
+    </script>
+</body>
+</html>

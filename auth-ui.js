@@ -424,8 +424,19 @@ class AuthUI {
         const password = formData.get('password');
         const confirmPassword = formData.get('confirmPassword');
         
+        // DEBUG: Log extracted form data
+        console.log('🔍 Form data extracted:', {
+            email: email,
+            password: password ? `"${password}" [${password.length} chars]` : 'null',
+            confirmPassword: confirmPassword ? `[${confirmPassword.length} chars]` : 'null'
+        });
+        
         // Validate form
-        if (!this.validateForm('register')) {
+        const isFormValid = this.validateForm('register');
+        console.log('🔍 Form validation result:', isFormValid);
+        
+        if (!isFormValid) {
+            console.log('❌ Form validation failed, stopping registration');
             return;
         }
         
@@ -439,16 +450,22 @@ class AuthUI {
         this.setFormLoading('register', true);
         
         try {
+            console.log('🔐 Attempting registration for:', email);
             const result = await this.authManager.register(email, password);
+            console.log('🔐 Registration result:', result);
             
             if (result.success) {
+                console.log('✅ Registration successful, showing welcome modal');
                 this.hideRegisterModal();
+                // Show welcome modal for new users
+                this.showWelcomeModal();
                 // Success notification is handled by AuthManager
             } else {
+                console.error('❌ Registration failed:', result.error);
                 this.showFormError('register', 'general', result.error);
             }
         } catch (error) {
-            console.error('Registration error:', error);
+            console.error('❌ Registration error:', error);
             this.showFormError('register', 'general', 'An unexpected error occurred. Please try again.');
         } finally {
             this.setFormLoading('register', false);
@@ -465,6 +482,54 @@ class AuthUI {
         } catch (error) {
             console.error('Logout error:', error);
             this.notificationManager.show('Logout failed. Please try again.', 'error');
+        }
+    }
+
+    /**
+     * Show welcome modal for new users
+     */
+    showWelcomeModal() {
+        const welcomeModal = document.getElementById('welcome-modal');
+        if (welcomeModal) {
+            welcomeModal.classList.remove('modal-hidden');
+            
+            // Set up event listeners
+            const welcomeCloseBtn = document.getElementById('welcome-close-btn');
+            const startCreatingBtn = document.getElementById('start-creating-btn');
+            const viewDashboardBtn = document.getElementById('view-dashboard-btn');
+            
+            welcomeCloseBtn?.addEventListener('click', () => this.hideWelcomeModal());
+            startCreatingBtn?.addEventListener('click', () => {
+                this.hideWelcomeModal();
+                // Start the visualizer
+                if (window.togglePlayPause) {
+                    window.togglePlayPause();
+                }
+            });
+            viewDashboardBtn?.addEventListener('click', () => {
+                this.hideWelcomeModal();
+                // Open dashboard
+                if (window.dashboardUI) {
+                    window.dashboardUI.showDashboard();
+                }
+            });
+            
+            // Close on backdrop click
+            welcomeModal.addEventListener('click', (e) => {
+                if (e.target === welcomeModal) {
+                    this.hideWelcomeModal();
+                }
+            });
+        }
+    }
+
+    /**
+     * Hide welcome modal
+     */
+    hideWelcomeModal() {
+        const welcomeModal = document.getElementById('welcome-modal');
+        if (welcomeModal) {
+            welcomeModal.classList.add('modal-hidden');
         }
     }
 

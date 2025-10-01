@@ -127,6 +127,10 @@ def create_app(config_name='default'):
     from app.admin import bp as admin_api_bp
     app.register_blueprint(admin_api_bp, url_prefix='/admin/api')
     
+    # Register monitoring endpoints
+    from app.monitoring import bp as monitoring_bp
+    app.register_blueprint(monitoring_bp, url_prefix='/api/monitoring')
+    
     # Register error monitoring endpoints
     from app.admin.error_monitoring import bp as error_monitoring_bp
     app.register_blueprint(error_monitoring_bp, url_prefix='/admin/api/monitoring')

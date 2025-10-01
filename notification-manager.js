@@ -16,14 +16,35 @@ class NotificationManager {
      * Initialize the notification system
      */
     init() {
-        this.createContainer();
-        this.addStyles();
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.createContainer();
+                this.addStyles();
+            });
+        } else {
+            this.createContainer();
+            this.addStyles();
+        }
     }
 
     /**
      * Create the notification container
      */
     createContainer() {
+        // Ensure document.body exists
+        if (!document.body) {
+            console.warn('Document body not ready, retrying...');
+            setTimeout(() => this.createContainer(), 100);
+            return;
+        }
+
+        // Remove existing container if it exists
+        const existingContainer = document.getElementById('notification-container');
+        if (existingContainer) {
+            existingContainer.remove();
+        }
+
         this.container = document.createElement('div');
         this.container.id = 'notification-container';
         this.container.className = 'notification-container';
@@ -337,6 +358,34 @@ class NotificationManager {
     }
 
     /**
+     * Alias for error method (for compatibility)
+     */
+    showError(message, options = {}) {
+        return this.error(message, options);
+    }
+
+    /**
+     * Alias for success method (for compatibility)
+     */
+    showSuccess(message, options = {}) {
+        return this.success(message, options);
+    }
+
+    /**
+     * Alias for warning method (for compatibility)
+     */
+    showWarning(message, options = {}) {
+        return this.warning(message, options);
+    }
+
+    /**
+     * Alias for info method (for compatibility)
+     */
+    showInfo(message, options = {}) {
+        return this.info(message, options);
+    }
+
+    /**
      * Generate unique ID
      */
     generateId() {
@@ -374,6 +423,14 @@ class NotificationManager {
     }
 }
 
-// Create global instance
-window.NotificationManager = NotificationManager;
-window.notifications = new NotificationManager();
+// Create global instance (prevent duplicates)
+if (!window.NotificationManager) {
+    window.NotificationManager = NotificationManager;
+}
+if (!window.notifications) {
+    window.notifications = new NotificationManager();
+}
+// Alias for backward compatibility
+if (!window.notificationManager) {
+    window.notificationManager = window.notifications;
+}

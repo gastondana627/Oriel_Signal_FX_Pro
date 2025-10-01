@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Sync Tests</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-results {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background: #138496;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .status.running {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status.passed {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.failed {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .test-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 4px solid #ddd;
+            background: #f8f9fa;
+        }
+        
+        .test-item.passed {
+            border-left-color: #28a745;
+        }
+        
+        .test-item.failed {
+            border-left-color: #dc3545;
+        }
+        
+        .error-details {
+            color: #721c24;
+            font-size: 14px;
+            margin-top: 5px;
+            font-family: monospace;
+        }
+        
+        .summary {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #17a2b8, #6f42c1);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .console-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        /* Mock UI elements for testing */
+        .mock-ui {
+            display: none;
+        }
+        
+        .sync-status {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .connectivity-indicator {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        
+        .connectivity-indicator.online {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .connectivity-indicator.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .device-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .device-item:last-child {
+            border-bottom: none;
+        }
+        
+        .sync-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .sync-indicator.synced {
+            background: #28a745;
+        }
+        
+        .sync-indicator.pending {
+            background: #ffc107;
+        }
+        
+        .sync-indicator.error {
+            background: #dc3545;
+        }
+        
+        #visualizer {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔄 Integration Sync Tests</h1>
+        <p>Testing cross-device synchronization and offline mode</p>
+    </div>
+
+    <div class="test-controls">
+        <h3>Test Controls</h3>
+        <button id="run-tests" class="btn">Run All Tests</button>
+        <button id="clear-results" class="btn">Clear Results</button>
+        <button id="export-results" class="btn">Export Results</button>
+        
+        <div id="test-status" class="status" style="display: none;"></div>
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+    </div>
+
+    <div class="test-results">
+        <h3>Test Results</h3>
+        <div id="test-summary" class="summary" style="display: none;"></div>
+        <div id="test-details"></div>
+        <div id="console-output" class="console-output" style="display: none;"></div>
+    </div>
+
+    <!-- Mock UI Elements for Testing -->
+    <div class="mock-ui">
+        <!-- Sync Status Display -->
+        <div class="sync-status">
+            <h4>Sync Status</h4>
+            <div id="connectivity-status" class="connectivity-indicator online">Online</div>
+            <div id="offline-indicator" style="display: none;">Working offline - some features limited</div>
+            <div id="sync-progress">Last sync: <span id="last-sync-time">Never</span></div>
+        </div>
+
+        <!-- Device List -->
+        <div class="device-list">
+            <h4>Synced Devices</h4>
+            <div class="device-item">
+                <span>Desktop Computer</span>
+                <div>
+                    <span class="sync-indicator synced"></span>
+                    <small>Synced 2 min ago</small>
+                </div>
+            </div>
+            <div class="device-item">
+                <span>Mobile Phone</span>
+                <div>
+                    <span class="sync-indicator pending"></span>
+                    <small>Sync pending</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mock Visualizer for Testing -->
+        <canvas id="visualizer" width="800" height="200"></canvas>
+    </div>
+
+    <!-- Include required dependencies -->
+    <script src="app-config.js"></script>
+    <script src="api-client.js"></script>
+    <script src="sync-manager.js"></script>
+    <script src="offline-manager.js"></script>
+    <script src="integration-sync-tests.js"></script>
+
+    <script>
+        class SyncTestRunner {
+            constructor() {
+                this.isRunning = false;
+                this.consoleOutput = [];
+                this.originalConsoleLog = console.log;
+                this.setupEventListeners();
+                this.setupMockSyncUI();
+            }
+
+            setupEventListeners() {
+                document.getElementById('run-tests').addEventListener('click', () => this.runTests());
+                document.getElementById('clear-results').addEventListener('click', () => this.clearResults());
+                document.getElementById('export-results').addEventListener('click', () => this.exportResults());
+            }
+
+            setupMockSyncUI() {
+                // Setup mock sync functionality
+                this.setupConnectivitySimulation();
+                this.setupSyncStatusUpdates();
+                this.setupDeviceSimulation();
+            }
+
+            setupConnectivitySimulation() {
+                // Simulate connectivity changes
+                const connectivityStatus = document.getElementById('connectivity-status');
+                const offlineIndicator = document.getElementById('offline-indicator');
+                
+                // Toggle connectivity for testing
+                let isOnline = true;
+                setInterval(() => {
+                    if (Math.random() < 0.1) { // 10% chance to toggle
+                        isOnline = !isOnline;
+                        
+                        if (isOnline) {
+                            connectivityStatus.textContent = 'Online';
+                            connectivityStatus.className = 'connectivity-indicator online';
+                            offlineIndicator.style.display = 'none';
+                            window.dispatchEvent(new Event('online'));
+                        } else {
+                            connectivityStatus.textContent = 'Offline';
+                            connectivityStatus.className = 'connectivity-indicator offline';
+                            offlineIndicator.style.display = 'block';
+                            window.dispatchEvent(new Event('offline'));
+                        }
+                    }
+                }, 5000);
+            }
+
+            setupSyncStatusUpdates() {
+                // Mock sync status updates
+                const lastSyncTime = document.getElementById('last-sync-time');
+                
+                setInterval(() => {
+                    const now = new Date();
+                    lastSyncTime.textContent = now.toLocaleTimeString();
+                }, 30000); // Update every 30 seconds
+            }
+
+            setupDeviceSimulation() {
+                // Mock multiple devices
+                const devices = [
+                    { name: 'Desktop Computer', status: 'synced' },
+                    { name: 'Mobile Phone', status: 'pending' },
+                    { name: 'Tablet', status: 'error' }
+                ];
+                
+                // Randomly update device sync status
+                setInterval(() => {
+                    const deviceItems = document.querySelectorAll('.device-item');
+                    deviceItems.forEach((item, index) => {
+                        const indicator = item.querySelector('.sync-indicator');
+                        const statusText = item.querySelector('small');
+                        
+                        const statuses = ['synced', 'pending', 'error'];
+                        const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                        
+                        indicator.className = `sync-indicator ${randomStatus}`;
+                        
+                        switch (randomStatus) {
+                            case 'synced':
+                                statusText.textContent = 'Synced just now';
+                                break;
+                            case 'pending':
+                                statusText.textContent = 'Sync pending';
+                                break;
+                            case 'error':
+                                statusText.textContent = 'Sync failed';
+                                break;
+                        }
+                    });
+                }, 10000);
+            }
+
+            async runTests() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.clearResults();
+                this.showStatus('Running sync integration tests...', 'running');
+                
+                // Capture console output
+                this.consoleOutput = [];
+                console.log = (...args) => {
+                    this.consoleOutput.push(args.join(' '));
+                    this.originalConsoleLog(...args);
+                    this.updateConsoleOutput();
+                };
+
+                try {
+                    const testSuite = new IntegrationSyncTests();
+                    await testSuite.runAllTests();
+                    
+                    this.displayResults(testSuite.testResults);
+                    this.showStatus('Sync integration tests completed!', 'passed');
+                } catch (error) {
+                    this.showStatus(`Sync tests failed: ${error.message}`, 'failed');
+                    console.error('Sync test execution error:', error);
+                } finally {
+                    // Restore console.log
+                    console.log = this.originalConsoleLog;
+                    this.isRunning = false;
+                    document.getElementById('run-tests').disabled = false;
+                }
+            }
+
+            showStatus(message, type) {
+                const statusEl = document.getElementById('test-status');
+                statusEl.textContent = message;
+                statusEl.className = `status ${type}`;
+                statusEl.style.display = 'block';
+                
+                document.getElementById('run-tests').disabled = this.isRunning;
+            }
+
+            displayResults(results) {
+                const passed = results.filter(r => r.status === 'PASSED').length;
+                const failed = results.filter(r => r.status === 'FAILED').length;
+                const total = results.length;
+                const successRate = ((passed / total) * 100).toFixed(1);
+
+                // Update progress bar
+                document.getElementById('progress-fill').style.width = `${successRate}%`;
+
+                // Show summary
+                const summaryEl = document.getElementById('test-summary');
+                summaryEl.innerHTML = `
+                    <h4>Sync Integration Test Summary</h4>
+                    <p><strong>Total Tests:</strong> ${total}</p>
+                    <p><strong>Passed:</strong> ${passed}</p>
+                    <p><strong>Failed:</strong> ${failed}</p>
+                    <p><strong>Success Rate:</strong> ${successRate}%</p>
+                `;
+                summaryEl.style.display = 'block';
+
+                // Show detailed results
+                const detailsEl = document.getElementById('test-details');
+                detailsEl.innerHTML = results.map(result => `
+                    <div class="test-item ${result.status.toLowerCase()}">
+                        <strong>${result.test}</strong>
+                        <span style="float: right;">${result.status}</span>
+                        ${result.error ? `<div class="error-details">${result.error}</div>` : ''}
+                    </div>
+                `).join('');
+
+                // Show console output
+                document.getElementById('console-output').style.display = 'block';
+            }
+
+            updateConsoleOutput() {
+                const consoleEl = document.getElementById('console-output');
+                consoleEl.innerHTML = this.consoleOutput.map(line => 
+                    `<div>${this.escapeHtml(line)}</div>`
+                ).join('');
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            }
+
+            clearResults() {
+                document.getElementById('test-summary').style.display = 'none';
+                document.getElementById('test-details').innerHTML = '';
+                document.getElementById('console-output').innerHTML = '';
+                document.getElementById('console-output').style.display = 'none';
+                document.getElementById('progress-fill').style.width = '0%';
+                document.getElementById('test-status').style.display = 'none';
+                this.consoleOutput = [];
+            }
+
+            exportResults() {
+                const results = localStorage.getItem('integration_sync_test_results');
+                if (!results) {
+                    alert('No test results to export. Run tests first.');
+                    return;
+                }
+
+                const blob = new Blob([results], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `integration-sync-test-results-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize test runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new SyncTestRunner();
+        });
+    </script>
+</body>
+</html>

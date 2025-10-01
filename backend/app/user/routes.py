@@ -30,6 +30,110 @@ def validate_password(password):
     return True, "Password is valid"
 
 
+@bp.route('/usage', methods=['GET'])
+@jwt_required(optional=True)
+def get_usage():
+    """Get user usage statistics"""
+    try:
+        current_user_id = get_jwt_identity()
+        
+        if current_user_id:
+            # Authenticated user
+            user = User.query.get(int(current_user_id))
+            if not user:
+                return jsonify({
+                    'error': {
+                        'code': 'USER_NOT_FOUND',
+                        'message': 'User not found'
+                    }
+                }), 404
+            
+            # Get user's plan and usage
+            plan = user.plan or 'free'
+            
+            # Calculate usage based on plan
+            if plan == 'free':
+                daily_limit = 3
+                monthly_limit = 10
+            elif plan == 'starter':
+                daily_limit = 50
+                monthly_limit = 50
+            elif plan == 'pro':
+                daily_limit = 500
+                monthly_limit = 500
+            else:
+                daily_limit = 3
+                monthly_limit = 10
+            
+            # Get actual usage (simplified for now)
+            today = datetime.utcnow().date()
+            daily_downloads = RenderJob.query.filter(
+                RenderJob.user_id == user.id,
+                RenderJob.created_at >= today,
+                RenderJob.status == 'completed'
+            ).count()
+            
+            # Calculate monthly usage
+            month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            monthly_downloads = RenderJob.query.filter(
+                RenderJob.user_id == user.id,
+                RenderJob.created_at >= month_start,
+                RenderJob.status == 'completed'
+            ).count()
+            
+            return jsonify({
+                'usage': {
+                    'plan_id': plan,
+                    'plan_name': plan.title(),
+                    'daily_downloads': daily_downloads,
+                    'daily_limit': daily_limit,
+                    'daily_remaining': max(0, daily_limit - daily_downloads),
+                    'monthly_downloads': monthly_downloads,
+                    'monthly_limit': monthly_limit,
+                    'monthly_remaining': max(0, monthly_limit - monthly_downloads),
+                    'downloads_used': daily_downloads,
+                    'downloads_limit': daily_limit,
+                    'remaining_downloads': max(0, daily_limit - daily_downloads),
+                    'is_at_limit': daily_downloads >= daily_limit,
+                    'is_near_limit': daily_downloads >= (daily_limit * 0.8),
+                    'needs_upgrade': daily_downloads >= daily_limit,
+                    'last_reset': today.isoformat(),
+                    'next_reset': (datetime.utcnow() + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+                }
+            })
+        else:
+            # Anonymous user - return free plan limits
+            return jsonify({
+                'usage': {
+                    'plan_id': 'free',
+                    'plan_name': 'Free',
+                    'daily_downloads': 0,
+                    'daily_limit': 3,
+                    'daily_remaining': 3,
+                    'monthly_downloads': 0,
+                    'monthly_limit': 10,
+                    'monthly_remaining': 10,
+                    'downloads_used': 0,
+                    'downloads_limit': 3,
+                    'remaining_downloads': 3,
+                    'is_at_limit': False,
+                    'is_near_limit': False,
+                    'needs_upgrade': False,
+                    'last_reset': datetime.utcnow().date().isoformat(),
+                    'next_reset': (datetime.utcnow() + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+                }
+            })
+            
+    except Exception as e:
+        logger.error(f"Error getting usage: {str(e)}")
+        return jsonify({
+            'error': {
+                'code': 'USAGE_ERROR',
+                'message': 'Failed to get usage information'
+            }
+        }), 500
+
+
 @bp.route('/profile', methods=['GET'])
 @jwt_required()
 def get_profile():
@@ -460,5 +564,134 @@ def verify_session():
             'error': {
                 'code': 'SESSION_VERIFICATION_FAILED',
                 'message': 'Failed to verify session'
+            }
+        }), 500
+
+
+@bp.route('/track-download', methods=['POST', 'OPTIONS'])
+@auth_rate_limit()
+@jwt_required()
+def track_download():
+    """Track a download and update usage"""
+    try:
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+        
+        if not user:
+            return jsonify({
+                'error': {
+                    'code': 'USER_NOT_FOUND',
+                    'message': 'User not found'
+                }
+            }), 404
+        
+        data = request.get_json() or {}
+        download_type = data.get('type', 'mp3')
+        metadata = data.get('metadata', {})
+        
+        # TODO: Implement actual download tracking logic
+        # For now, just return success
+        
+        return jsonify({
+            'success': True,
+            'message': 'Download tracked successfully',
+            'remaining_downloads': 9  # Placeholder
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error tracking download: {str(e)}")
+        return jsonify({
+            'error': {
+                'code': 'TRACKING_ERROR',
+                'message': 'Failed to track download'
+            }
+        }), 500
+
+
+@bp.route('/preferences', methods=['GET', 'POST', 'OPTIONS'])
+@auth_rate_limit()
+@jwt_required()
+def user_preferences():
+    """Get or update user preferences"""
+    try:
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+        
+        if not user:
+            return jsonify({
+                'error': {
+                    'code': 'USER_NOT_FOUND',
+                    'message': 'User not found'
+                }
+            }), 404
+        
+        if request.method == 'GET':
+            # Return user preferences
+            preferences = {
+                'theme': 'dark',
+                'notifications': True,
+                'auto_save': True,
+                'default_format': 'mp3'
+            }
+            return jsonify({'preferences': preferences}), 200
+        
+        elif request.method == 'POST':
+            # Update preferences
+            data = request.get_json() or {}
+            # TODO: Save preferences to database
+            return jsonify({
+                'success': True,
+                'message': 'Preferences updated successfully'
+            }), 200
+        
+    except Exception as e:
+        logger.error(f"Error with preferences: {str(e)}")
+        return jsonify({
+            'error': {
+                'code': 'PREFERENCES_ERROR',
+                'message': 'Failed to handle preferences'
+            }
+        }), 500
+
+
+@bp.route('/download-history', methods=['GET', 'OPTIONS'])
+@auth_rate_limit()
+@jwt_required()
+def download_history():
+    """Get user's download history"""
+    try:
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+        
+        if not user:
+            return jsonify({
+                'error': {
+                    'code': 'USER_NOT_FOUND',
+                    'message': 'User not found'
+                }
+            }), 404
+        
+        # TODO: Get actual download history from database
+        history = [
+            {
+                'id': 1,
+                'filename': 'visualization_001.mp3',
+                'format': 'mp3',
+                'created_at': datetime.utcnow().isoformat(),
+                'size': '2.5MB'
+            }
+        ]
+        
+        return jsonify({
+            'history': history,
+            'total': len(history)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting download history: {str(e)}")
+        return jsonify({
+            'error': {
+                'code': 'HISTORY_ERROR',
+                'message': 'Failed to get download history'
             }
         }), 500

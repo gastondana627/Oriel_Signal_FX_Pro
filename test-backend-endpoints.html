@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Endpoint Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Backend Endpoint Test</h1>
+    
+    <div>
+        <button onclick="testHealthEndpoint()">Test Health Endpoint</button>
+        <button onclick="testUsageEndpoint()">Test Usage Endpoint</button>
+        <button onclick="testCorsOptions()">Test CORS Options</button>
+        <button onclick="testAllEndpoints()">Test All Endpoints</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        function addResult(title, content, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `<h3>${title}</h3><pre>${content}</pre>`;
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function testHealthEndpoint() {
+            clearResults();
+            addResult('Testing Health Endpoint', 'Making request to /api/health...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('Health Endpoint - SUCCESS', 
+                        `Status: ${response.status}\n` +
+                        `Response: ${JSON.stringify(data, null, 2)}`, 
+                        'success'
+                    );
+                } else {
+                    addResult('Health Endpoint - ERROR', 
+                        `Status: ${response.status}\n` +
+                        `Response: ${JSON.stringify(data, null, 2)}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                addResult('Health Endpoint - NETWORK ERROR', 
+                    `Error: ${error.message}\n` +
+                    `This usually means the backend is not running or not accessible.`, 
+                    'error'
+                );
+            }
+        }
+        
+        async function testUsageEndpoint() {
+            addResult('Testing Usage Endpoint', 'Making request to /api/user/usage...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/user/usage`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('Usage Endpoint - SUCCESS', 
+                        `Status: ${response.status}\n` +
+                        `Response: ${JSON.stringify(data, null, 2)}`, 
+                        'success'
+                    );
+                } else {
+                    addResult('Usage Endpoint - ERROR', 
+                        `Status: ${response.status}\n` +
+                        `Response: ${JSON.stringify(data, null, 2)}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                addResult('Usage Endpoint - NETWORK ERROR', 
+                    `Error: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+        
+        async function testCorsOptions() {
+            addResult('Testing CORS Options', 'Making OPTIONS request to /api/user/usage...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/user/usage`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'GET',
+                        'Access-Control-Request-Headers': 'Content-Type, Authorization'
+                    }
+                });
+                
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+                    'Access-Control-Max-Age': response.headers.get('Access-Control-Max-Age')
+                };
+                
+                if (response.ok) {
+                    addResult('CORS Options - SUCCESS', 
+                        `Status: ${response.status}\n` +
+                        `CORS Headers: ${JSON.stringify(corsHeaders, null, 2)}`, 
+                        'success'
+                    );
+                } else {
+                    addResult('CORS Options - ERROR', 
+                        `Status: ${response.status}\n` +
+                        `CORS Headers: ${JSON.stringify(corsHeaders, null, 2)}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                addResult('CORS Options - NETWORK ERROR', 
+                    `Error: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+        
+        async function testAllEndpoints() {
+            clearResults();
+            await testHealthEndpoint();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testUsageEndpoint();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testCorsOptions();
+        }
+        
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            setTimeout(testAllEndpoints, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -10,7 +10,7 @@ class AuthManager {
         
         // User state
         this.user = null;
-        this.isAuthenticated = false;
+        this._isAuthenticated = false;
         this.token = null;
         this.refreshTimer = null;
         
@@ -38,7 +38,7 @@ class AuthManager {
                 
                 // Validate token before setting authenticated state
                 if (this.isTokenValid(storedToken)) {
-                    this.isAuthenticated = true;
+                    this._isAuthenticated = true;
                     this.apiClient.saveToken(storedToken);
                     this.notifyStateChange();
                 } else {
@@ -79,7 +79,7 @@ class AuthManager {
             clearInterval(this.refreshTimer);
         }
         
-        if (this.isAuthenticated && this.token) {
+        if (this._isAuthenticated && this.token) {
             try {
                 const payload = JSON.parse(atob(this.token.split('.')[1]));
                 const expirationTime = payload.exp * 1000; // Convert to milliseconds
@@ -114,7 +114,7 @@ class AuthManager {
                 // Store authentication data
                 this.token = token;
                 this.user = user;
-                this.isAuthenticated = true;
+                this._isAuthenticated = true;
                 
                 // Persist to localStorage
                 localStorage.setItem('oriel_jwt_token', token);
@@ -158,13 +158,23 @@ class AuthManager {
      */
     async register(email, password, additionalData = {}) {
         try {
+            const requestData = { 
+                email, 
+                password,
+                ...additionalData
+            };
+            
+            // DEBUG: Log what we're sending
+            console.log('🔍 AuthManager sending registration data:', {
+                email: email,
+                password: password ? `"${password}" [${password.length} chars]` : 'null',
+                endpoint: this.appConfig.config.endpoints.auth.register,
+                additionalData: additionalData
+            });
+            
             const response = await this.apiClient.post(
                 this.appConfig.config.endpoints.auth.register,
-                { 
-                    email, 
-                    password,
-                    ...additionalData
-                }
+                requestData
             );
 
             if (response.ok && response.data) {
@@ -174,7 +184,7 @@ class AuthManager {
                 if (token && user) {
                     this.token = token;
                     this.user = user;
-                    this.isAuthenticated = true;
+                    this._isAuthenticated = true;
                     
                     // Persist to localStorage
                     localStorage.setItem('oriel_jwt_token', token);
@@ -221,7 +231,7 @@ class AuthManager {
     async logout() {
         try {
             // Call backend logout endpoint if authenticated
-            if (this.isAuthenticated && this.token) {
+            if (this._isAuthenticated && this.token) {
                 await this.apiClient.post(this.appConfig.config.endpoints.auth.logout);
             }
         } catch (error) {
@@ -303,7 +313,7 @@ class AuthManager {
         
         // Clear state
         this.user = null;
-        this.isAuthenticated = false;
+        this._isAuthenticated = false;
         this.token = null;
         
         // Clear stored data
@@ -332,11 +342,18 @@ class AuthManager {
     }
 
     /**
+     * Check if user is authenticated (method version)
+     */
+    isAuthenticated() {
+        return this._isAuthenticated;
+    }
+
+    /**
      * Get current authentication status
      */
     getAuthStatus() {
         return {
-            isAuthenticated: this.isAuthenticated,
+            isAuthenticated: this._isAuthenticated,
             user: this.user,
             token: this.token
         };
@@ -346,7 +363,7 @@ class AuthManager {
      * Check if user has specific permission
      */
     hasPermission(permission) {
-        if (!this.isAuthenticated || !this.user) {
+        if (!this._isAuthenticated || !this.user) {
             return false;
         }
         
@@ -358,7 +375,7 @@ class AuthManager {
      * Get user's plan information
      */
     getUserPlan() {
-        if (!this.isAuthenticated || !this.user) {
+        if (!this._isAuthenticated || !this.user) {
             return this.appConfig.getPlan('free');
         }
         
@@ -462,7 +479,7 @@ class AuthManager {
      * Update user profile
      */
     async updateProfile(profileData) {
-        if (!this.isAuthenticated) {
+        if (!this._isAuthenticated) {
             return { success: false, error: 'Not authenticated' };
         }
         
@@ -501,16 +518,18 @@ class AuthManager {
      */
     static async initialize() {
         // Wait for dependencies to be available
-        if (!window.ApiClient || !window.appConfig || !window.notificationManager) {
+        if (!window.ApiClient || !window.appConfig || !window.notifications) {
             throw new Error('AuthManager dependencies not available');
         }
         
         const apiClient = new window.ApiClient(window.appConfig.getApiBaseUrl());
-        const authManager = new AuthManager(apiClient, window.appConfig, window.notificationManager);
+        const authManager = new AuthManager(apiClient, window.appConfig, window.notifications);
         
         return authManager;
     }
 }
 
-// Export for use in other modules
-window.AuthManager = AuthManager;
+// Export for use in other modules (prevent duplicates)
+if (!window.AuthManager) {
+    window.AuthManager = AuthManager;
+}

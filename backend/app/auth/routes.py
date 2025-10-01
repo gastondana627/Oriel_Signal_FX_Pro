@@ -84,10 +84,14 @@ def register():
                 }
             }), 409
         
-        # Create new user
+        # Create new user with default values for now
         user = User(
             email=email,
-            password_hash=generate_password_hash(password)
+            password_hash=generate_password_hash(password),
+            account_type='user',
+            playlists='creative',
+            marketing_consent=True,
+            plan='free'
         )
         
         db.session.add(user)

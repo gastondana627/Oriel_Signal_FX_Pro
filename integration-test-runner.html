@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oriel FX - Complete Integration Test Runner</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #8309D5;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #b0b0b0;
+            font-size: 1.1rem;
+        }
+        
+        .test-controls {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #8309D5, #a855f7);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #9333ea, #c084fc);
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn.secondary {
+            background: linear-gradient(45deg, #374151, #4b5563);
+        }
+        
+        .btn.secondary:hover {
+            background: linear-gradient(45deg, #4b5563, #6b7280);
+        }
+        
+        .status-panel {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 500;
+        }
+        
+        .status-value {
+            font-family: monospace;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-value.online {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .status-value.offline {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .console-output {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            border-radius: 10px;
+            height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .test-results {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        
+        .result-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-status {
+            width: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .result-name {
+            flex: 1;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        
+        .result-details {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #8309D5;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Complete Integration Test Runner</h1>
+            <p>Test the full SaaS integration between frontend and backend</p>
+        </div>
+        
+        <div class="test-controls">
+            <button id="run-tests-btn" class="btn">
+                <span id="run-btn-text">🚀 Run All Tests</span>
+                <span id="run-btn-loading" class="loading hidden">⟳</span>
+            </button>
+            <button id="export-results-btn" class="btn secondary" disabled>
+                📤 Export Results
+            </button>
+            <button id="clear-console-btn" class="btn secondary">
+                🗑️ Clear Console
+            </button>
+        </div>
+        
+        <div class="status-panel">
+            <h3>System Status</h3>
+            <div class="status-item">
+                <span class="status-label">Frontend URL:</span>
+                <span class="status-value" id="frontend-url">http://localhost:3000</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Backend URL:</span>
+                <span class="status-value" id="backend-url">http://localhost:8000</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Backend Status:</span>
+                <span class="status-value" id="backend-status">Checking...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">SaaS System:</span>
+                <span class="status-value" id="saas-status">Checking...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Last Test Run:</span>
+                <span class="status-value" id="last-test-run">Never</span>
+            </div>
+        </div>
+        
+        <div class="test-results hidden" id="test-results">
+            <h3>Test Results</h3>
+            <div class="summary-stats" id="summary-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-tests">0</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="passed-tests">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="failed-tests">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="success-rate">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+            <div id="detailed-results"></div>
+        </div>
+        
+        <div>
+            <h3>Console Output</h3>
+            <div id="console-output" class="console-output"></div>
+        </div>
+    </div>
+
+    <!-- Load the main application first -->
+    <script src="app-config.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="api-client.js"></script>
+    <script src="auth-manager.js"></script>
+    <script src="auth-ui.js"></script>
+    <script src="usage-tracker.js"></script>
+    <script src="payment-manager.js"></script>
+    <script src="payment-ui.js"></script>
+    <script src="payment-integration.js"></script>
+    <script src="dashboard-ui.js"></script>
+    <script src="preferences-manager.js"></script>
+    <script src="sync-manager.js"></script>
+    <script src="offline-manager.js"></script>
+    <script src="feature-manager.js"></script>
+    <script src="premium-recording.js"></script>
+    <script src="premium-customization.js"></script>
+    <script src="checkout-flow.js"></script>
+    <script src="analytics-manager.js"></script>
+    <script src="performance-monitor.js"></script>
+    <script src="error-monitor.js"></script>
+    <script src="monitoring-integration.js"></script>
+    <script src="saas-init.js"></script>
+    
+    <!-- Load the test suite -->
+    <script src="integration-test-complete.js"></script>
+    
+    <script>
+        // Test runner UI logic
+        class TestRunnerUI {
+            constructor() {
+                this.consoleOutput = document.getElementById('console-output');
+                this.runTestsBtn = document.getElementById('run-tests-btn');
+                this.runBtnText = document.getElementById('run-btn-text');
+                this.runBtnLoading = document.getElementById('run-btn-loading');
+                this.exportResultsBtn = document.getElementById('export-results-btn');
+                this.clearConsoleBtn = document.getElementById('clear-console-btn');
+                this.testResults = document.getElementById('test-results');
+                
+                this.setupEventListeners();
+                this.setupConsoleCapture();
+                this.checkSystemStatus();
+            }
+            
+            setupEventListeners() {
+                this.runTestsBtn.addEventListener('click', () => this.runTests());
+                this.exportResultsBtn.addEventListener('click', () => this.exportResults());
+                this.clearConsoleBtn.addEventListener('click', () => this.clearConsole());
+            }
+            
+            setupConsoleCapture() {
+                const originalLog = console.log;
+                const originalError = console.error;
+                const originalWarn = console.warn;
+                
+                console.log = (...args) => {
+                    originalLog.apply(console, args);
+                    this.appendToConsole(args.join(' '), 'log');
+                };
+                
+                console.error = (...args) => {
+                    originalError.apply(console, args);
+                    this.appendToConsole(args.join(' '), 'error');
+                };
+                
+                console.warn = (...args) => {
+                    originalWarn.apply(console, args);
+                    this.appendToConsole(args.join(' '), 'warn');
+                };
+            }
+            
+            appendToConsole(message, type = 'log') {
+                const timestamp = new Date().toLocaleTimeString();
+                const prefix = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '📝';
+                const line = `[${timestamp}] ${prefix} ${message}\n`;
+                
+                this.consoleOutput.textContent += line;
+                this.consoleOutput.scrollTop = this.consoleOutput.scrollHeight;
+            }
+            
+            clearConsole() {
+                this.consoleOutput.textContent = '';
+            }
+            
+            async checkSystemStatus() {
+                // Check backend status
+                try {
+                    const response = await fetch('http://localhost:8000/api/health');
+                    const backendStatus = document.getElementById('backend-status');
+                    if (response.ok) {
+                        backendStatus.textContent = 'Online';
+                        backendStatus.className = 'status-value online';
+                    } else {
+                        backendStatus.textContent = 'Error';
+                        backendStatus.className = 'status-value offline';
+                    }
+                } catch (error) {
+                    const backendStatus = document.getElementById('backend-status');
+                    backendStatus.textContent = 'Offline';
+                    backendStatus.className = 'status-value offline';
+                }
+                
+                // Check SaaS system status
+                const saasStatus = document.getElementById('saas-status');
+                if (window.saasInitializer) {
+                    const status = window.saasInitializer.getStatus();
+                    if (status.isInitialized) {
+                        saasStatus.textContent = 'Ready';
+                        saasStatus.className = 'status-value online';
+                    } else {
+                        saasStatus.textContent = 'Initializing';
+                        saasStatus.className = 'status-value';
+                    }
+                } else {
+                    saasStatus.textContent = 'Not Loaded';
+                    saasStatus.className = 'status-value offline';
+                }
+            }
+            
+            async runTests() {
+                this.setRunning(true);
+                this.clearConsole();
+                this.testResults.classList.add('hidden');
+                
+                try {
+                    await window.completeIntegrationTest.runAllTests();
+                    this.displayResults();
+                    this.exportResultsBtn.disabled = false;
+                    
+                    // Update last test run
+                    document.getElementById('last-test-run').textContent = new Date().toLocaleString();
+                    
+                } catch (error) {
+                    console.error('Test run failed:', error);
+                } finally {
+                    this.setRunning(false);
+                }
+            }
+            
+            setRunning(isRunning) {
+                this.runTestsBtn.disabled = isRunning;
+                if (isRunning) {
+                    this.runBtnText.classList.add('hidden');
+                    this.runBtnLoading.classList.remove('hidden');
+                } else {
+                    this.runBtnText.classList.remove('hidden');
+                    this.runBtnLoading.classList.add('hidden');
+                }
+            }
+            
+            displayResults() {
+                const results = window.integrationTestResults;
+                if (!results) return;
+                
+                // Update summary stats
+                document.getElementById('total-tests').textContent = results.summary.total;
+                document.getElementById('passed-tests').textContent = results.summary.passed;
+                document.getElementById('failed-tests').textContent = results.summary.failed;
+                document.getElementById('success-rate').textContent = results.summary.successRate + '%';
+                
+                // Display detailed results
+                const detailedResults = document.getElementById('detailed-results');
+                detailedResults.innerHTML = '';
+                
+                results.results.forEach(result => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    
+                    resultItem.innerHTML = `
+                        <div class="result-status">${result.passed ? '✅' : '❌'}</div>
+                        <div class="result-name">${result.name}</div>
+                        <div class="result-details">${result.details}</div>
+                    `;
+                    
+                    detailedResults.appendChild(resultItem);
+                });
+                
+                this.testResults.classList.remove('hidden');
+            }
+            
+            exportResults() {
+                if (window.completeIntegrationTest) {
+                    window.completeIntegrationTest.exportResults();
+                }
+            }
+        }
+        
+        // Initialize the test runner UI
+        document.addEventListener('DOMContentLoaded', () => {
+            window.testRunnerUI = new TestRunnerUI();
+        });
+    </script>
+</body>
+</html>

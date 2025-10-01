@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Auth Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #8309D5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #9a1ae6;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: rgba(34, 197, 94, 0.2); }
+        .error { background: rgba(239, 68, 68, 0.2); }
+        .warning { background: rgba(245, 158, 11, 0.2); }
+    </style>
+</head>
+<body>
+    <h1>🧪 Simple Authentication Test</h1>
+    
+    <div class="test-section">
+        <h2>System Status</h2>
+        <div id="system-status">Checking...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Authentication UI</h2>
+        <button onclick="testLoginModal()">Test Login Modal</button>
+        <button onclick="testRegisterModal()">Test Register Modal</button>
+        <button onclick="testNotifications()">Test Notifications</button>
+        <div id="auth-status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Console Output</h2>
+        <div id="console-output" style="background: #000; color: #0f0; padding: 10px; font-family: monospace; height: 200px; overflow-y: auto;"></div>
+    </div>
+
+    <!-- Load scripts in correct order -->
+    <script src="app-config.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="api-client.js"></script>
+    <script src="auth-manager.js"></script>
+    <script src="auth-ui.js"></script>
+    
+    <script>
+        // Capture console output
+        const consoleOutput = document.getElementById('console-output');
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        function addToConsole(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : '📝';
+            consoleOutput.innerHTML += `[${timestamp}] ${prefix} ${message}\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        console.log = (...args) => {
+            originalLog.apply(console, args);
+            addToConsole(args.join(' '), 'log');
+        };
+        
+        console.error = (...args) => {
+            originalError.apply(console, args);
+            addToConsole(args.join(' '), 'error');
+        };
+        
+        // Test functions
+        function updateSystemStatus() {
+            const statusDiv = document.getElementById('system-status');
+            let status = '';
+            
+            if (window.appConfig) {
+                status += '<div class="success">✅ AppConfig loaded</div>';
+            } else {
+                status += '<div class="error">❌ AppConfig missing</div>';
+            }
+            
+            if (window.notifications) {
+                status += '<div class="success">✅ NotificationManager loaded</div>';
+            } else {
+                status += '<div class="error">❌ NotificationManager missing</div>';
+            }
+            
+            if (window.ApiClient) {
+                status += '<div class="success">✅ ApiClient loaded</div>';
+            } else {
+                status += '<div class="error">❌ ApiClient missing</div>';
+            }
+            
+            if (window.AuthManager) {
+                status += '<div class="success">✅ AuthManager loaded</div>';
+            } else {
+                status += '<div class="error">❌ AuthManager missing</div>';
+            }
+            
+            if (window.AuthUI) {
+                status += '<div class="success">✅ AuthUI loaded</div>';
+            } else {
+                status += '<div class="error">❌ AuthUI missing</div>';
+            }
+            
+            statusDiv.innerHTML = status;
+        }
+        
+        function testLoginModal() {
+            const authStatus = document.getElementById('auth-status');
+            
+            if (window.AuthUI) {
+                try {
+                    // This would normally show the login modal
+                    authStatus.innerHTML = '<div class="success">✅ AuthUI available - Login modal would open</div>';
+                    console.log('Login modal test - AuthUI is available');
+                } catch (error) {
+                    authStatus.innerHTML = '<div class="error">❌ Error testing login: ' + error.message + '</div>';
+                    console.error('Login modal test failed:', error);
+                }
+            } else {
+                authStatus.innerHTML = '<div class="error">❌ AuthUI not available</div>';
+                console.error('AuthUI not loaded');
+            }
+        }
+        
+        function testRegisterModal() {
+            const authStatus = document.getElementById('auth-status');
+            
+            if (window.AuthUI) {
+                try {
+                    authStatus.innerHTML = '<div class="success">✅ AuthUI available - Register modal would open</div>';
+                    console.log('Register modal test - AuthUI is available');
+                } catch (error) {
+                    authStatus.innerHTML = '<div class="error">❌ Error testing register: ' + error.message + '</div>';
+                    console.error('Register modal test failed:', error);
+                }
+            } else {
+                authStatus.innerHTML = '<div class="error">❌ AuthUI not available</div>';
+                console.error('AuthUI not loaded');
+            }
+        }
+        
+        function testNotifications() {
+            if (window.notifications) {
+                try {
+                    window.notifications.show('Test notification!', 'success');
+                    console.log('Notification test successful');
+                } catch (error) {
+                    console.error('Notification test failed:', error);
+                }
+            } else {
+                console.error('Notifications not available');
+            }
+        }
+        
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Simple auth test page loaded');
+            updateSystemStatus();
+            
+            // Update status every 2 seconds to catch late-loading scripts
+            setInterval(updateSystemStatus, 2000);
+        });
+    </script>
+</body>
+</html>

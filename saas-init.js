@@ -31,6 +31,7 @@ class SaaSInitializer {
 
             // 1. Initialize API Client
             this.components.apiClient = new window.ApiClient(window.appConfig.getApiBaseUrl());
+            window.apiClient = this.components.apiClient; // Make available globally for monitoring
             console.log('✅ API Client initialized');
 
             // 2. Initialize Notification Manager (should already be initialized)
@@ -38,27 +39,41 @@ class SaaSInitializer {
             console.log('✅ Notification Manager ready');
 
             // 3. Initialize Auth Manager
-            this.components.authManager = new window.AuthManager(
-                this.components.apiClient,
-                window.appConfig,
-                this.components.notificationManager
-            );
-            await this.components.authManager.initialize();
+            this.components.authManager = await window.AuthManager.initialize();
             window.authManager = this.components.authManager;
             console.log('✅ Auth Manager initialized');
 
-            // 4. Initialize Usage Tracker
+            // 4. Initialize Sync Manager
+            this.components.syncManager = new window.SyncManager(
+                this.components.apiClient,
+                this.components.authManager
+            );
+            window.syncManager = this.components.syncManager;
+            console.log('✅ Sync Manager initialized');
+
+            // 5. Initialize Offline Manager
+            this.components.offlineManager = new window.OfflineManager(
+                this.components.apiClient,
+                this.components.authManager,
+                this.components.notificationManager,
+                this.components.syncManager
+            );
+            window.offlineManager = this.components.offlineManager;
+            console.log('✅ Offline Manager initialized');
+
+            // 6. Initialize Usage Tracker
             this.components.usageTracker = new window.UsageTracker(
                 this.components.apiClient,
                 window.appConfig,
                 this.components.authManager,
-                this.components.notificationManager
+                this.components.notificationManager,
+                this.components.offlineManager
             );
             await this.components.usageTracker.initializeUsage();
             window.usageTracker = this.components.usageTracker;
             console.log('✅ Usage Tracker initialized');
 
-            // 5. Initialize Payment Manager
+            // 7. Initialize Payment Manager
             this.components.paymentManager = new window.PaymentManager(
                 this.components.apiClient,
                 window.appConfig,
@@ -69,7 +84,7 @@ class SaaSInitializer {
             window.paymentManager = this.components.paymentManager;
             console.log('✅ Payment Manager initialized');
 
-            // 6. Initialize Payment UI
+            // 8. Initialize Payment UI
             this.components.paymentUI = new window.PaymentUI(
                 this.components.paymentManager,
                 this.components.authManager,
@@ -78,7 +93,7 @@ class SaaSInitializer {
             window.paymentUI = this.components.paymentUI;
             console.log('✅ Payment UI initialized');
 
-            // 7. Initialize Auth UI (should already be initialized)
+            // 9. Initialize Auth UI (should already be initialized)
             if (window.AuthUI && !window.authUI) {
                 this.components.authUI = new window.AuthUI(
                     this.components.authManager,
@@ -88,16 +103,17 @@ class SaaSInitializer {
                 console.log('✅ Auth UI initialized');
             }
 
-            // 8. Initialize Preferences Manager
+            // 10. Initialize Preferences Manager
             this.components.preferencesManager = new window.PreferencesManager(
                 this.components.apiClient,
                 this.components.authManager,
-                this.components.notificationManager
+                this.components.notificationManager,
+                this.components.syncManager
             );
             window.preferencesManager = this.components.preferencesManager;
             console.log('✅ Preferences Manager initialized');
 
-            // 9. Initialize Dashboard UI
+            // 11. Initialize Dashboard UI
             this.components.dashboardUI = new window.DashboardUI(
                 this.components.authManager,
                 this.components.apiClient,
@@ -108,7 +124,7 @@ class SaaSInitializer {
             window.dashboardUI = this.components.dashboardUI;
             console.log('✅ Dashboard UI initialized');
 
-            // 10. Initialize Payment Integration
+            // 12. Initialize Payment Integration
             this.components.paymentIntegration = new window.PaymentIntegration(
                 this.components.paymentManager,
                 this.components.usageTracker,
@@ -118,13 +134,23 @@ class SaaSInitializer {
             window.paymentIntegration = this.components.paymentIntegration;
             console.log('✅ Payment Integration initialized');
 
-            // 11. Set up global event handlers
+            // 13. Set up global event handlers
             this.setupGlobalEventHandlers();
             console.log('✅ Global event handlers set up');
 
             // 12. Update UI based on initial state
             this.updateInitialUI();
             console.log('✅ Initial UI updated');
+
+            // 14. Initialize Monitoring Integration (after all dependencies are ready)
+            if (window.MonitoringIntegration) {
+                try {
+                    window.monitoringIntegration = new window.MonitoringIntegration();
+                    console.log('✅ Monitoring Integration initialized');
+                } catch (error) {
+                    console.warn('⚠️ Monitoring Integration failed to initialize:', error.message);
+                }
+            }
 
             this.isInitialized = true;
             console.log('🎉 SaaS initialization completed successfully!');
@@ -210,11 +236,11 @@ class SaaSInitializer {
             }
 
             // Proceed with existing download logic
-            // This would typically call the existing download function
-            if (window.handleDownload) {
-                await window.handleDownload();
+            // Call the main download function from script.js
+            if (window.downloadAudioFile) {
+                await window.downloadAudioFile();
             } else {
-                console.warn('Download handler not found');
+                console.warn('Download handler not found - downloadAudioFile function missing');
             }
 
         } catch (error) {

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 400px;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background: #2a2a3e;
+            color: white;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px 24px;
+            background: #8309D5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .result {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        .success { background: rgba(34, 197, 94, 0.2); }
+        .error { background: rgba(239, 68, 68, 0.2); }
+        .info { background: rgba(59, 130, 246, 0.2); }
+        .debug { background: rgba(156, 163, 175, 0.2); }
+    </style>
+</head>
+<body>
+    <h1>🐛 Debug Registration</h1>
+    
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" value="gastondana627@gmail.com" placeholder="Enter email">
+    </div>
+    
+    <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" value="TestPassword123!" placeholder="Enter password">
+    </div>
+    
+    <button onclick="debugRegistration()">Debug Registration</button>
+    <button onclick="testEmailValidation()">Test Email Validation</button>
+    <button onclick="testPasswordValidation()">Test Password Validation</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.textContent = message;
+            resultsDiv.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function debugRegistration() {
+            clearResults();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            addResult('🔍 Starting registration debug...', 'info');
+            addResult(`Email: "${email}"`, 'debug');
+            addResult(`Password: "${password}"`, 'debug');
+            addResult(`Email length: ${email.length}`, 'debug');
+            addResult(`Password length: ${password.length}`, 'debug');
+            
+            // Test email format
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            const emailValid = emailRegex.test(email);
+            addResult(`Frontend email validation: ${emailValid ? 'PASS' : 'FAIL'}`, emailValid ? 'success' : 'error');
+            
+            // Test password format
+            const passwordValid = password.length >= 8 && /[A-Za-z]/.test(password) && /\d/.test(password);
+            addResult(`Frontend password validation: ${passwordValid ? 'PASS' : 'FAIL'}`, passwordValid ? 'success' : 'error');
+            
+            // Prepare request data
+            const requestData = {
+                email: email,
+                password: password
+            };
+            
+            addResult(`Request data: ${JSON.stringify(requestData, null, 2)}`, 'debug');
+            
+            try {
+                addResult('📤 Sending registration request...', 'info');
+                
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                addResult(`Response status: ${response.status} ${response.statusText}`, 'debug');
+                addResult(`Response headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}`, 'debug');
+                
+                const responseData = await response.json();
+                addResult(`Response data: ${JSON.stringify(responseData, null, 2)}`, 'debug');
+                
+                if (response.ok) {
+                    addResult('✅ Registration successful!', 'success');
+                    addResult(`User created: ${JSON.stringify(responseData.user, null, 2)}`, 'success');
+                } else {
+                    addResult(`❌ Registration failed: ${response.status}`, 'error');
+                    addResult(`Error details: ${JSON.stringify(responseData.error, null, 2)}`, 'error');
+                    
+                    // Specific error analysis
+                    if (responseData.error) {
+                        const error = responseData.error;
+                        addResult(`Error code: ${error.code}`, 'error');
+                        addResult(`Error message: ${error.message}`, 'error');
+                        
+                        if (error.code === 'INVALID_EMAIL') {
+                            addResult('🔍 Email validation failed on backend', 'error');
+                        } else if (error.code === 'WEAK_PASSWORD') {
+                            addResult('🔍 Password validation failed on backend', 'error');
+                        } else if (error.code === 'MISSING_FIELDS') {
+                            addResult('🔍 Required fields missing', 'error');
+                        }
+                    }
+                }
+            } catch (error) {
+                addResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testEmailValidation() {
+            const email = document.getElementById('email').value;
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            
+            addResult('🧪 Testing email validation...', 'info');
+            addResult(`Email: "${email}"`, 'debug');
+            addResult(`Regex: ${emailRegex}`, 'debug');
+            addResult(`Result: ${emailRegex.test(email) ? 'VALID' : 'INVALID'}`, emailRegex.test(email) ? 'success' : 'error');
+            
+            // Test individual parts
+            const parts = email.split('@');
+            if (parts.length === 2) {
+                addResult(`Local part: "${parts[0]}"`, 'debug');
+                addResult(`Domain part: "${parts[1]}"`, 'debug');
+                
+                const domainParts = parts[1].split('.');
+                addResult(`Domain parts: ${JSON.stringify(domainParts)}`, 'debug');
+                addResult(`TLD: "${domainParts[domainParts.length - 1]}"`, 'debug');
+                addResult(`TLD length: ${domainParts[domainParts.length - 1].length}`, 'debug');
+            }
+        }
+        
+        function testPasswordValidation() {
+            const password = document.getElementById('password').value;
+            
+            addResult('🧪 Testing password validation...', 'info');
+            addResult(`Password: "${password}"`, 'debug');
+            addResult(`Length: ${password.length} (min 8)`, password.length >= 8 ? 'success' : 'error');
+            addResult(`Has letter: ${/[A-Za-z]/.test(password)}`, /[A-Za-z]/.test(password) ? 'success' : 'error');
+            addResult(`Has number: ${/\d/.test(password)}`, /\d/.test(password) ? 'success' : 'error');
+            
+            const overall = password.length >= 8 && /[A-Za-z]/.test(password) && /\d/.test(password);
+            addResult(`Overall valid: ${overall}`, overall ? 'success' : 'error');
+        }
+    </script>
+</body>
+</html>

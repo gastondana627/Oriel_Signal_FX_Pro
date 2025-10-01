@@ -6,6 +6,7 @@ class User(db.Model):
     __table_args__ = (
         db.Index('idx_user_email_active', 'email', 'is_active'),
         db.Index('idx_user_created_at', 'created_at'),
+        db.Index('idx_user_account_type', 'account_type'),
     )
     
     id = db.Column(db.Integer, primary_key=True)
@@ -13,6 +14,12 @@ class User(db.Model):
     password_hash = db.Column(db.String(128))
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     is_active = db.Column(db.Boolean, default=True, index=True)
+    
+    # Enhanced fields for your vision
+    account_type = db.Column(db.String(20), default='user', index=True)  # user, training, admin
+    playlists = db.Column(db.Text)  # Comma-separated playlist preferences
+    marketing_consent = db.Column(db.Boolean, default=False)
+    plan = db.Column(db.String(20), default='free')  # free, starter, pro
     
     def __repr__(self):
         return f'<User {self.email}>'

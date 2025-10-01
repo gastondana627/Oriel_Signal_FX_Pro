@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success { background: rgba(34, 197, 94, 0.2); }
+        .error { background: rgba(239, 68, 68, 0.2); }
+        .info { background: rgba(59, 130, 246, 0.2); }
+        button {
+            padding: 10px 20px;
+            background: #8309D5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        pre {
+            background: #2a2a3e;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 CORS Fix Test</h1>
+    <p>Current origin: <strong id="current-origin"></strong></p>
+    
+    <button onclick="testCorsOptions()">Test CORS OPTIONS</button>
+    <button onclick="testRegistration()">Test Registration</button>
+    <button onclick="testUsage()">Test Usage Endpoint</button>
+    <button onclick="runAllTests()">Run All Tests</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        // Show current origin
+        document.getElementById('current-origin').textContent = window.location.origin;
+        
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            resultsDiv.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function testCorsOptions() {
+            addResult('🔍 Testing CORS OPTIONS request...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers': 'Content-Type, Authorization'
+                    }
+                });
+                
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+                    'Access-Control-Max-Age': response.headers.get('Access-Control-Max-Age')
+                };
+                
+                if (response.ok) {
+                    addResult(`✅ CORS OPTIONS Success (${response.status})<pre>${JSON.stringify(corsHeaders, null, 2)}</pre>`, 'success');
+                } else {
+                    addResult(`❌ CORS OPTIONS Failed (${response.status})<pre>${JSON.stringify(corsHeaders, null, 2)}</pre>`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ CORS OPTIONS Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testRegistration() {
+            addResult('🔍 Testing Registration API call...', 'info');
+            
+            const testEmail = `test${Date.now()}@example.com`;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify({
+                        email: testEmail,
+                        password: 'TestPassword123!'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Registration Success (${response.status})<pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                } else {
+                    addResult(`❌ Registration Failed (${response.status})<pre>${JSON.stringify(data, null, 2)}</pre>`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Registration Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testUsage() {
+            addResult('🔍 Testing Usage API call...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/user/usage`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Usage Success (${response.status})<pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+                } else {
+                    addResult(`❌ Usage Failed (${response.status})<pre>${JSON.stringify(data, null, 2)}</pre>`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Usage Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function runAllTests() {
+            clearResults();
+            addResult(`🚀 Running all tests from origin: ${window.location.origin}`, 'info');
+            
+            await testCorsOptions();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testUsage();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testRegistration();
+            
+            addResult('🎉 All tests completed!', 'info');
+        }
+        
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -3,11 +3,12 @@
  * Handles download tracking, limit checking, and usage statistics
  */
 class UsageTracker {
-    constructor(apiClient, appConfig, authManager, notificationManager) {
+    constructor(apiClient, appConfig, authManager, notificationManager, offlineManager = null) {
         this.apiClient = apiClient;
         this.appConfig = appConfig;
         this.authManager = authManager;
         this.notificationManager = notificationManager;
+        this.offlineManager = offlineManager;
         
         // Usage state
         this.usage = {
@@ -143,6 +144,11 @@ class UsageTracker {
      * Check if user can download
      */
     canUserDownload() {
+        // Use offline data if available and in offline mode
+        if (this.offlineManager && this.offlineManager.isOfflineMode) {
+            return this.canDownloadOffline();
+        }
+        
         const plan = this.getUserPlan();
         
         // Check daily limits
@@ -184,6 +190,27 @@ class UsageTracker {
         }
         
         return { allowed: true };
+    }
+
+    /**
+     * Check if user can download in offline mode
+     */
+    canDownloadOffline() {
+        if (!this.offlineManager) {
+            return { allowed: false, reason: 'offline_unavailable', message: 'Downloads not available offline' };
+        }
+        
+        const canDownload = this.offlineManager.canDownloadOffline();
+        
+        if (!canDownload) {
+            return {
+                allowed: false,
+                reason: 'offline_limit',
+                message: 'Offline download limit reached. Connect to internet for more downloads!'
+            };
+        }
+        
+        return { allowed: true, offline: true };
     }
 
     /**
@@ -238,7 +265,7 @@ class UsageTracker {
     }
 
     /**
-     * Track download on backend
+     * Track download on backend with offline support
      */
     async trackDownloadOnBackend(downloadData) {
         try {
@@ -260,8 +287,23 @@ class UsageTracker {
             }
         } catch (error) {
             console.error('Failed to track download on backend:', error);
-            // Continue with local tracking as fallback
+            
+            // Handle offline tracking
+            this.handleOfflineDownloadTracking(downloadData);
             throw error;
+        }
+    }
+
+    /**
+     * Handle download tracking when offline or backend unavailable
+     */
+    handleOfflineDownloadTracking(downloadData) {
+        // Track locally first
+        this.trackDownloadLocally(downloadData);
+        
+        // Queue for sync when online if offline manager available
+        if (this.offlineManager) {
+            this.offlineManager.queueOfflineAction('trackDownload', downloadData, 'high');
         }
     }
 

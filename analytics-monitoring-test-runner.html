@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics and Monitoring Tests</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .controls {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .status {
+            margin-left: auto;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.ready {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.running {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status.passed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.failed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .results {
+            padding: 20px;
+        }
+        .test-suite {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .test-suite-header {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-suite-header:hover {
+            background-color: #e9ecef;
+        }
+        .test-suite-content {
+            display: none;
+            padding: 15px;
+        }
+        .test-suite-content.expanded {
+            display: block;
+        }
+        .test-case {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-case:last-child {
+            border-bottom: none;
+        }
+        .test-name {
+            flex: 1;
+        }
+        .test-status {
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .test-status.passed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .test-status.failed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .test-status.skipped {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .summary-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            display: block;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .error-details {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #007bff;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        .console-output {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Analytics and Monitoring Unit Tests</h1>
+            <p>Comprehensive tests for analytics event tracking, error logging, and performance monitoring</p>
+        </div>
+        
+        <div class="controls">
+            <button id="runAllTests" class="btn btn-primary">Run All Tests</button>
+            <button id="runAnalyticsTests" class="btn btn-secondary">Analytics Only</button>
+            <button id="runErrorTests" class="btn btn-secondary">Error Monitor Only</button>
+            <button id="runPerformanceTests" class="btn btn-secondary">Performance Only</button>
+            <button id="runIntegrationTests" class="btn btn-secondary">Integration Only</button>
+            <button id="clearResults" class="btn btn-danger">Clear Results</button>
+            <div class="status ready" id="testStatus">Ready</div>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="summary" id="summary" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="summary-stats">
+                    <div class="stat">
+                        <span class="stat-number" id="totalTests">0</span>
+                        <span class="stat-label">Total</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="passedTests" style="color: #28a745;">0</span>
+                        <span class="stat-label">Passed</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="failedTests" style="color: #dc3545;">0</span>
+                        <span class="stat-label">Failed</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="skippedTests" style="color: #ffc107;">0</span>
+                        <span class="stat-label">Skipped</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="testDuration">0ms</span>
+                        <span class="stat-label">Duration</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="testSuites"></div>
+            
+            <div id="consoleOutput" style="display: none;">
+                <h3>Console Output</h3>
+                <div class="console-output" id="console"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mock Jest Framework -->
+    <script>
+        // Simple Jest-like testing framework for browser
+        class TestFramework {
+            constructor() {
+                this.suites = [];
+                this.currentSuite = null;
+                this.results = {
+                    total: 0,
+                    passed: 0,
+                    failed: 0,
+                    skipped: 0,
+                    duration: 0
+                };
+                this.consoleOutput = [];
+                this.startTime = 0;
+            }
+
+            describe(name, fn) {
+                const suite = {
+                    name: name,
+                    tests: [],
+                    beforeEach: null,
+                    afterEach: null
+                };
+                this.suites.push(suite);
+                this.currentSuite = suite;
+                fn();
+                this.currentSuite = null;
+            }
+
+            test(name, fn) {
+                if (!this.currentSuite) return;
+                this.currentSuite.tests.push({
+                    name: name,
+                    fn: fn,
+                    status: 'pending',
+                    error: null,
+                    duration: 0
+                });
+            }
+
+            beforeEach(fn) {
+                if (this.currentSuite) {
+                    this.currentSuite.beforeEach = fn;
+                }
+            }
+
+            afterEach(fn) {
+                if (this.currentSuite) {
+                    this.currentSuite.afterEach = fn;
+                }
+            }
+
+            expect(actual) {
+                return {
+                    toBe: (expected) => {
+                        if (actual !== expected) {
+                            throw new Error(`Expected ${actual} to be ${expected}`);
+                        }
+                    },
+                    toEqual: (expected) => {
+                        if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+                            throw new Error(`Expected ${JSON.stringify(actual)} to equal ${JSON.stringify(expected)}`);
+                        }
+                    },
+                    toMatch: (pattern) => {
+                        if (!pattern.test(actual)) {
+                            throw new Error(`Expected ${actual} to match ${pattern}`);
+                        }
+                    },
+                    toHaveLength: (length) => {
+                        if (actual.length !== length) {
+                            throw new Error(`Expected length ${actual.length} to be ${length}`);
+                        }
+                    },
+                    toBeGreaterThan: (value) => {
+                        if (actual <= value) {
+                            throw new Error(`Expected ${actual} to be greater than ${value}`);
+                        }
+                    },
+                    toBeNull: () => {
+                        if (actual !== null) {
+                            throw new Error(`Expected ${actual} to be null`);
+                        }
+                    },
+                    toBeUndefined: () => {
+                        if (actual !== undefined) {
+                            throw new Error(`Expected ${actual} to be undefined`);
+                        }
+                    },
+                    toBeDefined: () => {
+                        if (actual === undefined) {
+                            throw new Error(`Expected ${actual} to be defined`);
+                        }
+                    },
+                    toContain: (item) => {
+                        if (!actual.includes(item)) {
+                            throw new Error(`Expected ${actual} to contain ${item}`);
+                        }
+                    },
+                    toHaveBeenCalled: () => {
+                        if (!actual.mock || actual.mock.calls.length === 0) {
+                            throw new Error(`Expected function to have been called`);
+                        }
+                    },
+                    toHaveBeenCalledWith: (...args) => {
+                        if (!actual.mock || !actual.mock.calls.some(call => 
+                            JSON.stringify(call) === JSON.stringify(args))) {
+                            throw new Error(`Expected function to have been called with ${JSON.stringify(args)}`);
+                        }
+                    },
+                    toHaveBeenCalledTimes: (times) => {
+                        if (!actual.mock || actual.mock.calls.length !== times) {
+                            throw new Error(`Expected function to have been called ${times} times, but was called ${actual.mock ? actual.mock.calls.length : 0} times`);
+                        }
+                    }
+                };
+            }
+
+            jest = {
+                fn: (implementation) => {
+                    const mockFn = implementation || (() => {});
+                    mockFn.mock = {
+                        calls: [],
+                        results: []
+                    };
+                    
+                    const wrappedFn = (...args) => {
+                        mockFn.mock.calls.push(args);
+                        try {
+                            const result = mockFn(...args);
+                            mockFn.mock.results.push({ type: 'return', value: result });
+                            return result;
+                        } catch (error) {
+                            mockFn.mock.results.push({ type: 'throw', value: error });
+                            throw error;
+                        }
+                    };
+                    
+                    wrappedFn.mock = mockFn.mock;
+                    wrappedFn.mockReturnValue = (value) => {
+                        mockFn.mockImplementation = () => value;
+                        return wrappedFn;
+                    };
+                    wrappedFn.mockResolvedValue = (value) => {
+                        mockFn.mockImplementation = () => Promise.resolve(value);
+                        return wrappedFn;
+                    };
+                    wrappedFn.mockRejectedValue = (value) => {
+                        mockFn.mockImplementation = () => Promise.reject(value);
+                        return wrappedFn;
+                    };
+                    wrappedFn.mockImplementation = (impl) => {
+                        mockFn.mockImplementation = impl;
+                        return wrappedFn;
+                    };
+                    
+                    return wrappedFn;
+                },
+                clearAllMocks: () => {
+                    // Reset all mocks
+                }
+            };
+
+            async runTests(suiteFilter = null) {
+                this.startTime = performance.now();
+                this.results = { total: 0, passed: 0, failed: 0, skipped: 0, duration: 0 };
+                this.consoleOutput = [];
+                
+                const suitesToRun = suiteFilter ? 
+                    this.suites.filter(suite => suite.name.includes(suiteFilter)) : 
+                    this.suites;
+
+                for (const suite of suitesToRun) {
+                    await this.runSuite(suite);
+                }
+
+                this.results.duration = performance.now() - this.startTime;
+                this.updateUI();
+            }
+
+            async runSuite(suite) {
+                for (const test of suite.tests) {
+                    this.results.total++;
+                    
+                    try {
+                        if (suite.beforeEach) {
+                            await suite.beforeEach();
+                        }
+                        
+                        const testStart = performance.now();
+                        await test.fn();
+                        test.duration = performance.now() - testStart;
+                        test.status = 'passed';
+                        this.results.passed++;
+                        
+                        if (suite.afterEach) {
+                            await suite.afterEach();
+                        }
+                    } catch (error) {
+                        test.status = 'failed';
+                        test.error = error.message;
+                        this.results.failed++;
+                        this.consoleOutput.push(`FAIL: ${suite.name} > ${test.name}\n${error.message}\n${error.stack || ''}`);
+                    }
+                }
+            }
+
+            updateUI() {
+                const summary = document.getElementById('summary');
+                const progressFill = document.getElementById('progressFill');
+                const testStatus = document.getElementById('testStatus');
+                
+                // Update summary
+                summary.style.display = 'block';
+                document.getElementById('totalTests').textContent = this.results.total;
+                document.getElementById('passedTests').textContent = this.results.passed;
+                document.getElementById('failedTests').textContent = this.results.failed;
+                document.getElementById('skippedTests').textContent = this.results.skipped;
+                document.getElementById('testDuration').textContent = Math.round(this.results.duration) + 'ms';
+                
+                // Update progress bar
+                const progress = this.results.total > 0 ? 
+                    ((this.results.passed + this.results.failed) / this.results.total) * 100 : 0;
+                progressFill.style.width = progress + '%';
+                
+                // Update status
+                if (this.results.failed > 0) {
+                    testStatus.textContent = 'Failed';
+                    testStatus.className = 'status failed';
+                    progressFill.style.backgroundColor = '#dc3545';
+                } else if (this.results.passed > 0) {
+                    testStatus.textContent = 'Passed';
+                    testStatus.className = 'status passed';
+                    progressFill.style.backgroundColor = '#28a745';
+                } else {
+                    testStatus.textContent = 'Ready';
+                    testStatus.className = 'status ready';
+                }
+                
+                // Update test suites display
+                this.displayTestSuites();
+                
+                // Show console output if there are failures
+                if (this.results.failed > 0) {
+                    document.getElementById('consoleOutput').style.display = 'block';
+                    document.getElementById('console').textContent = this.consoleOutput.join('\n\n');
+                }
+            }
+
+            displayTestSuites() {
+                const container = document.getElementById('testSuites');
+                container.innerHTML = '';
+                
+                for (const suite of this.suites) {
+                    const suiteDiv = document.createElement('div');
+                    suiteDiv.className = 'test-suite';
+                    
+                    const passed = suite.tests.filter(t => t.status === 'passed').length;
+                    const failed = suite.tests.filter(t => t.status === 'failed').length;
+                    const total = suite.tests.length;
+                    
+                    suiteDiv.innerHTML = `
+                        <div class="test-suite-header" onclick="toggleSuite(this)">
+                            <span>${suite.name}</span>
+                            <span>${passed}/${total} passed</span>
+                        </div>
+                        <div class="test-suite-content">
+                            ${suite.tests.map(test => `
+                                <div class="test-case">
+                                    <div class="test-name">${test.name}</div>
+                                    <div class="test-status ${test.status}">${test.status}</div>
+                                </div>
+                                ${test.error ? `<div class="error-details">${test.error}</div>` : ''}
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                    container.appendChild(suiteDiv);
+                }
+            }
+        }
+
+        // Initialize test framework
+        const testFramework = new TestFramework();
+        
+        // Make global functions available
+        window.describe = testFramework.describe.bind(testFramework);
+        window.test = testFramework.test.bind(testFramework);
+        window.beforeEach = testFramework.beforeEach.bind(testFramework);
+        window.afterEach = testFramework.afterEach.bind(testFramework);
+        window.expect = testFramework.expect.bind(testFramework);
+        window.jest = testFramework.jest;
+
+        // UI Functions
+        function toggleSuite(header) {
+            const content = header.nextElementSibling;
+            content.classList.toggle('expanded');
+        }
+
+        // Event Listeners
+        document.getElementById('runAllTests').addEventListener('click', () => {
+            document.getElementById('testStatus').textContent = 'Running...';
+            document.getElementById('testStatus').className = 'status running';
+            testFramework.runTests();
+        });
+
+        document.getElementById('runAnalyticsTests').addEventListener('click', () => {
+            document.getElementById('testStatus').textContent = 'Running...';
+            document.getElementById('testStatus').className = 'status running';
+            testFramework.runTests('AnalyticsManager');
+        });
+
+        document.getElementById('runErrorTests').addEventListener('click', () => {
+            document.getElementById('testStatus').textContent = 'Running...';
+            document.getElementById('testStatus').className = 'status running';
+            testFramework.runTests('ErrorMonitor');
+        });
+
+        document.getElementById('runPerformanceTests').addEventListener('click', () => {
+            document.getElementById('testStatus').textContent = 'Running...';
+            document.getElementById('testStatus').className = 'status running';
+            testFramework.runTests('PerformanceMonitor');
+        });
+
+        document.getElementById('runIntegrationTests').addEventListener('click', () => {
+            document.getElementById('testStatus').textContent = 'Running...';
+            document.getElementById('testStatus').className = 'status running';
+            testFramework.runTests('Integration');
+        });
+
+        document.getElementById('clearResults').addEventListener('click', () => {
+            document.getElementById('summary').style.display = 'none';
+            document.getElementById('testSuites').innerHTML = '';
+            document.getElementById('consoleOutput').style.display = 'none';
+            document.getElementById('testStatus').textContent = 'Ready';
+            document.getElementById('testStatus').className = 'status ready';
+        });
+    </script>
+
+    <!-- Load the test file -->
+    <script src="analytics-monitoring-tests.js"></script>
+</body>
+</html>

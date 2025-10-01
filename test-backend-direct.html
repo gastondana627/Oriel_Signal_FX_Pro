@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: rgba(34, 197, 94, 0.2); }
+        .error { background: rgba(239, 68, 68, 0.2); }
+        button {
+            padding: 10px 20px;
+            background: #8309D5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔗 Backend Connection Test</h1>
+    
+    <button onclick="testHealth()">Test Health Endpoint</button>
+    <button onclick="testRegister()">Test Registration</button>
+    <button onclick="testCORS()">Test CORS</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const backendUrl = 'http://localhost:8000';
+        const resultsDiv = document.getElementById('results');
+        
+        function addResult(test, success, message) {
+            const div = document.createElement('div');
+            div.className = `test-result ${success ? 'success' : 'error'}`;
+            div.innerHTML = `<strong>${test}:</strong> ${success ? '✅' : '❌'} ${message}`;
+            resultsDiv.appendChild(div);
+        }
+        
+        async function testHealth() {
+            try {
+                const response = await fetch(`${backendUrl}/api/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('Health Check', true, `Backend is healthy: ${JSON.stringify(data)}`);
+                } else {
+                    addResult('Health Check', false, `HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                addResult('Health Check', false, `Connection failed: ${error.message}`);
+            }
+        }
+        
+        async function testRegister() {
+            try {
+                const testEmail = `test${Date.now()}@example.com`;
+                const response = await fetch(`${backendUrl}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: testEmail,
+                        password: 'TestPassword123!'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('Registration Test', true, `Registration successful: ${JSON.stringify(data)}`);
+                } else {
+                    addResult('Registration Test', false, `HTTP ${response.status}: ${JSON.stringify(data)}`);
+                }
+            } catch (error) {
+                addResult('Registration Test', false, `Registration failed: ${error.message}`);
+            }
+        }
+        
+        async function testCORS() {
+            try {
+                const response = await fetch(`${backendUrl}/api/health`, {
+                    method: 'OPTIONS'
+                });
+                
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers')
+                };
+                
+                addResult('CORS Test', true, `CORS headers: ${JSON.stringify(corsHeaders)}`);
+            } catch (error) {
+                addResult('CORS Test', false, `CORS test failed: ${error.message}`);
+            }
+        }
+        
+        // Auto-run health check on load
+        window.addEventListener('load', testHealth);
+    </script>
+</body>
+</html>

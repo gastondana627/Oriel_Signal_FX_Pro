@@ -220,5 +220,7 @@ class ApiClient {
     }
 }
 
-// Export for use in other modules
-window.ApiClient = ApiClient;
+// Export for use in other modules (prevent duplicates)
+if (!window.ApiClient) {
+    window.ApiClient = ApiClient;
+}

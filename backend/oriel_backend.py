@@ -67,4 +67,10 @@ if __name__ == '__main__':
         app.run(host='0.0.0.0', port=port, debug=False)
     else:
         app.logger.info(f"Starting development server on port {port}")
-        app.run(host='0.0.0.0', port=port, debug=debug)
+        # Force development mode and ensure proper binding
+        try:
+            app.run(host='127.0.0.1', port=port, debug=True, threaded=True)
+        except OSError as e:
+            app.logger.error(f"Failed to bind to port {port}: {e}")
+            app.logger.info("Trying alternative port 8001...")
+            app.run(host='127.0.0.1', port=8001, debug=True, threaded=True)

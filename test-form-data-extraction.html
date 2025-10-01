@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Data Extraction Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 400px;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background: #2a2a3e;
+            color: white;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px 24px;
+            background: #8309D5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .result {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success { background: rgba(34, 197, 94, 0.2); }
+        .error { background: rgba(239, 68, 68, 0.2); }
+        .info { background: rgba(59, 130, 246, 0.2); }
+        .debug { background: rgba(156, 163, 175, 0.2); }
+    </style>
+</head>
+<body>
+    <h1>📝 Form Data Extraction Test</h1>
+    <p>This replicates the exact form structure from the main app to test data extraction.</p>
+    
+    <!-- Exact replica of the registration form from index.html -->
+    <form id="register-form" class="auth-form">
+        <div class="form-group">
+            <label for="register-email">Email</label>
+            <input type="email" id="register-email" name="email" required placeholder="Enter your email" value="gastondana627@gmail.com">
+            <div class="form-error" id="register-email-error"></div>
+        </div>
+        <div class="form-group">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" name="password" required placeholder="Create a password" value="TestPassword123!">
+            <div class="form-error" id="register-password-error"></div>
+        </div>
+        <div class="form-group">
+            <label for="register-confirm-password">Confirm Password</label>
+            <input type="password" id="register-confirm-password" name="confirmPassword" required placeholder="Confirm your password" value="TestPassword123!">
+            <div class="form-error" id="register-confirm-password-error"></div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" id="register-submit-btn" class="auth-submit-btn">
+                <span class="btn-text">Create Account</span>
+                <span class="btn-spinner hidden">⟳</span>
+            </button>
+        </div>
+    </form>
+    
+    <button onclick="testFormDataExtraction()">🔍 Test Form Data Extraction</button>
+    <button onclick="testValidation()">✅ Test Validation</button>
+    <button onclick="clearResults()">🧹 Clear Results</button>
+    
+    <div id="results"></div>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            resultsDiv.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        function testFormDataExtraction() {
+            clearResults();
+            addResult('🔍 Testing form data extraction (exactly like auth-ui.js)...', 'info');
+            
+            const form = document.getElementById('register-form');
+            const formData = new FormData(form);
+            
+            // Extract data exactly like auth-ui.js does
+            const email = formData.get('email');
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirmPassword');
+            
+            addResult('📝 EXTRACTED DATA:', 'debug');
+            addResult(`Email: "${email}" (type: ${typeof email}, length: ${email ? email.length : 'N/A'})`, 'debug');
+            addResult(`Password: "${password}" (type: ${typeof password}, length: ${password ? password.length : 'N/A'})`, 'debug');
+            addResult(`Confirm Password: "${confirmPassword}" (type: ${typeof confirmPassword}, length: ${confirmPassword ? confirmPassword.length : 'N/A'})`, 'debug');
+            
+            // Check for issues
+            if (!email) {
+                addResult('❌ EMAIL IS EMPTY!', 'error');
+            } else {
+                addResult('✅ Email extracted successfully', 'success');
+            }
+            
+            if (!password) {
+                addResult('❌ PASSWORD IS EMPTY!', 'error');
+            } else {
+                addResult('✅ Password extracted successfully', 'success');
+            }
+            
+            if (!confirmPassword) {
+                addResult('❌ CONFIRM PASSWORD IS EMPTY!', 'error');
+            } else {
+                addResult('✅ Confirm password extracted successfully', 'success');
+            }
+            
+            // Test password matching
+            if (password !== confirmPassword) {
+                addResult('❌ PASSWORDS DO NOT MATCH!', 'error');
+            } else {
+                addResult('✅ Passwords match', 'success');
+            }
+            
+            // Show what would be sent to API
+            const apiData = {
+                email: email,
+                password: password
+            };
+            
+            addResult('\n📤 DATA THAT WOULD BE SENT TO API:', 'info');
+            addResult(JSON.stringify(apiData, null, 2), 'debug');
+        }
+        
+        function testValidation() {
+            clearResults();
+            addResult('✅ Testing validation (replicating auth-ui.js logic)...', 'info');
+            
+            const form = document.getElementById('register-form');
+            const formData = new FormData(form);
+            
+            const email = formData.get('email');
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirmPassword');
+            
+            // Replicate auth-ui.js validation rules
+            const validationRules = {
+                email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                password: /^.{6,}$/ // At least 6 characters (frontend rule)
+            };
+            
+            addResult('🔍 FRONTEND VALIDATION RESULTS:', 'info');
+            
+            // Email validation
+            const emailValid = email && validationRules.email.test(email);
+            addResult(`Email validation: ${emailValid ? '✅ PASS' : '❌ FAIL'}`, emailValid ? 'success' : 'error');
+            if (!emailValid) {
+                if (!email) {
+                    addResult('   Reason: Email is empty', 'error');
+                } else {
+                    addResult(`   Reason: Email "${email}" doesn't match regex ${validationRules.email}`, 'error');
+                }
+            }
+            
+            // Password validation
+            const passwordValid = password && validationRules.password.test(password);
+            addResult(`Password validation: ${passwordValid ? '✅ PASS' : '❌ FAIL'}`, passwordValid ? 'success' : 'error');
+            if (!passwordValid) {
+                if (!password) {
+                    addResult('   Reason: Password is empty', 'error');
+                } else {
+                    addResult(`   Reason: Password length ${password.length} < 6`, 'error');
+                }
+            }
+            
+            // Confirm password validation
+            const confirmPasswordValid = confirmPassword && confirmPassword === password;
+            addResult(`Confirm password validation: ${confirmPasswordValid ? '✅ PASS' : '❌ FAIL'}`, confirmPasswordValid ? 'success' : 'error');
+            if (!confirmPasswordValid) {
+                if (!confirmPassword) {
+                    addResult('   Reason: Confirm password is empty', 'error');
+                } else {
+                    addResult('   Reason: Passwords do not match', 'error');
+                }
+            }
+            
+            // Overall validation
+            const overallValid = emailValid && passwordValid && confirmPasswordValid;
+            addResult(`\n🎯 OVERALL VALIDATION: ${overallValid ? '✅ PASS' : '❌ FAIL'}`, overallValid ? 'success' : 'error');
+            
+            if (overallValid) {
+                addResult('✅ Form would proceed to API call', 'success');
+            } else {
+                addResult('❌ Form would NOT proceed to API call', 'error');
+            }
+            
+            // Compare with backend validation
+            addResult('\n🔍 BACKEND VALIDATION COMPARISON:', 'info');
+            const backendEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            const backendEmailValid = email && backendEmailRegex.test(email);
+            const backendPasswordValid = password && password.length >= 8 && /[A-Za-z]/.test(password) && /\d/.test(password);
+            
+            addResult(`Backend email validation: ${backendEmailValid ? '✅ PASS' : '❌ FAIL'}`, backendEmailValid ? 'success' : 'error');
+            addResult(`Backend password validation: ${backendPasswordValid ? '✅ PASS' : '❌ FAIL'}`, backendPasswordValid ? 'success' : 'error');
+            
+            if (overallValid && (!backendEmailValid || !backendPasswordValid)) {
+                addResult('⚠️ WARNING: Frontend validation passes but backend validation would fail!', 'error');
+            }
+        }
+        
+        // Add form submit handler to test the actual flow
+        document.getElementById('register-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            addResult('\n🚀 FORM SUBMITTED! Testing extraction...', 'info');
+            testFormDataExtraction();
+        });
+        
+        // Auto-run test on page load
+        window.addEventListener('load', () => {
+            setTimeout(testFormDataExtraction, 1000);
+        });
+    </script>
+</body>
+</html>

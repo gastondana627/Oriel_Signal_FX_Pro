@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Auth System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #2a2a3e;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 400px;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background: #1a1a2e;
+            color: white;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px 24px;
+            background: #8309D5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success { background: rgba(34, 197, 94, 0.2); }
+        .error { background: rgba(239, 68, 68, 0.2); }
+        .info { background: rgba(59, 130, 246, 0.2); }
+        .warning { background: rgba(245, 158, 11, 0.2); }
+        .debug { background: rgba(156, 163, 175, 0.2); }
+        h3 {
+            color: #8309D5;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Fix Auth System</h1>
+    <p>Let's fix all the authentication issues step by step.</p>
+    
+    <div class="section">
+        <h3>1. Test Registration with Different Passwords</h3>
+        <div class="form-group">
+            <label for="reg-email">Email:</label>
+            <input type="email" id="reg-email" value="test123@example.com" placeholder="Enter email">
+        </div>
+        
+        <div class="form-group">
+            <label for="reg-password">Password:</label>
+            <input type="password" id="reg-password" value="TestPassword123!" placeholder="Enter password">
+        </div>
+        
+        <button onclick="testRegistration()">🔍 Test Registration</button>
+        <button onclick="testWithDifferentPasswords()">🔑 Test Different Passwords</button>
+    </div>
+    
+    <div class="section">
+        <h3>2. Test Login</h3>
+        <div class="form-group">
+            <label for="login-email">Email:</label>
+            <input type="email" id="login-email" value="gastondana627@gmail.com" placeholder="Enter email">
+        </div>
+        
+        <div class="form-group">
+            <label for="login-password">Password:</label>
+            <input type="password" id="login-password" value="TestPassword123!" placeholder="Enter password">
+        </div>
+        
+        <button onclick="testLogin()">🔐 Test Login</button>
+    </div>
+    
+    <div class="section">
+        <h3>3. Test Download Functionality</h3>
+        <button onclick="testDownload()">⬇️ Test Download</button>
+        <button onclick="testUsageTracking()">📊 Test Usage Tracking</button>
+    </div>
+    
+    <div class="section">
+        <h3>4. Database Management</h3>
+        <button onclick="checkExistingUsers()">👥 Check Existing Users</button>
+        <button onclick="clearTestUsers()">🗑️ Clear Test Users</button>
+    </div>
+    
+    <button onclick="clearResults()">🧹 Clear All Results</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            resultsDiv.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function testRegistration() {
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            
+            addResult(`🔍 Testing registration with:`, 'info');
+            addResult(`Email: "${email}"`, 'debug');
+            addResult(`Password: "${password}" (length: ${password.length})`, 'debug');
+            
+            // Test password validation first
+            if (password.length < 8) {
+                addResult('❌ Password too short! Backend requires at least 8 characters.', 'error');
+                return;
+            }
+            
+            if (!/[A-Za-z]/.test(password)) {
+                addResult('❌ Password missing letter! Backend requires at least one letter.', 'error');
+                return;
+            }
+            
+            if (!/\d/.test(password)) {
+                addResult('❌ Password missing number! Backend requires at least one number.', 'error');
+                return;
+            }
+            
+            addResult('✅ Password meets backend requirements', 'success');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Registration SUCCESS!`, 'success');
+                    addResult(`User created: ${JSON.stringify(data.user, null, 2)}`, 'success');
+                } else {
+                    addResult(`❌ Registration FAILED: ${response.status}`, 'error');
+                    addResult(`Error: ${JSON.stringify(data.error, null, 2)}`, 'error');
+                    
+                    if (data.error?.code === 'EMAIL_EXISTS') {
+                        addResult('💡 This email is already registered. Try a different email.', 'warning');
+                    }
+                }
+            } catch (error) {
+                addResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testWithDifferentPasswords() {
+            addResult('🔑 Testing with different password lengths and formats...', 'info');
+            
+            const email = `test${Date.now()}@example.com`;
+            const passwords = [
+                { pwd: '123', desc: 'Too short (3 chars)' },
+                { pwd: '1234567', desc: 'Still too short (7 chars)' },
+                { pwd: '12345678', desc: '8 chars, numbers only' },
+                { pwd: 'abcdefgh', desc: '8 chars, letters only' },
+                { pwd: 'Test1234', desc: '8 chars, letters + numbers' },
+                { pwd: 'TestPassword123!', desc: '16 chars, complex' }
+            ];
+            
+            for (const test of passwords) {
+                addResult(`\n🧪 Testing: ${test.desc}`, 'info');
+                addResult(`Password: "${test.pwd}"`, 'debug');
+                
+                try {
+                    const response = await fetch(`${API_BASE}/api/auth/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Origin': window.location.origin
+                        },
+                        body: JSON.stringify({ 
+                            email: `${test.pwd.length}chars${Date.now()}@example.com`, 
+                            password: test.pwd 
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        addResult(`✅ SUCCESS: ${test.desc}`, 'success');
+                    } else {
+                        addResult(`❌ FAILED: ${test.desc} - ${data.error?.message}`, 'error');
+                    }
+                } catch (error) {
+                    addResult(`❌ ERROR: ${test.desc} - ${error.message}`, 'error');
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+        }
+        
+        async function testLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            addResult(`🔐 Testing login with: ${email}`, 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Login SUCCESS!`, 'success');
+                    addResult(`Token received: ${data.access_token ? 'Yes' : 'No'}`, 'success');
+                    addResult(`User: ${JSON.stringify(data.user, null, 2)}`, 'success');
+                } else {
+                    addResult(`❌ Login FAILED: ${response.status}`, 'error');
+                    addResult(`Error: ${JSON.stringify(data.error, null, 2)}`, 'error');
+                    
+                    if (response.status === 401) {
+                        addResult('💡 Invalid credentials. Check email/password or register first.', 'warning');
+                    }
+                }
+            } catch (error) {
+                addResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testDownload() {
+            addResult('⬇️ Testing download functionality...', 'info');
+            
+            // This would test the actual download flow
+            addResult('💡 Download test would require audio file and visualization generation.', 'warning');
+            addResult('For now, testing usage tracking instead...', 'info');
+            
+            await testUsageTracking();
+        }
+        
+        async function testUsageTracking() {
+            addResult('📊 Testing usage tracking...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/user/usage`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Usage tracking SUCCESS!`, 'success');
+                    addResult(`Usage data: ${JSON.stringify(data.usage, null, 2)}`, 'success');
+                } else {
+                    addResult(`❌ Usage tracking FAILED: ${response.status}`, 'error');
+                    addResult(`Error: ${JSON.stringify(data.error, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function checkExistingUsers() {
+            addResult('👥 Checking existing users...', 'info');
+            addResult('💡 This would require admin access to list users.', 'warning');
+            addResult('Instead, let\'s test if specific emails exist by trying to register them...', 'info');
+            
+            const testEmails = [
+                'gastondana627@gmail.com',
+                'test@example.com',
+                'nonexistent@example.com'
+            ];
+            
+            for (const email of testEmails) {
+                try {
+                    const response = await fetch(`${API_BASE}/api/auth/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Origin': window.location.origin
+                        },
+                        body: JSON.stringify({ 
+                            email: email, 
+                            password: 'TestPassword123!' 
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.status === 409) {
+                        addResult(`✅ ${email} - EXISTS (already registered)`, 'success');
+                    } else if (response.status === 201) {
+                        addResult(`⚠️ ${email} - NEWLY CREATED (wasn't registered)`, 'warning');
+                    } else {
+                        addResult(`❓ ${email} - ${response.status}: ${data.error?.message}`, 'info');
+                    }
+                } catch (error) {
+                    addResult(`❌ ${email} - Network error: ${error.message}`, 'error');
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+        }
+        
+        async function clearTestUsers() {
+            addResult('🗑️ Clear test users...', 'info');
+            addResult('💡 This would require admin access or database management.', 'warning');
+            addResult('For development, you can manually delete the SQLite database file.', 'info');
+        }
+        
+        // Auto-run basic checks on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                addResult('🎯 Auth System Diagnostic Tool Ready!', 'info');
+                addResult('💡 Start with "Test Registration" to check the main issue.', 'info');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

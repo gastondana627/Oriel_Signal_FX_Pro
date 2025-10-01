@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Registration Modal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: #2a2a3e;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .modal-header h2 {
+            color: #8309D5;
+            margin: 0 0 10px 0;
+        }
+        
+        .form-group {
+            margin: 20px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #e0e0e0;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: #1a1a2e;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .account-type-section {
+            background: rgba(131, 9, 213, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .account-type-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .account-type-option {
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .account-type-option:hover {
+            border-color: #8309D5;
+            background: rgba(131, 9, 213, 0.1);
+        }
+        
+        .account-type-option.selected {
+            border-color: #8309D5;
+            background: rgba(131, 9, 213, 0.2);
+        }
+        
+        .account-type-option input[type="radio"] {
+            margin-right: 10px;
+        }
+        
+        .account-type-title {
+            font-weight: bold;
+            color: #8309D5;
+            margin-bottom: 5px;
+        }
+        
+        .account-type-desc {
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.4;
+        }
+        
+        .playlist-section {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .playlist-checkboxes {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .playlist-option {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .playlist-option input[type="checkbox"] {
+            margin-right: 12px;
+            margin-top: 2px;
+        }
+        
+        .playlist-info {
+            flex: 1;
+        }
+        
+        .playlist-title {
+            font-weight: bold;
+            color: #3b82f6;
+            margin-bottom: 4px;
+        }
+        
+        .playlist-desc {
+            font-size: 13px;
+            color: #aaa;
+            line-height: 1.3;
+        }
+        
+        .terms-section {
+            background: rgba(245, 158, 11, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .terms-list {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        
+        .terms-list li {
+            margin: 8px 0;
+            color: #ddd;
+            line-height: 1.4;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 12px;
+            margin-top: 2px;
+        }
+        
+        .checkbox-group label {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: #8309D5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+        
+        .submit-btn:hover:not(:disabled) {
+            background: #9d1ae8;
+        }
+        
+        .submit-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .error-message {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .demo-trigger {
+            padding: 15px 30px;
+            background: #8309D5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Enhanced Registration System</h1>
+    <p>This demonstrates the enhanced registration with account types, playlists, and terms.</p>
+    
+    <button class="demo-trigger" onclick="showRegistrationModal()">Open Enhanced Registration</button>
+    
+    <!-- Enhanced Registration Modal -->
+    <div id="registration-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button class="close-btn" onclick="hideRegistrationModal()">&times;</button>
+            
+            <div class="modal-header">
+                <h2>Create Your Oriel FX Account</h2>
+                <p>Join our creative community and start making amazing visualizations</p>
+            </div>
+            
+            <form id="enhanced-registration-form">
+                <!-- Basic Info -->
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="your@email.com">
+                    <div class="error-message" id="email-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="At least 8 characters with letters and numbers">
+                    <div class="error-message" id="password-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" name="confirmPassword" required placeholder="Confirm your password">
+                    <div class="error-message" id="confirm-password-error"></div>
+                </div>
+                
+                <!-- Account Type Selection -->
+                <div class="account-type-section">
+                    <h3>🎯 Choose Your Account Type</h3>
+                    <p>Select the type that best describes your intended use:</p>
+                    
+                    <div class="account-type-grid">
+                        <div class="account-type-option" onclick="selectAccountType('user')">
+                            <input type="radio" id="account-user" name="accountType" value="user" required>
+                            <div class="account-type-title">👤 User Account</div>
+                            <div class="account-type-desc">Perfect for creators, artists, and content makers. Full access to all creative tools and premium features.</div>
+                        </div>
+                        
+                        <div class="account-type-option" onclick="selectAccountType('training')">
+                            <input type="radio" id="account-training" name="accountType" value="training" required>
+                            <div class="account-type-title">🎓 Training Account</div>
+                            <div class="account-type-desc">For educational purposes, workshops, and learning. Access to training materials and guided tutorials.</div>
+                        </div>
+                        
+                        <div class="account-type-option" onclick="selectAccountType('admin')">
+                            <input type="radio" id="account-admin" name="accountType" value="admin" required>
+                            <div class="account-type-title">⚙️ Admin Account</div>
+                            <div class="account-type-desc">For system administrators and moderators. Advanced management tools and oversight capabilities.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Playlist Preferences -->
+                <div class="playlist-section">
+                    <h3>🎵 Playlist Preferences</h3>
+                    <p>Choose which curated playlists you'd like access to:</p>
+                    
+                    <div class="playlist-checkboxes">
+                        <div class="playlist-option">
+                            <input type="checkbox" id="playlist-creative" name="playlists" value="creative">
+                            <div class="playlist-info">
+                                <div class="playlist-title">🎨 Creative Essentials</div>
+                                <div class="playlist-desc">Curated tracks perfect for artistic projects, creative workflows, and inspiration sessions.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="playlist-option">
+                            <input type="checkbox" id="playlist-training" name="playlists" value="training">
+                            <div class="playlist-info">
+                                <div class="playlist-title">📚 Training & Education</div>
+                                <div class="playlist-desc">Educational content, tutorials, and learning-focused audio for workshops and training sessions.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="playlist-option">
+                            <input type="checkbox" id="playlist-professional" name="playlists" value="professional">
+                            <div class="playlist-info">
+                                <div class="playlist-title">💼 Professional Suite</div>
+                                <div class="playlist-desc">High-quality tracks for commercial projects, presentations, and professional applications.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Terms and Conditions -->
+                <div class="terms-section">
+                    <h3>📋 Terms & Conditions</h3>
+                    <p>Please review and accept our terms to continue:</p>
+                    
+                    <ul class="terms-list">
+                        <li><strong>Age Requirement:</strong> You must be 18 years or older to use this service</li>
+                        <li><strong>Creative Use:</strong> This tool is intended for artistic, creative, and educational purposes</li>
+                        <li><strong>Community Standards:</strong> Respect other users and follow general internet etiquette</li>
+                        <li><strong>Content Policy:</strong> No harmful, illegal, or inappropriate content</li>
+                        <li><strong>Fair Use:</strong> Use resources responsibly and within reasonable limits</li>
+                    </ul>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="age-confirm" name="ageConfirm" required>
+                        <label for="age-confirm">I confirm that I am 18 years of age or older</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="creative-use" name="creativeUse" required>
+                        <label for="creative-use">I agree to use this tool for artistic, creative, and educational purposes only</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="terms-accept" name="termsAccept" required>
+                        <label for="terms-accept">I agree to the Terms of Service, Privacy Policy, and Community Guidelines</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="marketing-consent" name="marketingConsent">
+                        <label for="marketing-consent">I'd like to receive updates about new features and creative tips (optional)</label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submit-btn" disabled>
+                    Create My Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showRegistrationModal() {
+            document.getElementById('registration-modal').style.display = 'flex';
+        }
+        
+        function hideRegistrationModal() {
+            document.getElementById('registration-modal').style.display = 'none';
+        }
+        
+        function selectAccountType(type) {
+            // Remove selected class from all options
+            document.querySelectorAll('.account-type-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            event.currentTarget.classList.add('selected');
+            
+            // Check the radio button
+            document.getElementById(`account-${type}`).checked = true;
+            
+            // Update playlist recommendations based on account type
+            updatePlaylistRecommendations(type);
+            
+            validateForm();
+        }
+        
+        function updatePlaylistRecommendations(accountType) {
+            // Auto-select recommended playlists based on account type
+            const playlists = {
+                user: ['creative', 'professional'],
+                training: ['training', 'creative'],
+                admin: ['professional', 'training']
+            };
+            
+            // Clear all selections first
+            document.querySelectorAll('input[name="playlists"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Select recommended playlists
+            if (playlists[accountType]) {
+                playlists[accountType].forEach(playlist => {
+                    const checkbox = document.getElementById(`playlist-${playlist}`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+        }
+        
+        function validateForm() {
+            const form = document.getElementById('enhanced-registration-form');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            // Check required fields
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const accountType = document.querySelector('input[name="accountType"]:checked');
+            const ageConfirm = document.getElementById('age-confirm').checked;
+            const creativeUse = document.getElementById('creative-use').checked;
+            const termsAccept = document.getElementById('terms-accept').checked;
+            
+            // Validate password
+            const passwordValid = password.length >= 8 && /[A-Za-z]/.test(password) && /\d/.test(password);
+            const passwordsMatch = password === confirmPassword;
+            
+            // Enable submit button if all required fields are valid
+            const isValid = email && passwordValid && passwordsMatch && accountType && 
+                           ageConfirm && creativeUse && termsAccept;
+            
+            submitBtn.disabled = !isValid;
+            
+            // Show validation errors
+            if (password && !passwordValid) {
+                document.getElementById('password-error').textContent = 
+                    'Password must be at least 8 characters with letters and numbers';
+            } else {
+                document.getElementById('password-error').textContent = '';
+            }
+            
+            if (confirmPassword && !passwordsMatch) {
+                document.getElementById('confirm-password-error').textContent = 'Passwords do not match';
+            } else {
+                document.getElementById('confirm-password-error').textContent = '';
+            }
+        }
+        
+        // Add event listeners for real-time validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('enhanced-registration-form');
+            
+            // Add input event listeners
+            ['email', 'password', 'confirm-password'].forEach(id => {
+                document.getElementById(id).addEventListener('input', validateForm);
+            });
+            
+            // Add change event listeners for checkboxes
+            ['age-confirm', 'creative-use', 'terms-accept'].forEach(id => {
+                document.getElementById(id).addEventListener('change', validateForm);
+            });
+            
+            // Handle form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                const data = {
+                    email: formData.get('email'),
+                    password: formData.get('password'),
+                    accountType: formData.get('accountType'),
+                    playlists: formData.getAll('playlists'),
+                    ageConfirm: formData.get('ageConfirm') === 'on',
+                    creativeUse: formData.get('creativeUse') === 'on',
+                    termsAccept: formData.get('termsAccept') === 'on',
+                    marketingConsent: formData.get('marketingConsent') === 'on'
+                };
+                
+                console.log('🎯 Enhanced Registration Data:', data);
+                alert('Registration data logged to console! Check developer tools.');
+                
+                // Here you would send the data to your backend
+                // registerUser(data);
+            });
+        });
+        
+        // Close modal when clicking outside
+        document.getElementById('registration-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideRegistrationModal();
+            }
+        });
+    </script>
+</body>
+</html>

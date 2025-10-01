@@ -1,12 +1,13 @@
 /**
  * Preferences Manager
- * Handles user preferences synchronization and management
+ * Handles user preferences synchronization and management with conflict resolution
  */
 class PreferencesManager {
-    constructor(apiClient, authManager, notificationManager) {
+    constructor(apiClient, authManager, notificationManager, syncManager = null) {
         this.apiClient = apiClient;
         this.authManager = authManager;
         this.notificationManager = notificationManager;
+        this.syncManager = syncManager;
         
         // Default preferences
         this.defaultPreferences = {
@@ -20,8 +21,13 @@ class PreferencesManager {
             quality: 'high'
         };
         
-        // Current preferences
+        // Current preferences with metadata
         this.preferences = { ...this.defaultPreferences };
+        this.preferencesMetadata = {
+            lastModified: Date.now(),
+            version: 1,
+            deviceId: this.getDeviceId()
+        };
         
         // Sync state
         this.isSyncing = false;
@@ -101,7 +107,7 @@ class PreferencesManager {
     }
 
     /**
-     * Sync preferences from server
+     * Sync preferences from server with conflict resolution
      */
     async syncFromServer() {
         if (!this.authManager.isAuthenticated()) {
@@ -112,17 +118,34 @@ class PreferencesManager {
             const response = await this.apiClient.get('/api/user/preferences');
             
             if (response.success && response.data) {
-                // Merge server preferences with defaults
-                const serverPreferences = response.data;
-                this.preferences = { ...this.defaultPreferences, ...serverPreferences };
+                const serverData = response.data;
+                const serverPreferences = serverData.preferences || serverData;
+                const serverMetadata = serverData.metadata || {
+                    lastModified: Date.now(),
+                    version: 1,
+                    deviceId: 'server'
+                };
                 
-                // Save to local storage as backup
-                this.saveLocalPreferences();
+                // Handle conflict resolution
+                const resolvedPreferences = await this.resolveConflicts(
+                    this.preferences,
+                    this.preferencesMetadata,
+                    serverPreferences,
+                    serverMetadata
+                );
                 
-                this.lastSyncTime = new Date();
-                this.notifyListeners();
-                
-                console.log('Preferences synced from server');
+                if (resolvedPreferences) {
+                    this.preferences = { ...this.defaultPreferences, ...resolvedPreferences.preferences };
+                    this.preferencesMetadata = resolvedPreferences.metadata;
+                    
+                    // Save to local storage as backup
+                    this.saveLocalPreferences();
+                    
+                    this.lastSyncTime = new Date();
+                    this.notifyListeners();
+                    
+                    console.log('Preferences synced from server with conflict resolution');
+                }
             }
         } catch (error) {
             console.error('Error syncing preferences from server:', error);
@@ -132,17 +155,24 @@ class PreferencesManager {
     }
 
     /**
-     * Sync preferences to server
+     * Sync preferences to server with metadata
      */
-    async syncToServer(preferences = null) {
+    async syncToServer(preferences = null, metadata = null) {
         if (!this.authManager.isAuthenticated()) {
+            // Queue for sync when user logs in
+            if (this.syncManager) {
+                this.syncManager.queueForSync('updatePreferences', {
+                    preferences: preferences || this.preferences,
+                    metadata: metadata || this.preferencesMetadata
+                });
+            }
             return false;
         }
         
         if (this.isSyncing) {
             // Add to sync queue if already syncing
             if (preferences) {
-                this.syncQueue.push(preferences);
+                this.syncQueue.push({ preferences, metadata });
             }
             return false;
         }
@@ -150,8 +180,12 @@ class PreferencesManager {
         this.isSyncing = true;
         
         try {
-            const prefsToSync = preferences || this.preferences;
-            const response = await this.apiClient.put('/api/user/preferences', prefsToSync);
+            const dataToSync = {
+                preferences: preferences || this.preferences,
+                metadata: metadata || this.preferencesMetadata
+            };
+            
+            const response = await this.apiClient.put('/api/user/preferences', dataToSync);
             
             if (response.success) {
                 this.lastSyncTime = new Date();
@@ -159,18 +193,33 @@ class PreferencesManager {
                 
                 // Process sync queue
                 if (this.syncQueue.length > 0) {
-                    const nextPrefs = this.syncQueue.pop();
+                    const nextData = this.syncQueue.pop();
                     this.syncQueue = []; // Clear queue
-                    setTimeout(() => this.syncToServer(nextPrefs), 100);
+                    setTimeout(() => this.syncToServer(nextData.preferences, nextData.metadata), 100);
                 }
                 
                 return true;
             } else {
                 console.error('Failed to sync preferences to server:', response.error);
+                
+                // Queue for retry if using SyncManager
+                if (this.syncManager) {
+                    this.syncManager.queueForSync('updatePreferences', dataToSync);
+                }
+                
                 return false;
             }
         } catch (error) {
             console.error('Error syncing preferences to server:', error);
+            
+            // Queue for retry if using SyncManager
+            if (this.syncManager) {
+                this.syncManager.queueForSync('updatePreferences', {
+                    preferences: preferences || this.preferences,
+                    metadata: metadata || this.preferencesMetadata
+                });
+            }
+            
             return false;
         } finally {
             this.isSyncing = false;
@@ -192,7 +241,7 @@ class PreferencesManager {
     }
 
     /**
-     * Set a single preference
+     * Set a single preference with timestamp tracking
      */
     async setPreference(key, value) {
         if (this.preferences[key] === value) {
@@ -200,6 +249,7 @@ class PreferencesManager {
         }
         
         this.preferences[key] = value;
+        this.updateMetadata();
         
         // Save locally immediately
         this.saveLocalPreferences();
@@ -213,7 +263,7 @@ class PreferencesManager {
     }
 
     /**
-     * Set multiple preferences
+     * Set multiple preferences with timestamp tracking
      */
     async setPreferences(newPreferences) {
         let hasChanges = false;
@@ -228,6 +278,8 @@ class PreferencesManager {
         if (!hasChanges) {
             return;
         }
+        
+        this.updateMetadata();
         
         // Save locally immediately
         this.saveLocalPreferences();
@@ -468,6 +520,134 @@ class PreferencesManager {
     }
 
     /**
+     * Resolve conflicts between local and server preferences
+     */
+    async resolveConflicts(localPrefs, localMeta, serverPrefs, serverMeta) {
+        // If no local metadata, server wins
+        if (!localMeta || !localMeta.lastModified) {
+            return {
+                preferences: serverPrefs,
+                metadata: serverMeta
+            };
+        }
+        
+        // If no server metadata, local wins
+        if (!serverMeta || !serverMeta.lastModified) {
+            return {
+                preferences: localPrefs,
+                metadata: localMeta
+            };
+        }
+        
+        // Compare timestamps - most recent wins
+        if (serverMeta.lastModified > localMeta.lastModified) {
+            console.log('Server preferences are newer, using server version');
+            return {
+                preferences: serverPrefs,
+                metadata: serverMeta
+            };
+        } else if (localMeta.lastModified > serverMeta.lastModified) {
+            console.log('Local preferences are newer, syncing to server');
+            // Sync local to server
+            await this.syncToServer(localPrefs, localMeta);
+            return {
+                preferences: localPrefs,
+                metadata: localMeta
+            };
+        } else {
+            // Same timestamp - merge preferences, preferring local changes
+            console.log('Preferences have same timestamp, merging with local preference');
+            const mergedPrefs = { ...serverPrefs, ...localPrefs };
+            const mergedMeta = {
+                ...serverMeta,
+                lastModified: Date.now(),
+                version: Math.max(localMeta.version || 1, serverMeta.version || 1) + 1,
+                deviceId: localMeta.deviceId
+            };
+            
+            // Sync merged version to server
+            await this.syncToServer(mergedPrefs, mergedMeta);
+            
+            return {
+                preferences: mergedPrefs,
+                metadata: mergedMeta
+            };
+        }
+    }
+
+    /**
+     * Update metadata when preferences change
+     */
+    updateMetadata() {
+        this.preferencesMetadata = {
+            ...this.preferencesMetadata,
+            lastModified: Date.now(),
+            version: (this.preferencesMetadata.version || 1) + 1
+        };
+    }
+
+    /**
+     * Get or generate device ID
+     */
+    getDeviceId() {
+        let deviceId = localStorage.getItem('oriel_device_id');
+        if (!deviceId) {
+            deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2);
+            localStorage.setItem('oriel_device_id', deviceId);
+        }
+        return deviceId;
+    }
+
+    /**
+     * Load preferences from local storage with metadata
+     */
+    loadLocalPreferences() {
+        try {
+            const stored = localStorage.getItem('oriel_fx_preferences');
+            const storedMeta = localStorage.getItem('oriel_fx_preferences_meta');
+            
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                this.preferences = { ...this.defaultPreferences, ...parsed };
+            } else {
+                this.preferences = { ...this.defaultPreferences };
+            }
+            
+            if (storedMeta) {
+                this.preferencesMetadata = JSON.parse(storedMeta);
+            } else {
+                this.preferencesMetadata = {
+                    lastModified: Date.now(),
+                    version: 1,
+                    deviceId: this.getDeviceId()
+                };
+            }
+            
+            this.notifyListeners();
+        } catch (error) {
+            console.error('Error loading local preferences:', error);
+            this.preferences = { ...this.defaultPreferences };
+            this.preferencesMetadata = {
+                lastModified: Date.now(),
+                version: 1,
+                deviceId: this.getDeviceId()
+            };
+        }
+    }
+
+    /**
+     * Save preferences to local storage with metadata
+     */
+    saveLocalPreferences() {
+        try {
+            localStorage.setItem('oriel_fx_preferences', JSON.stringify(this.preferences));
+            localStorage.setItem('oriel_fx_preferences_meta', JSON.stringify(this.preferencesMetadata));
+        } catch (error) {
+            console.error('Error saving local preferences:', error);
+        }
+    }
+
+    /**
      * Initialize preferences manager
      */
     static async initialize() {
@@ -479,7 +659,8 @@ class PreferencesManager {
         const preferencesManager = new PreferencesManager(
             window.apiClient,
             window.authManager,
-            window.notificationManager
+            window.notificationManager,
+            window.syncManager || null
         );
         
         return preferencesManager;

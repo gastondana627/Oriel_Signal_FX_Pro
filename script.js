@@ -26,26 +26,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     let audioInitialized = false;
     let isAnimationPaused = false;
 
-    // --- Initialize Authentication System ---
+    // --- Wait for SaaS System Initialization ---
+    console.log('🎵 Oriel FX - Waiting for SaaS system initialization...');
+    
     try {
-        // Initialize authentication manager
-        window.authManager = await AuthManager.initialize();
+        // Wait for SaaS initialization to complete
+        await window.saasInitializer.waitForInitialization();
+        console.log('✅ SaaS system initialized successfully');
         
-        // Initialize authentication UI
-        window.authUI = await AuthUI.initialize();
+        // Get initialized components
+        const components = window.saasInitializer.getStatus();
+        console.log('📊 Available components:', components.components);
         
-        // Initialize usage tracker
-        window.usageTracker = await UsageTracker.initialize();
-        
-        // Connect AuthUI with UsageTracker
-        if (window.authUI && window.usageTracker) {
-            window.authUI.setUsageTracker(window.usageTracker);
-        }
-        
-        console.log('Authentication and usage tracking systems initialized successfully');
     } catch (error) {
-        console.error('Failed to initialize authentication/usage systems:', error);
-        // Continue without authentication features
+        console.error('❌ SaaS initialization failed:', error);
+        // Continue with basic functionality
+        console.log('⚠️ Continuing with basic functionality only');
     }
 
     // --- ANIMATION PAUSE CONTROL ---
@@ -58,118 +54,329 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- DOWNLOAD & USAGE LIMIT LOGIC ---
-    function getDownloadsRemaining() {
-        if (window.usageTracker) {
-            return window.usageTracker.getRemainingDownloads();
+    async function checkDownloadPermission() {
+        try {
+            if (window.paymentIntegration) {
+                return await window.paymentIntegration.checkDownloadPermission();
+            }
+            
+            // Fallback logic for when payment integration is not available
+            if (window.usageTracker) {
+                return await window.usageTracker.canUserDownload();
+            }
+            
+            // Basic fallback
+            const count = localStorage.getItem('orielFxDownloads');
+            const remaining = count === null ? 3 : parseInt(count);
+            
+            if (remaining <= 0) {
+                if (window.notifications) {
+                    window.notifications.show('Free download limit reached. Sign up for more downloads!', 'warning');
+                }
+                return false;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Error checking download permission:', error);
+            return false;
         }
-        
-        // Fallback to old logic if usage tracker not available
-        const count = localStorage.getItem('orielFxDownloads');
-        return count === null ? 3 : parseInt(count);
-    }
-    
-    async function checkDownloadLimits() {
-        if (window.usageTracker) {
-            return window.usageTracker.canUserDownload();
-        }
-        
-        // Fallback logic
-        const remaining = getDownloadsRemaining();
-        if (remaining <= 0) {
-            return {
-                allowed: false,
-                reason: 'free_limit',
-                message: 'Free download limit reached. Sign up for more downloads!'
-            };
-        }
-        
-        return { allowed: true };
     }
     
     async function trackDownload(downloadType, metadata = {}) {
-        if (window.usageTracker) {
-            try {
+        try {
+            if (window.usageTracker) {
                 return await window.usageTracker.trackDownload(downloadType, metadata);
-            } catch (error) {
-                console.error('Failed to track download:', error);
-                throw error;
             }
+            
+            // Fallback to local storage
+            const count = localStorage.getItem('orielFxDownloads');
+            const remaining = count === null ? 3 : parseInt(count);
+            localStorage.setItem('orielFxDownloads', Math.max(0, remaining - 1));
+            
+            updateDownloadCounter();
+            return { success: true };
+        } catch (error) {
+            console.error('Failed to track download:', error);
+            throw error;
         }
-        
-        // Fallback to old logic
-        useDownloadFallback();
-        return { success: true };
-    }
-    
-    function useDownloadFallback() {
-        // Legacy fallback for when usage tracker is not available
-        if (!window.authManager || !window.authManager.isAuthenticated) {
-            let count = getDownloadsRemaining();
-            localStorage.setItem('orielFxDownloads', Math.max(0, count - 1));
-        }
-        updateDownloadCounter();
     }
     
     function updateDownloadCounter() {
-        // This function is now handled by the AuthUI component
-        // Keep it for backward compatibility but let AuthUI handle the display
+        // Update downloads remaining display
         if (window.authUI) {
-            window.authUI.updateAnonymousDownloads();
-        } else {
-            // Fallback for when auth system isn't loaded
-            if (downloadsRemainingText) {
-                downloadsRemainingText.textContent = `${getDownloadsRemaining()} free downloads remaining.`;
-            }
-        }
-    }
-    
-    function showUpgradePrompt(reason, message) {
-        if (window.usageTracker) {
-            window.usageTracker.showUpgradePrompt(reason);
-        } else if (window.notificationManager) {
-            window.notificationManager.show(message, 'warning');
-        } else {
-            alert(message);
+            window.authUI.updateUI();
+        } else if (downloadsRemainingText) {
+            // Fallback display
+            const count = localStorage.getItem('orielFxDownloads');
+            const remaining = count === null ? 3 : parseInt(count);
+            downloadsRemainingText.textContent = `${remaining} free downloads remaining.`;
         }
     }
 
     // --- MODAL CONTROL LOGIC ---
-    downloadButton.addEventListener('click', () => {
+    downloadButton.addEventListener('click', async () => {
+        // Check download permission first
+        const canDownload = await checkDownloadPermission();
+        if (!canDownload) {
+            return; // Permission check will handle showing appropriate messages/modals
+        }
+        
         // Reset the modal to show the initial choices
         choiceView.classList.remove('hidden');
         progressView.classList.add('hidden');
         progressModal.classList.remove('modal-hidden');
+        
+        // Update modal based on user's plan
+        updateDownloadModalForUserPlan();
     });
 
     closeModalBtn.addEventListener('click', () => {
         progressModal.classList.add('modal-hidden');
     });
+    
+    // --- UPDATE MODAL FOR USER PLAN ---
+    function updateDownloadModalForUserPlan() {
+        try {
+            // Get user's plan and available features
+            const userPlan = window.authManager?.getCurrentUser()?.plan || 'free';
+            const maxRecordingTime = window.featureManager?.getMaxRecordingTime() || 30;
+            const availableFormats = window.featureManager?.getAvailableExportFormats() || ['gif', 'mp3'];
+            
+            // Update modal buttons based on available formats
+            const modalButtons = document.querySelector('.modal-buttons');
+            if (modalButtons) {
+                modalButtons.innerHTML = '';
+                
+                // Create buttons for each available format
+                availableFormats.forEach(format => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'modal-button';
+                    
+                    switch (format) {
+                        case 'gif':
+                            button.id = 'download-gif-button';
+                            button.textContent = `Download GIF (${maxRecordingTime}s)`;
+                            button.addEventListener('click', async () => {
+                                await startIntegratedRecording('gif');
+                            });
+                            break;
+                        case 'mp4':
+                            button.id = 'download-mp4-button';
+                            button.textContent = `Download MP4 (${maxRecordingTime}s)`;
+                            button.addEventListener('click', async () => {
+                                await startIntegratedRecording('mp4');
+                            });
+                            break;
+                        case 'webm':
+                            button.id = 'download-webm-button';
+                            button.textContent = `Download WebM (${maxRecordingTime}s)`;
+                            button.addEventListener('click', async () => {
+                                await startIntegratedRecording('webm');
+                            });
+                            break;
+                        case 'mov':
+                            button.id = 'download-mov-button';
+                            button.textContent = `Download MOV (${maxRecordingTime}s)`;
+                            button.addEventListener('click', async () => {
+                                await startIntegratedRecording('mov');
+                            });
+                            break;
+                        case 'mp3':
+                            // Skip MP3 for video formats - this is audio only
+                            return;
+                        default:
+                            button.textContent = `Download ${format.toUpperCase()}`;
+                            button.addEventListener('click', async () => {
+                                await startIntegratedRecording(format);
+                            });
+                    }
+                    
+                    modalButtons.appendChild(button);
+                });
+                
+                // Add audio download button separately if needed
+                if (availableFormats.includes('mp3')) {
+                    const audioButton = document.createElement('button');
+                    audioButton.type = 'button';
+                    audioButton.className = 'modal-button';
+                    audioButton.id = 'download-mp3-button';
+                    audioButton.textContent = 'Download Audio (MP3)';
+                    audioButton.addEventListener('click', async () => {
+                        await downloadAudioFile();
+                    });
+                    modalButtons.appendChild(audioButton);
+                }
+            }
+            
+            // Update modal title based on user plan
+            const modalTitle = document.getElementById('modal-title');
+            if (modalTitle) {
+                if (userPlan === 'free') {
+                    modalTitle.innerHTML = `
+                        Choose Download Format
+                        <small style="display: block; font-size: 0.8em; color: #888; margin-top: 5px;">
+                            Upgrade for longer recordings and more formats
+                        </small>
+                    `;
+                } else {
+                    modalTitle.innerHTML = `
+                        Choose Download Format
+                        <small style="display: block; font-size: 0.8em; color: #8309D5; margin-top: 5px;">
+                            ${userPlan.charAt(0).toUpperCase() + userPlan.slice(1)} Plan - ${availableFormats.length} formats available
+                        </small>
+                    `;
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error updating download modal:', error);
+        }
+    }
 
     // --- GIF DOWNLOAD LOGIC ---
     downloadGifButton.addEventListener('click', async () => {
         try {
-            // Check download limits first
-            const canDownload = await checkDownloadLimits();
-            if (!canDownload.allowed) {
-                showUpgradePrompt(canDownload.reason, canDownload.message);
-                return;
+            // Start recording with integrated system
+            await startIntegratedRecording('gif');
+            
+        } catch (error) {
+            console.error('Error starting GIF recording:', error);
+            
+            // Show error message
+            if (window.notifications) {
+                window.notifications.show('Failed to start recording. Please try again.', 'error');
+            } else {
+                alert('Failed to start recording. Please try again.');
             }
             
-            // Show progress view
-            choiceView.classList.add('hidden');
-            progressView.classList.remove('hidden');
+            // Reset modal state
+            progressModal.classList.add('modal-hidden');
+        }
+    });
 
+    // --- INTEGRATED RECORDING FUNCTION ---
+    async function startIntegratedRecording(format) {
+        // Show progress view
+        choiceView.classList.add('hidden');
+        progressView.classList.remove('hidden');
+
+        try {
+            // Get recording parameters based on user's plan
+            const maxDuration = window.featureManager?.getMaxRecordingTime() || 30;
+            const quality = window.featureManager?.getCurrentUserPlan() === 'free' ? 'standard' : 'high';
+            
             // Prepare download metadata
             const downloadMetadata = {
-                format: 'gif',
-                duration: 30,
-                quality: 'standard',
+                format: format,
+                duration: maxDuration,
+                quality: quality,
                 timestamp: new Date().toISOString()
             };
 
+            // Update modal text with dynamic duration
+            modalStatus.textContent = `Recording for ${maxDuration} seconds...`;
+            progressBarInner.style.width = '0%';
+
+            // Use premium recording if available, otherwise fallback
+            if (window.premiumRecording) {
+                await startPremiumRecording(format, maxDuration, downloadMetadata);
+            } else {
+                await startLegacyRecording(format, maxDuration, downloadMetadata);
+            }
+
+        } catch (error) {
+            console.error('Recording failed:', error);
+            modalStatus.textContent = 'Recording failed. Please try again.';
+            
+            setTimeout(() => {
+                progressModal.classList.add('modal-hidden');
+            }, 2000);
+            
+            throw error;
+        }
+    }
+
+    // Premium recording function
+    async function startPremiumRecording(format, maxDuration, downloadMetadata) {
+        try {
+            // Start premium recording
+            const recordingStarted = await window.premiumRecording.startRecording(format, {
+                duration: maxDuration,
+                onProgress: (progress) => {
+                    const percentage = Math.round(progress * 100);
+                    progressBarInner.style.width = `${percentage}%`;
+                    modalStatus.textContent = `Processing... ${percentage}%`;
+                }
+            });
+
+            if (!recordingStarted) {
+                throw new Error('Failed to start premium recording');
+            }
+
+            // Start audio if not playing
+            if (!audioInitialized || (audioContext && audioContext.state === 'suspended')) {
+                window.togglePlayPause();
+            }
+
+            // Set up completion handler
+            const recordingInterval = setInterval(async () => {
+                const status = window.premiumRecording.getRecordingStatus();
+                
+                if (!status.isRecording) {
+                    clearInterval(recordingInterval);
+                    
+                    try {
+                        modalStatus.textContent = 'Finalizing... Download will begin shortly.';
+                        
+                        // Track the successful download
+                        await trackDownload(format, downloadMetadata);
+                        
+                        // Update UI to reflect new usage
+                        updateDownloadCounter();
+                        
+                        // Show success message
+                        if (window.notifications) {
+                            window.notifications.show('Recording completed successfully!', 'success');
+                        }
+                        
+                        // Close modal after a delay
+                        setTimeout(() => {
+                            progressModal.classList.add('modal-hidden');
+                        }, 2000);
+                        
+                    } catch (error) {
+                        console.error('Error finalizing download:', error);
+                        modalStatus.textContent = 'Download completed with warnings.';
+                        
+                        setTimeout(() => {
+                            progressModal.classList.add('modal-hidden');
+                        }, 2000);
+                    }
+                } else {
+                    // Update progress
+                    const progress = status.elapsed / status.maxDuration;
+                    const percentage = Math.round(progress * 100);
+                    progressBarInner.style.width = `${percentage}%`;
+                    
+                    const remaining = Math.max(0, status.maxDuration - status.elapsed);
+                    modalStatus.textContent = `Recording... ${Math.ceil(remaining)}s remaining`;
+                }
+            }, 500);
+            
+        } catch (error) {
+            console.error('Premium recording failed:', error);
+            throw error;
+        }
+    }
+
+    // Legacy recording fallback
+    async function startLegacyRecording(format, maxDuration, downloadMetadata) {
+        try {
             // Start the capture process
             window.capturer = new CCapture({
-                format: 'gif', 
+                format: format, 
                 workersPath: 'assets/', 
                 framerate: 30,
                 onProgress: (progress) => {
@@ -180,7 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             
             progressBarInner.style.width = '0%';
-            modalStatus.textContent = 'Recording for 30 seconds...';
+            modalStatus.textContent = `Recording for ${maxDuration} seconds...`;
             capturer.start();
             
             // Start audio if not playing
@@ -188,7 +395,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 window.togglePlayPause();
             }
             
-            // Record for 30 seconds then finalize
+            // Record for specified duration then finalize
             setTimeout(async () => {
                 try {
                     capturer.stop();
@@ -196,57 +403,47 @@ document.addEventListener('DOMContentLoaded', async () => {
                     capturer.save();
                     
                     // Track the successful download
-                    await trackDownload('gif', downloadMetadata);
+                    await trackDownload(format, downloadMetadata);
                     
                     // Update UI to reflect new usage
                     updateDownloadCounter();
                     
+                    // Show success message
+                    if (window.notifications) {
+                        window.notifications.show('Recording completed successfully!', 'success');
+                    }
+                    
                     // Close modal after a delay
                     setTimeout(() => {
                         progressModal.classList.add('modal-hidden');
-                    }, 4000);
+                    }, 2000);
                     
                 } catch (error) {
                     console.error('Error finalizing download:', error);
                     modalStatus.textContent = 'Download completed with warnings.';
                     
-                    // Still close the modal
                     setTimeout(() => {
                         progressModal.classList.add('modal-hidden');
                     }, 2000);
                 }
-            }, 30000);
+            }, maxDuration * 1000);
             
         } catch (error) {
-            console.error('Error starting GIF download:', error);
-            
-            // Show error message
-            if (window.notificationManager) {
-                window.notificationManager.show('Failed to start download. Please try again.', 'error');
-            }
-            
-            // Reset modal state
-            progressModal.classList.add('modal-hidden');
+            console.error('Legacy recording failed:', error);
+            throw error;
         }
-    });
+    }
 
-    // --- MP3 DOWNLOAD LOGIC ---
-    downloadMp3Button.addEventListener('click', async () => {
+    // --- AUDIO DOWNLOAD FUNCTION ---
+    async function downloadAudioFile() {
         try {
-            // Check download limits first
-            const canDownload = await checkDownloadLimits();
-            if (!canDownload.allowed) {
-                showUpgradePrompt(canDownload.reason, canDownload.message);
-                return;
-            }
-            
             // Prepare download metadata
             const downloadMetadata = {
                 format: 'mp3',
                 duration: 0, // MP3 downloads don't have duration limits
                 quality: 'standard',
                 timestamp: new Date().toISOString(),
-                fileSize: 'unknown' // Could be calculated if needed
+                fileSize: 'unknown'
             };
             
             // Perform the download
@@ -267,22 +464,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             progressModal.classList.add('modal-hidden');
             
             // Show success message
-            if (window.notificationManager) {
-                window.notificationManager.show('MP3 download started successfully!', 'success');
+            if (window.notifications) {
+                window.notifications.show('MP3 download started successfully!', 'success');
+            } else {
+                alert('MP3 download started successfully!');
             }
             
         } catch (error) {
             console.error('Error downloading MP3:', error);
             
             // Show error message
-            if (window.notificationManager) {
-                window.notificationManager.show('Failed to download MP3. Please try again.', 'error');
+            if (window.notifications) {
+                window.notifications.show('Failed to download MP3. Please try again.', 'error');
+            } else {
+                alert('Failed to download MP3. Please try again.');
             }
             
             // Close modal
             progressModal.classList.add('modal-hidden');
         }
-    });
+    }
+
+    // --- LEGACY MP3 BUTTON HANDLER (for backward compatibility) ---
+    if (downloadMp3Button) {
+        downloadMp3Button.addEventListener('click', downloadAudioFile);
+    }
 
     // --- Master list of all available shapes ---
     const allShapes = [
@@ -395,8 +601,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateDownloadCounter();
     updateShapeButtons();
     
-    // Update UI after auth system is initialized
-    if (window.authUI) {
-        window.authUI.updateUI();
+    // Set up dashboard button handler
+    const dashboardBtn = document.getElementById('dashboard-btn');
+    if (dashboardBtn) {
+        dashboardBtn.addEventListener('click', () => {
+            if (window.dashboardUI) {
+                window.dashboardUI.showDashboard();
+            }
+        });
     }
+    
+    // Listen for SaaS system events
+    window.addEventListener('oriel_saas_initialized', (event) => {
+        console.log('🎉 SaaS system ready, updating UI...');
+        updateDownloadCounter();
+        updateDownloadModalForUserPlan();
+    });
+    
+    window.addEventListener('oriel_auth_state_changed', () => {
+        console.log('🔄 Auth state changed, updating UI...');
+        updateDownloadCounter();
+        updateDownloadModalForUserPlan();
+    });
+    
+    window.addEventListener('oriel_usage_updated', () => {
+        console.log('📊 Usage updated, refreshing counter...');
+        updateDownloadCounter();
+    });
+    
+    // Expose download function globally for SaaS integration
+    window.downloadAudioFile = downloadAudioFile;
+    
+    console.log('🎵 Oriel FX main script initialization completed');
 });

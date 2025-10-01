@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Flow Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #333;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 300px;
+            padding: 8px;
+            border: 1px solid #333;
+            border-radius: 3px;
+            background: #2a2a3e;
+            color: white;
+        }
+        button {
+            padding: 10px 20px;
+            background: #8309D5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success { background: rgba(34, 197, 94, 0.2); }
+        .error { background: rgba(239, 68, 68, 0.2); }
+        .info { background: rgba(59, 130, 246, 0.2); }
+    </style>
+</head>
+<body>
+    <h1>🧪 Registration Flow Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Direct API Registration</h2>
+        <div class="form-group">
+            <label for="direct-email">Email:</label>
+            <input type="email" id="direct-email" placeholder="test@example.com">
+        </div>
+        <div class="form-group">
+            <label for="direct-password">Password:</label>
+            <input type="password" id="direct-password" placeholder="password123">
+        </div>
+        <button onclick="testDirectRegistration()">Test Direct API Call</button>
+        <div id="direct-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Test AuthManager Registration</h2>
+        <div class="form-group">
+            <label for="auth-email">Email:</label>
+            <input type="email" id="auth-email" placeholder="test2@example.com">
+        </div>
+        <div class="form-group">
+            <label for="auth-password">Password:</label>
+            <input type="password" id="auth-password" placeholder="password123">
+        </div>
+        <button onclick="testAuthManagerRegistration()">Test AuthManager</button>
+        <div id="auth-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Test Form Validation</h2>
+        <div class="form-group">
+            <label for="val-email">Email:</label>
+            <input type="email" id="val-email" placeholder="invalid-email">
+        </div>
+        <div class="form-group">
+            <label for="val-password">Password:</label>
+            <input type="password" id="val-password" placeholder="123">
+        </div>
+        <button onclick="testFormValidation()">Test Validation</button>
+        <div id="validation-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Check Dependencies</h2>
+        <button onclick="checkDependencies()">Check Dependencies</button>
+        <div id="deps-result"></div>
+    </div>
+
+    <!-- Load the same scripts as the main app -->
+    <script src="app-config.js"></script>
+    <script src="api-client.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="auth-manager.js"></script>
+
+    <script>
+        const backendUrl = 'http://localhost:8000';
+        
+        function addResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+        
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+        
+        async function testDirectRegistration() {
+            clearResults('direct-result');
+            
+            const email = document.getElementById('direct-email').value || `test${Date.now()}@example.com`;
+            const password = document.getElementById('direct-password').value || 'TestPassword123!';
+            
+            addResult('direct-result', `Testing registration for: ${email}`, 'info');
+            
+            try {
+                const response = await fetch(`${backendUrl}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('direct-result', `✅ SUCCESS: ${JSON.stringify(data)}`, 'success');
+                } else {
+                    addResult('direct-result', `❌ ERROR: ${response.status} - ${JSON.stringify(data)}`, 'error');
+                }
+            } catch (error) {
+                addResult('direct-result', `❌ NETWORK ERROR: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testAuthManagerRegistration() {
+            clearResults('auth-result');
+            
+            const email = document.getElementById('auth-email').value || `test${Date.now()}@example.com`;
+            const password = document.getElementById('auth-password').value || 'TestPassword123!';
+            
+            addResult('auth-result', `Testing AuthManager registration for: ${email}`, 'info');
+            
+            try {
+                // Check if AuthManager is available
+                if (!window.AuthManager) {
+                    addResult('auth-result', '❌ AuthManager not available', 'error');
+                    return;
+                }
+                
+                // Initialize AuthManager
+                const authManager = await window.AuthManager.initialize();
+                addResult('auth-result', '✅ AuthManager initialized', 'success');
+                
+                // Test registration
+                const result = await authManager.register(email, password);
+                
+                if (result.success) {
+                    addResult('auth-result', `✅ SUCCESS: ${JSON.stringify(result)}`, 'success');
+                } else {
+                    addResult('auth-result', `❌ ERROR: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                addResult('auth-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+        
+        function testFormValidation() {
+            clearResults('validation-result');
+            
+            const email = document.getElementById('val-email').value;
+            const password = document.getElementById('val-password').value;
+            
+            // Test email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const emailValid = emailRegex.test(email);
+            
+            // Test password validation
+            const passwordValid = password.length >= 6;
+            
+            addResult('validation-result', `Email "${email}" valid: ${emailValid ? '✅' : '❌'}`, emailValid ? 'success' : 'error');
+            addResult('validation-result', `Password "${password}" valid: ${passwordValid ? '✅' : '❌'}`, passwordValid ? 'success' : 'error');
+            
+            if (emailValid && passwordValid) {
+                addResult('validation-result', '✅ Form validation would pass', 'success');
+            } else {
+                addResult('validation-result', '❌ Form validation would fail', 'error');
+            }
+        }
+        
+        function checkDependencies() {
+            clearResults('deps-result');
+            
+            const deps = [
+                { name: 'window.AppConfig', obj: window.AppConfig },
+                { name: 'window.appConfig', obj: window.appConfig },
+                { name: 'window.ApiClient', obj: window.ApiClient },
+                { name: 'window.AuthManager', obj: window.AuthManager },
+                { name: 'window.notifications', obj: window.notifications }
+            ];
+            
+            deps.forEach(dep => {
+                const available = !!dep.obj;
+                addResult('deps-result', `${dep.name}: ${available ? '✅ Available' : '❌ Missing'}`, available ? 'success' : 'error');
+                
+                if (available && dep.name === 'window.appConfig') {
+                    try {
+                        const apiUrl = dep.obj.getApiBaseUrl();
+                        addResult('deps-result', `  API Base URL: ${apiUrl}`, 'info');
+                    } catch (error) {
+                        addResult('deps-result', `  API Base URL Error: ${error.message}`, 'error');
+                    }
+                }
+            });
+        }
+        
+        // Auto-check dependencies on load
+        window.addEventListener('load', () => {
+            setTimeout(checkDependencies, 1000);
+        });
+    </script>
+</body>
+</html>

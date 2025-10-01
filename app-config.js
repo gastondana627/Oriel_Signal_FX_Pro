@@ -401,9 +401,13 @@ class AppConfig {
     }
 }
 
-// Create global instance
-window.AppConfig = AppConfig;
-window.appConfig = new AppConfig();
+// Create global instance (prevent duplicates)
+if (!window.AppConfig) {
+    window.AppConfig = AppConfig;
+}
+if (!window.appConfig) {
+    window.appConfig = new AppConfig();
+}
 
 // Export for debugging in development
 if (window.appConfig.isDevelopment()) {

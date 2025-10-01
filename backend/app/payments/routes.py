@@ -306,3 +306,48 @@ def stripe_webhook():
                 'message': 'Error processing webhook'
             }
         }), 500
+
+
+@bp.route('/history', methods=['GET', 'OPTIONS'])
+@jwt_required()
+def payment_history():
+    """Get user's payment history"""
+    try:
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+        
+        if not user:
+            return jsonify({
+                'error': {
+                    'code': 'USER_NOT_FOUND',
+                    'message': 'User not found'
+                }
+            }), 404
+        
+        # Get user's payment history
+        payments = Payment.query.filter_by(user_id=user.id).order_by(Payment.created_at.desc()).all()
+        
+        history = []
+        for payment in payments:
+            history.append({
+                'id': payment.id,
+                'amount': float(payment.amount),
+                'currency': 'USD',
+                'status': payment.status,
+                'created_at': payment.created_at.isoformat(),
+                'description': f'Video rendering payment - ${payment.amount}'
+            })
+        
+        return jsonify({
+            'history': history,
+            'total': len(history)
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error getting payment history: {str(e)}")
+        return jsonify({
+            'error': {
+                'code': 'PAYMENT_HISTORY_ERROR',
+                'message': 'Failed to get payment history'
+            }
+        }), 500

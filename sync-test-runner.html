@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synchronization Tests - Oriel FX</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .test-results {
+            padding: 30px;
+        }
+
+        .test-suite {
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .test-suite-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .test-suite-header:hover {
+            background: #e9ecef;
+        }
+
+        .test-suite-title {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .test-suite-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9em;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-icon {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .stat-icon.passed { background: #28a745; }
+        .stat-icon.failed { background: #dc3545; }
+        .stat-icon.pending { background: #ffc107; }
+
+        .test-suite-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .test-suite-content.expanded {
+            display: block;
+        }
+
+        .test-case {
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f3f4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .test-case:last-child {
+            border-bottom: none;
+        }
+
+        .test-name {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .test-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .test-status.passed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .test-status.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .test-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .test-status.running {
+            background: #cce7ff;
+            color: #004085;
+        }
+
+        .test-error {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #dc3545;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            color: #721c24;
+            white-space: pre-wrap;
+        }
+
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .summary-stat {
+            text-align: center;
+        }
+
+        .summary-stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .summary-stat-label {
+            font-size: 0.9em;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .summary-stat.passed .summary-stat-number { color: #28a745; }
+        .summary-stat.failed .summary-stat-number { color: #dc3545; }
+        .summary-stat.total .summary-stat-number { color: #007bff; }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e9ecef;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .connectivity-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .connectivity-status {
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .connectivity-status.online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .connectivity-status.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .scenario-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                text-align: center;
+            }
+
+            .summary-stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .connectivity-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .scenario-controls {
+                justify-content: stretch;
+            }
+
+            .scenario-controls .btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Synchronization Tests</h1>
+            <p>Testing sync manager, offline functionality, and conflict resolution</p>
+        </div>
+
+        <div class="controls">
+            <button id="runAllTests" class="btn btn-primary">Run All Tests</button>
+            <button id="runSyncTests" class="btn btn-success">Sync Manager Tests</button>
+            <button id="runOfflineTests" class="btn btn-success">Offline Manager Tests</button>
+            <button id="runConflictTests" class="btn btn-warning">Conflict Resolution Tests</button>
+            <button id="runIntegrationTests" class="btn btn-warning">Integration Tests</button>
+            <button id="clearResults" class="btn btn-danger">Clear Results</button>
+        </div>
+
+        <div class="test-results">
+            <div class="connectivity-controls">
+                <span>Test Connectivity:</span>
+                <span id="connectivityStatus" class="connectivity-status online">Online</span>
+                <div class="scenario-controls">
+                    <button id="simulateOnline" class="btn btn-success">Simulate Online</button>
+                    <button id="simulateOffline" class="btn btn-danger">Simulate Offline</button>
+                    <button id="simulateIntermittent" class="btn btn-warning">Simulate Intermittent</button>
+                    <button id="simulateSlowNetwork" class="btn btn-warning">Simulate Slow Network</button>
+                </div>
+            </div>
+
+            <div class="summary" id="testSummary" style="display: none;">
+                <div class="summary-stats">
+                    <div class="summary-stat total">
+                        <div class="summary-stat-number" id="totalTests">0</div>
+                        <div class="summary-stat-label">Total</div>
+                    </div>
+                    <div class="summary-stat passed">
+                        <div class="summary-stat-number" id="passedTests">0</div>
+                        <div class="summary-stat-label">Passed</div>
+                    </div>
+                    <div class="summary-stat failed">
+                        <div class="summary-stat-number" id="failedTests">0</div>
+                        <div class="summary-stat-label">Failed</div>
+                    </div>
+                </div>
+                <div class="loading" id="testProgress" style="display: none;">
+                    <div class="spinner"></div>
+                    <span>Running tests...</span>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div id="testSuites"></div>
+        </div>
+    </div>
+
+    <!-- Load dependencies -->
+    <script src="sync-manager.js"></script>
+    <script src="offline-manager.js"></script>
+    
+    <!-- Mock Jest functionality for browser -->
+    <script>
+        // Simple Jest-like testing framework for browser
+        window.jest = {
+            fn: (implementation) => {
+                const mockFn = implementation || (() => {});
+                mockFn.mock = {
+                    calls: [],
+                    results: []
+                };
+                
+                const wrappedFn = function(...args) {
+                    mockFn.mock.calls.push(args);
+                    try {
+                        const result = mockFn.apply(this, args);
+                        mockFn.mock.results.push({ type: 'return', value: result });
+                        return result;
+                    } catch (error) {
+                        mockFn.mock.results.push({ type: 'throw', value: error });
+                        throw error;
+                    }
+                };
+                
+                Object.assign(wrappedFn, {
+                    mockResolvedValue: (value) => {
+                        mockFn.mockImplementation = () => Promise.resolve(value);
+                        return wrappedFn;
+                    },
+                    mockRejectedValue: (value) => {
+                        mockFn.mockImplementation = () => Promise.reject(value);
+                        return wrappedFn;
+                    },
+                    mockImplementation: (impl) => {
+                        Object.assign(mockFn, impl);
+                        return wrappedFn;
+                    },
+                    mock: mockFn.mock
+                });
+                
+                return wrappedFn;
+            },
+            clearAllMocks: () => {
+                // Clear all mock call history
+            }
+        };
+
+        window.expect = (actual) => ({
+            toBe: (expected) => {
+                if (actual !== expected) {
+                    throw new Error(`Expected ${actual} to be ${expected}`);
+                }
+            },
+            toEqual: (expected) => {
+                if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+                    throw new Error(`Expected ${JSON.stringify(actual)} to equal ${JSON.stringify(expected)}`);
+                }
+            },
+            toHaveLength: (length) => {
+                if (actual.length !== length) {
+                    throw new Error(`Expected length ${actual.length} to be ${length}`);
+                }
+            },
+            toContainEqual: (expected) => {
+                const found = actual.some(item => JSON.stringify(item) === JSON.stringify(expected));
+                if (!found) {
+                    throw new Error(`Expected array to contain ${JSON.stringify(expected)}`);
+                }
+            },
+            toMatchObject: (expected) => {
+                for (const key in expected) {
+                    if (JSON.stringify(actual[key]) !== JSON.stringify(expected[key])) {
+                        throw new Error(`Expected ${key} to match`);
+                    }
+                }
+            },
+            toThrow: (message) => {
+                try {
+                    actual();
+                    throw new Error('Expected function to throw');
+                } catch (error) {
+                    if (message && !error.message.includes(message)) {
+                        throw new Error(`Expected error message to contain "${message}"`);
+                    }
+                }
+            },
+            toHaveBeenCalled: () => {
+                if (!actual.mock || actual.mock.calls.length === 0) {
+                    throw new Error('Expected function to have been called');
+                }
+            },
+            toHaveBeenCalledWith: (...args) => {
+                if (!actual.mock || !actual.mock.calls.some(call => 
+                    JSON.stringify(call) === JSON.stringify(args))) {
+                    throw new Error(`Expected function to have been called with ${JSON.stringify(args)}`);
+                }
+            },
+            toHaveBeenCalledTimes: (times) => {
+                if (!actual.mock || actual.mock.calls.length !== times) {
+                    throw new Error(`Expected function to have been called ${times} times`);
+                }
+            },
+            toBeGreaterThan: (expected) => {
+                if (actual <= expected) {
+                    throw new Error(`Expected ${actual} to be greater than ${expected}`);
+                }
+            },
+            rejects: {
+                toThrow: async (message) => {
+                    try {
+                        await actual;
+                        throw new Error('Expected promise to reject');
+                    } catch (error) {
+                        if (message && !error.message.includes(message)) {
+                            throw new Error(`Expected error message to contain "${message}"`);
+                        }
+                    }
+                }
+            }
+        });
+
+        window.describe = (name, fn) => {
+            window.currentSuite = { name, tests: [] };
+            fn();
+            window.testSuites = window.testSuites || [];
+            window.testSuites.push(window.currentSuite);
+        };
+
+        window.test = (name, fn) => {
+            if (window.currentSuite) {
+                window.currentSuite.tests.push({ name, fn, status: 'pending' });
+            }
+        };
+
+        window.beforeEach = (fn) => {
+            if (window.currentSuite) {
+                window.currentSuite.beforeEach = fn;
+            }
+        };
+    </script>
+
+    <!-- Load test file -->
+    <script src="sync-tests.js"></script>
+
+    <!-- Test runner implementation -->
+    <script>
+        class SyncTestRunner {
+            constructor() {
+                this.testSuites = window.testSuites || [];
+                this.results = {
+                    total: 0,
+                    passed: 0,
+                    failed: 0,
+                    suites: []
+                };
+                this.isRunning = false;
+                this.networkSimulation = 'online';
+                
+                this.initializeUI();
+                this.bindEvents();
+            }
+
+            initializeUI() {
+                this.updateConnectivityStatus();
+                this.renderTestSuites();
+            }
+
+            bindEvents() {
+                document.getElementById('runAllTests').addEventListener('click', () => this.runAllTests());
+                document.getElementById('runSyncTests').addEventListener('click', () => this.runTestSuite('SyncManager'));
+                document.getElementById('runOfflineTests').addEventListener('click', () => this.runTestSuite('OfflineManager'));
+                document.getElementById('runConflictTests').addEventListener('click', () => this.runTestSuite('Conflict Resolution'));
+                document.getElementById('runIntegrationTests').addEventListener('click', () => this.runTestSuite('Sync Integration'));
+                document.getElementById('clearResults').addEventListener('click', () => this.clearResults());
+
+                // Connectivity simulation
+                document.getElementById('simulateOnline').addEventListener('click', () => this.simulateConnectivity('online'));
+                document.getElementById('simulateOffline').addEventListener('click', () => this.simulateConnectivity('offline'));
+                document.getElementById('simulateIntermittent').addEventListener('click', () => this.simulateConnectivity('intermittent'));
+                document.getElementById('simulateSlowNetwork').addEventListener('click', () => this.simulateConnectivity('slow'));
+            }
+
+            simulateConnectivity(type) {
+                this.networkSimulation = type;
+                this.updateConnectivityStatus();
+                
+                // Apply network simulation to global fetch and other network calls
+                this.applyNetworkSimulation();
+            }
+
+            updateConnectivityStatus() {
+                const statusElement = document.getElementById('connectivityStatus');
+                statusElement.textContent = this.networkSimulation.charAt(0).toUpperCase() + this.networkSimulation.slice(1);
+                statusElement.className = `connectivity-status ${this.networkSimulation === 'online' ? 'online' : 'offline'}`;
+            }
+
+            applyNetworkSimulation() {
+                const originalFetch = window.fetch;
+                
+                window.fetch = async (...args) => {
+                    switch (this.networkSimulation) {
+                        case 'offline':
+                            throw new Error('Network error: offline');
+                        
+                        case 'intermittent':
+                            if (Math.random() < 0.3) {
+                                throw new Error('Network error: intermittent connection');
+                            }
+                            break;
+                        
+                        case 'slow':
+                            await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+                            break;
+                    }
+                    
+                    return originalFetch.apply(this, args);
+                };
+            }
+
+            renderTestSuites() {
+                const container = document.getElementById('testSuites');
+                container.innerHTML = '';
+
+                this.testSuites.forEach((suite, suiteIndex) => {
+                    const suiteElement = this.createTestSuiteElement(suite, suiteIndex);
+                    container.appendChild(suiteElement);
+                });
+            }
+
+            createTestSuiteElement(suite, suiteIndex) {
+                const suiteDiv = document.createElement('div');
+                suiteDiv.className = 'test-suite';
+                suiteDiv.innerHTML = `
+                    <div class="test-suite-header" onclick="this.parentElement.querySelector('.test-suite-content').classList.toggle('expanded')">
+                        <div class="test-suite-title">${suite.name}</div>
+                        <div class="test-suite-stats">
+                            <div class="stat">
+                                <div class="stat-icon passed"></div>
+                                <span id="suite-${suiteIndex}-passed">0</span>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-icon failed"></div>
+                                <span id="suite-${suiteIndex}-failed">0</span>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-icon pending"></div>
+                                <span id="suite-${suiteIndex}-pending">${suite.tests.length}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="test-suite-content">
+                        ${suite.tests.map((test, testIndex) => `
+                            <div class="test-case" id="test-${suiteIndex}-${testIndex}">
+                                <div class="test-name">${test.name}</div>
+                                <div class="test-status pending">Pending</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                return suiteDiv;
+            }
+
+            async runAllTests() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.showProgress();
+                this.resetResults();
+
+                for (let suiteIndex = 0; suiteIndex < this.testSuites.length; suiteIndex++) {
+                    await this.runSuite(suiteIndex);
+                }
+
+                this.hideProgress();
+                this.isRunning = false;
+            }
+
+            async runTestSuite(suiteName) {
+                if (this.isRunning) return;
+
+                const suiteIndex = this.testSuites.findIndex(suite => suite.name === suiteName);
+                if (suiteIndex === -1) return;
+
+                this.isRunning = true;
+                this.showProgress();
+                this.resetSuiteResults(suiteIndex);
+
+                await this.runSuite(suiteIndex);
+
+                this.hideProgress();
+                this.isRunning = false;
+            }
+
+            async runSuite(suiteIndex) {
+                const suite = this.testSuites[suiteIndex];
+                const suiteResults = { name: suite.name, passed: 0, failed: 0, tests: [] };
+
+                for (let testIndex = 0; testIndex < suite.tests.length; testIndex++) {
+                    const test = suite.tests[testIndex];
+                    const testElement = document.getElementById(`test-${suiteIndex}-${testIndex}`);
+                    const statusElement = testElement.querySelector('.test-status');
+
+                    statusElement.textContent = 'Running';
+                    statusElement.className = 'test-status running';
+
+                    try {
+                        // Run beforeEach if it exists
+                        if (suite.beforeEach) {
+                            await suite.beforeEach();
+                        }
+
+                        // Run the test
+                        await test.fn();
+
+                        // Test passed
+                        statusElement.textContent = 'Passed';
+                        statusElement.className = 'test-status passed';
+                        suiteResults.passed++;
+                        this.results.passed++;
+                        suiteResults.tests.push({ name: test.name, status: 'passed' });
+
+                    } catch (error) {
+                        // Test failed
+                        statusElement.textContent = 'Failed';
+                        statusElement.className = 'test-status failed';
+                        suiteResults.failed++;
+                        this.results.failed++;
+                        suiteResults.tests.push({ name: test.name, status: 'failed', error: error.message });
+
+                        // Show error details
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'test-error';
+                        errorDiv.textContent = error.message;
+                        testElement.appendChild(errorDiv);
+                    }
+
+                    this.updateSuiteStats(suiteIndex, suiteResults);
+                    this.updateProgress();
+                    
+                    // Small delay to show progress
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+
+                this.results.suites.push(suiteResults);
+            }
+
+            updateSuiteStats(suiteIndex, suiteResults) {
+                document.getElementById(`suite-${suiteIndex}-passed`).textContent = suiteResults.passed;
+                document.getElementById(`suite-${suiteIndex}-failed`).textContent = suiteResults.failed;
+                document.getElementById(`suite-${suiteIndex}-pending`).textContent = 
+                    this.testSuites[suiteIndex].tests.length - suiteResults.passed - suiteResults.failed;
+            }
+
+            updateProgress() {
+                const totalTests = this.testSuites.reduce((sum, suite) => sum + suite.tests.length, 0);
+                const completedTests = this.results.passed + this.results.failed;
+                const progress = (completedTests / totalTests) * 100;
+
+                document.getElementById('progressFill').style.width = `${progress}%`;
+                document.getElementById('totalTests').textContent = totalTests;
+                document.getElementById('passedTests').textContent = this.results.passed;
+                document.getElementById('failedTests').textContent = this.results.failed;
+            }
+
+            showProgress() {
+                document.getElementById('testSummary').style.display = 'block';
+                document.getElementById('testProgress').style.display = 'flex';
+                
+                // Disable buttons
+                document.querySelectorAll('.controls .btn').forEach(btn => btn.disabled = true);
+            }
+
+            hideProgress() {
+                document.getElementById('testProgress').style.display = 'none';
+                
+                // Enable buttons
+                document.querySelectorAll('.controls .btn').forEach(btn => btn.disabled = false);
+            }
+
+            resetResults() {
+                this.results = { total: 0, passed: 0, failed: 0, suites: [] };
+                
+                // Clear all test errors
+                document.querySelectorAll('.test-error').forEach(error => error.remove());
+                
+                // Reset all test statuses
+                document.querySelectorAll('.test-status').forEach(status => {
+                    status.textContent = 'Pending';
+                    status.className = 'test-status pending';
+                });
+
+                // Reset suite stats
+                this.testSuites.forEach((suite, suiteIndex) => {
+                    document.getElementById(`suite-${suiteIndex}-passed`).textContent = '0';
+                    document.getElementById(`suite-${suiteIndex}-failed`).textContent = '0';
+                    document.getElementById(`suite-${suiteIndex}-pending`).textContent = suite.tests.length;
+                });
+
+                this.updateProgress();
+            }
+
+            resetSuiteResults(suiteIndex) {
+                const suite = this.testSuites[suiteIndex];
+                
+                // Clear test errors for this suite
+                for (let testIndex = 0; testIndex < suite.tests.length; testIndex++) {
+                    const testElement = document.getElementById(`test-${suiteIndex}-${testIndex}`);
+                    const errorElement = testElement.querySelector('.test-error');
+                    if (errorElement) {
+                        errorElement.remove();
+                    }
+                    
+                    const statusElement = testElement.querySelector('.test-status');
+                    statusElement.textContent = 'Pending';
+                    statusElement.className = 'test-status pending';
+                }
+
+                // Reset suite stats
+                document.getElementById(`suite-${suiteIndex}-passed`).textContent = '0';
+                document.getElementById(`suite-${suiteIndex}-failed`).textContent = '0';
+                document.getElementById(`suite-${suiteIndex}-pending`).textContent = suite.tests.length;
+            }
+
+            clearResults() {
+                this.resetResults();
+                document.getElementById('testSummary').style.display = 'none';
+                document.getElementById('progressFill').style.width = '0%';
+            }
+        }
+
+        // Initialize test runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new SyncTestRunner();
+        });
+    </script>
+</body>
+</html>
