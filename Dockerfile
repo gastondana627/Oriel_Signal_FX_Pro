@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     libmagic1 \
     postgresql-client \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user for security
@@ -28,8 +29,22 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright browsers (only Chromium for production)
-RUN python -m playwright install chromium --with-deps
+# Install Playwright browsers with fallback for missing packages
+RUN python -m playwright install chromium
+RUN apt-get update && apt-get install -y \
+    fonts-liberation \
+    fonts-noto-color-emoji \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libdrm2 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    xvfb \
+    && rm -rf /var/lib/apt/lists/* || true
 
 # Copy the application code
 COPY . .
@@ -46,9 +61,9 @@ USER app
 # Expose port (Railway will set PORT environment variable)
 EXPOSE $PORT
 
-# Health check
+# Health check using wget instead of curl
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:$PORT/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:$PORT/health || exit 1
 
 # Run the application
 CMD ["sh", "-c", "cd backend && python -m flask db upgrade && gunicorn oriel_backend:app -b 0.0.0.0:$PORT --workers=2 --timeout=120 --access-logfile=- --error-logfile=-"]

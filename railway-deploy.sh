@@ -31,6 +31,8 @@ railway variables set PYTHONPATH=/app/backend
 echo "⚠️  Please set these environment variables manually in Railway dashboard:"
 echo "   - SECRET_KEY (generate a secure random key)"
 echo "   - JWT_SECRET_KEY (generate a secure random key)"
+echo "   - ADMIN_EMAIL (admin login email)"
+echo "   - ADMIN_PASSWORD (admin login password)"
 echo "   - STRIPE_PUBLISHABLE_KEY"
 echo "   - STRIPE_SECRET_KEY"
 echo "   - STRIPE_WEBHOOK_SECRET"
