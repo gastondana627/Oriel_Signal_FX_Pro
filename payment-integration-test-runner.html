@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Integration Unit Tests</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .test-controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background: #218838;
+        }
+        
+        .btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .test-output {
+            background: #1e1e1e;
+            color: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-bottom: 20px;
+        }
+        
+        .test-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .summary-item {
+            display: inline-block;
+            margin: 10px 20px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .passed { background: #d4edda; color: #155724; }
+        .failed { background: #f8d7da; color: #721c24; }
+        .errors { background: #fff3cd; color: #856404; }
+        .total { background: #e2e3e5; color: #383d41; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .modal-hidden {
+            display: none;
+        }
+        
+        .form-error {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        input.error {
+            border: 2px solid red;
+        }
+        
+        .test-category {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .test-category h3 {
+            margin: 0 0 10px 0;
+            color: #28a745;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 5px;
+        }
+        
+        .test-category-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💳 Payment Integration Unit Tests</h1>
+        <p>Comprehensive testing suite for PaymentManager, PaymentUI, and PaymentIntegration functionality</p>
+        <p><strong>Testing:</strong> Payment flows, Stripe integration, credit updates, limit changes, and error handling</p>
+    </div>
+    
+    <div class="test-category">
+        <h3>Test Coverage</h3>
+        <div class="test-category-description">
+            This test suite covers all requirements from task 4.4:
+        </div>
+        <ul>
+            <li><strong>Payment Flow Testing:</strong> Mock Stripe responses, checkout sessions, payment success/failure</li>
+            <li><strong>Credit Updates:</strong> Credit purchases, plan upgrades, usage limit changes</li>
+            <li><strong>Limit Changes:</strong> Download limits, plan-based restrictions, usage tracking integration</li>
+            <li><strong>Error Handling:</strong> Network failures, payment errors, user feedback, graceful degradation</li>
+            <li><strong>UI Integration:</strong> Button states, modal interactions, notification handling</li>
+            <li><strong>User Feedback:</strong> Success messages, error notifications, upgrade prompts</li>
+        </ul>
+    </div>
+    
+    <div class="test-controls">
+        <button id="run-tests-btn" class="btn" type="button">Run All Tests</button>
+        <button id="clear-output-btn" class="btn" type="button">Clear Output</button>
+    </div>
+    
+    <div id="test-output" class="test-output">
+        Click "Run All Tests" to start the payment integration unit tests...
+    </div>
+    
+    <div id="test-summary" class="test-summary hidden">
+        <h3>Test Results Summary</h3>
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+        </div>
+        <div id="summary-stats">
+            <span id="total-stat" class="summary-item total">Total: 0</span>
+            <span id="passed-stat" class="summary-item passed">Passed: 0</span>
+            <span id="failed-stat" class="summary-item failed">Failed: 0</span>
+            <span id="errors-stat" class="summary-item errors">Errors: 0</span>
+        </div>
+        <div id="success-rate" style="text-align: center; margin-top: 15px; font-size: 18px; font-weight: bold;"></div>
+    </div>
+
+    <!-- Load dependencies -->
+    <script src="app-config.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="api-client.js"></script>
+    <script src="auth-manager.js"></script>
+    <script src="usage-tracker.js"></script>
+    <script src="payment-manager.js"></script>
+    <script src="payment-ui.js"></script>
+    <script src="payment-integration.js"></script>
+    <script src="payment-integration-tests.js"></script>
+
+    <script>
+        class PaymentTestRunner {
+            constructor() {
+                this.outputElement = document.getElementById('test-output');
+                this.summaryElement = document.getElementById('test-summary');
+                this.runButton = document.getElementById('run-tests-btn');
+                this.clearButton = document.getElementById('clear-output-btn');
+                
+                this.setupEventListeners();
+                this.redirectConsole();
+            }
+            
+            setupEventListeners() {
+                this.runButton.addEventListener('click', () => this.runTests());
+                this.clearButton.addEventListener('click', () => this.clearOutput());
+            }
+            
+            redirectConsole() {
+                const originalLog = console.log;
+                const originalError = console.error;
+                
+                console.log = (...args) => {
+                    this.appendOutput(args.join(' '));
+                    originalLog.apply(console, args);
+                };
+                
+                console.error = (...args) => {
+                    this.appendOutput('ERROR: ' + args.join(' '), 'error');
+                    originalError.apply(console, args);
+                };
+            }
+            
+            appendOutput(text, type = 'normal') {
+                const timestamp = new Date().toLocaleTimeString();
+                const prefix = type === 'error' ? '🔴 ' : type === 'success' ? '🟢 ' : '';
+                this.outputElement.textContent += `[${timestamp}] ${prefix}${text}\n`;
+                this.outputElement.scrollTop = this.outputElement.scrollHeight;
+            }
+            
+            clearOutput() {
+                this.outputElement.textContent = '';
+                this.summaryElement.classList.add('hidden');
+            }
+            
+            async runTests() {
+                this.runButton.disabled = true;
+                this.runButton.textContent = 'Running Tests...';
+                this.clearOutput();
+                
+                try {
+                    this.appendOutput('🚀 Starting Payment Integration Unit Tests...\n');
+                    this.appendOutput('📋 Testing Requirements:');
+                    this.appendOutput('   ✓ 3.1: Payment flow with mock Stripe responses');
+                    this.appendOutput('   ✓ 3.2: Credit updates and limit changes');
+                    this.appendOutput('   ✓ 3.3: Payment error handling and user feedback');
+                    this.appendOutput('   ✓ 3.4: Plan upgrades and feature unlocking');
+                    this.appendOutput('   ✓ 3.5: UI integration and state management\n');
+                    
+                    const testSuite = new PaymentIntegrationTests();
+                    const results = await testSuite.runAllTests();
+                    
+                    // Update summary
+                    this.updateSummary(results);
+                    
+                    this.appendOutput('\n✅ All payment integration tests completed!', 'success');
+                    this.appendOutput('📊 Check the summary below for detailed results.');
+                    
+                } catch (error) {
+                    this.appendOutput(`\n❌ Test execution failed: ${error.message}`, 'error');
+                    console.error('Test execution error:', error);
+                } finally {
+                    this.runButton.disabled = false;
+                    this.runButton.textContent = 'Run All Tests';
+                }
+            }
+            
+            updateSummary(results) {
+                const passed = results.filter(r => r.status === 'PASS').length;
+                const failed = results.filter(r => r.status === 'FAIL').length;
+                const errors = results.filter(r => r.status === 'ERROR').length;
+                const total = results.length;
+                
+                const successRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
+                
+                // Update stats
+                document.getElementById('total-stat').textContent = `Total: ${total}`;
+                document.getElementById('passed-stat').textContent = `Passed: ${passed}`;
+                document.getElementById('failed-stat').textContent = `Failed: ${failed}`;
+                document.getElementById('errors-stat').textContent = `Errors: ${errors}`;
+                document.getElementById('success-rate').textContent = `Success Rate: ${successRate}%`;
+                
+                // Update progress bar
+                document.getElementById('progress-fill').style.width = `${successRate}%`;
+                
+                // Show summary
+                this.summaryElement.classList.remove('hidden');
+                
+                // Color code success rate
+                const successRateElement = document.getElementById('success-rate');
+                if (successRate >= 90) {
+                    successRateElement.style.color = '#28a745';
+                } else if (successRate >= 70) {
+                    successRateElement.style.color = '#ffc107';
+                } else {
+                    successRateElement.style.color = '#dc3545';
+                }
+                
+                // Log detailed results
+                this.appendOutput('\n📈 Detailed Test Results:');
+                results.forEach(result => {
+                    const status = result.status === 'PASS' ? '✅' : result.status === 'FAIL' ? '❌' : '⚠️';
+                    this.appendOutput(`${status} ${result.test}`);
+                    if (result.error) {
+                        this.appendOutput(`   Error: ${result.error}`);
+                    }
+                });
+            }
+        }
+        
+        // Initialize test runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PaymentTestRunner();
+        });
+    </script>
+</body>
+</html>

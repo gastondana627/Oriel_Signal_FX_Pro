@@ -75,11 +75,44 @@ function testSaaSIntegration() {
         console.error('   ❌ Integration error:', error);
     }
 
+    // Test 5: Payment System (if available)
+    console.log('\n5. Testing Payment System...');
+    try {
+        if (window.PaymentManager && window.paymentManager) {
+            console.log('   Payment Manager initialized:', !!window.paymentManager);
+            console.log('   Can make payments:', window.paymentManager.canMakePayments());
+            console.log('   Upgrade options for free plan:', window.paymentManager.getUpgradeOptions('free'));
+            console.log('   ✅ Payment system working correctly');
+        } else {
+            console.log('   ⚠️ Payment system not yet initialized (this is normal during page load)');
+        }
+    } catch (error) {
+        console.error('   ❌ Payment system error:', error);
+    }
+
+    // Test 6: Usage Tracker (if available)
+    console.log('\n6. Testing Usage Tracker...');
+    try {
+        if (window.UsageTracker && window.usageTracker) {
+            const usageStats = window.usageTracker.getUsageStats();
+            console.log('   Usage stats:', usageStats);
+            console.log('   Can user download:', window.usageTracker.canUserDownload());
+            console.log('   Usage summary:', window.usageTracker.getUsageSummary());
+            console.log('   ✅ Usage tracker working correctly');
+        } else {
+            console.log('   ⚠️ Usage tracker not yet initialized (this is normal during page load)');
+        }
+    } catch (error) {
+        console.error('   ❌ Usage tracker error:', error);
+    }
+
     console.log('\n🎉 SaaS Integration test completed!');
     console.log('💡 You can now use:');
     console.log('   - window.appConfig for configuration');
     console.log('   - window.ApiClient for API calls');
     console.log('   - window.notifications for user feedback');
+    console.log('   - window.paymentManager for payments (when initialized)');
+    console.log('   - window.usageTracker for usage tracking (when initialized)');
 }
 
 // Auto-run test if in development

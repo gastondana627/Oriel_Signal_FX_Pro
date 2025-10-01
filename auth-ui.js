@@ -3,9 +3,10 @@
  * Handles authentication modal interactions and form validation
  */
 class AuthUI {
-    constructor(authManager, notificationManager) {
+    constructor(authManager, notificationManager, usageTracker = null) {
         this.authManager = authManager;
         this.notificationManager = notificationManager;
+        this.usageTracker = usageTracker;
         
         // Modal elements
         this.loginModal = document.getElementById('login-modal');
@@ -143,6 +144,13 @@ class AuthUI {
         this.authManager.onStateChange((authState) => {
             this.updateUI(authState);
         });
+        
+        // Set up usage tracker listener if available
+        if (this.usageTracker) {
+            this.usageTracker.onUsageChange((usageStats) => {
+                this.updateUsageDisplay(usageStats);
+            });
+        }
     }
 
     /**
@@ -161,11 +169,8 @@ class AuthUI {
                 this.userEmail.textContent = state.user.email;
             }
             
-            if (this.userCredits) {
-                const plan = this.authManager.getUserPlan();
-                const credits = state.user.credits || plan.features.downloads;
-                this.userCredits.textContent = `${credits} credits`;
-            }
+            // Update usage information for authenticated users
+            this.updateAuthenticatedUsage();
         } else {
             // Show anonymous UI
             this.anonymousStatus?.classList.remove('hidden');
@@ -181,10 +186,124 @@ class AuthUI {
      */
     updateAnonymousDownloads() {
         if (this.downloadsRemaining) {
-            const count = localStorage.getItem('orielFxDownloads');
-            const remaining = count === null ? 3 : parseInt(count);
-            this.downloadsRemaining.textContent = `${remaining} free downloads remaining`;
+            if (this.usageTracker) {
+                const usageStats = this.usageTracker.getUsageStats();
+                const summary = this.usageTracker.getUsageSummary();
+                this.downloadsRemaining.textContent = summary.primary;
+                
+                // Add visual indicators for approaching limits
+                this.updateUsageIndicators(usageStats);
+            } else {
+                // Fallback to old logic
+                const count = localStorage.getItem('orielFxDownloads');
+                const remaining = count === null ? 3 : parseInt(count);
+                this.downloadsRemaining.textContent = `${remaining} free downloads remaining`;
+            }
         }
+    }
+
+    /**
+     * Update authenticated user usage display
+     */
+    updateAuthenticatedUsage() {
+        if (this.usageTracker) {
+            const usageStats = this.usageTracker.getUsageStats();
+            const summary = this.usageTracker.getUsageSummary();
+            
+            // Update credits display
+            if (this.userCredits) {
+                this.userCredits.textContent = summary.primary;
+            }
+            
+            // Add visual indicators for approaching limits
+            this.updateUsageIndicators(usageStats);
+        } else {
+            // Fallback logic
+            if (this.userCredits) {
+                const plan = this.authManager.getUserPlan();
+                const user = this.authManager.getCurrentUser();
+                const credits = user.credits || plan.features.downloads;
+                this.userCredits.textContent = `${credits} credits`;
+            }
+        }
+    }
+
+    /**
+     * Update usage display based on usage statistics
+     */
+    updateUsageDisplay(usageStats) {
+        const state = this.authManager.getAuthStatus();
+        
+        if (state.isAuthenticated) {
+            this.updateAuthenticatedUsage();
+        } else {
+            this.updateAnonymousDownloads();
+        }
+    }
+
+    /**
+     * Update visual indicators for usage limits
+     */
+    updateUsageIndicators(usageStats) {
+        // Update user status bar with visual indicators
+        const userStatus = document.getElementById('user-status');
+        if (!userStatus) return;
+        
+        // Remove existing indicator classes
+        userStatus.classList.remove('usage-warning', 'usage-critical', 'usage-exceeded');
+        
+        if (usageStats.isAtLimit) {
+            userStatus.classList.add('usage-exceeded');
+        } else if (usageStats.remainingDownloads <= 1) {
+            userStatus.classList.add('usage-critical');
+        } else if (usageStats.isNearLimit) {
+            userStatus.classList.add('usage-warning');
+        }
+        
+        // Update button states based on usage
+        this.updateButtonStates(usageStats);
+    }
+
+    /**
+     * Update button states based on usage
+     */
+    updateButtonStates(usageStats) {
+        // Update download button if it exists
+        const downloadButton = document.getElementById('download-button');
+        if (downloadButton) {
+            if (usageStats.isAtLimit) {
+                downloadButton.classList.add('disabled');
+                downloadButton.title = 'Download limit reached. Upgrade for more downloads!';
+            } else {
+                downloadButton.classList.remove('disabled');
+                downloadButton.title = '';
+            }
+        }
+        
+        // Update auth buttons based on usage status
+        if (usageStats.needsUpgrade && !this.authManager.isAuthenticated) {
+            // Highlight sign up button for anonymous users near limit
+            this.registerBtn?.classList.add('highlight-upgrade');
+        } else {
+            this.registerBtn?.classList.remove('highlight-upgrade');
+        }
+    }
+
+    /**
+     * Set usage tracker reference
+     */
+    setUsageTracker(usageTracker) {
+        this.usageTracker = usageTracker;
+        
+        // Set up usage change listener
+        if (this.usageTracker) {
+            this.usageTracker.onUsageChange((usageStats) => {
+                this.updateUsageDisplay(usageStats);
+            });
+        }
+        
+        // Update UI immediately
+        this.updateUI();
     }
 
     /**
@@ -376,10 +495,14 @@ class AuthUI {
     }
 
     /**
-     * Show dashboard (placeholder for now)
+     * Show dashboard
      */
     showDashboard() {
-        this.notificationManager.show('Dashboard coming soon!', 'info');
+        if (window.dashboardUI) {
+            window.dashboardUI.showDashboard();
+        } else {
+            this.notificationManager.show('Dashboard is loading...', 'info');
+        }
     }
 
     /**
@@ -534,7 +657,10 @@ class AuthUI {
             throw new Error('AuthUI dependencies not available');
         }
         
-        const authUI = new AuthUI(window.authManager, window.notificationManager);
+        // UsageTracker is optional at initialization time
+        const usageTracker = window.usageTracker || null;
+        
+        const authUI = new AuthUI(window.authManager, window.notificationManager, usageTracker);
         return authUI;
     }
 }

@@ -46,6 +46,13 @@
             <label for="audioUpload" class="upload-btn">Upload Audio</label>
             <input type="file" id="audioUpload" accept="audio/*" class="hidden-input">
         </div>
+        <!-- Upgrade Button (replaces Buy Me a Coffee) -->
+        <button type="button" id="upgrade-button" class="dynamic-color hidden">✨ Upgrade Plan</button>
+        
+        <!-- Buy Credits Button -->
+        <button type="button" id="buy-credits-button" class="dynamic-color hidden">💎 Buy Credits</button>
+        
+        <!-- Legacy Buy Me a Coffee (for anonymous users) -->
         <a href="https://www.buymeacoffee.com/gastondana627" target="_blank" rel="noopener" id="bmac-button" class="dynamic-color">✨ Buy Me a Coffee</a>
     </div>
 
@@ -127,6 +134,559 @@
         </div>
     </div>
 
+    <!-- Plan Selection Modal -->
+    <div id="plan-selection-modal" class="payment-modal modal-hidden">
+        <div class="payment-modal-content">
+            <button type="button" id="plan-selection-close-btn" class="close-button">&times;</button>
+            <div class="payment-header">
+                <h2>Choose Your Plan</h2>
+                <p>Upgrade to unlock more downloads and premium features</p>
+            </div>
+            <div class="plans-container">
+                <!-- Free Plan (Current) -->
+                <div class="plan-card current-plan" data-plan="free">
+                    <div class="plan-header">
+                        <h3>Free</h3>
+                        <div class="plan-price">
+                            <span class="price">$0</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li>✓ 3 downloads per month</li>
+                            <li>✓ 30-second recordings</li>
+                            <li>✓ Basic export formats</li>
+                            <li>✓ Community support</li>
+                        </ul>
+                    </div>
+                    <button type="button" class="plan-button current" disabled>Current Plan</button>
+                </div>
+
+                <!-- Starter Plan -->
+                <div class="plan-card" data-plan="starter">
+                    <div class="plan-header">
+                        <h3>Starter</h3>
+                        <div class="plan-price">
+                            <span class="price">$9.99</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li>✓ 50 downloads per month</li>
+                            <li>✓ 60-second recordings</li>
+                            <li>✓ Premium export formats</li>
+                            <li>✓ 5 custom presets</li>
+                            <li>✓ Email support</li>
+                        </ul>
+                    </div>
+                    <button type="button" class="plan-button upgrade-btn" data-plan="starter">
+                        <span class="btn-text">Choose Starter</span>
+                        <span class="btn-spinner hidden">⟳</span>
+                    </button>
+                </div>
+
+                <!-- Pro Plan -->
+                <div class="plan-card popular" data-plan="pro">
+                    <div class="plan-badge">Most Popular</div>
+                    <div class="plan-header">
+                        <h3>Pro</h3>
+                        <div class="plan-price">
+                            <span class="price">$29.99</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li>✓ 500 downloads per month</li>
+                            <li>✓ 5-minute recordings</li>
+                            <li>✓ All export formats</li>
+                            <li>✓ Unlimited custom presets</li>
+                            <li>✓ Advanced customization</li>
+                            <li>✓ Priority support</li>
+                            <li>✓ API access</li>
+                        </ul>
+                    </div>
+                    <button type="button" class="plan-button upgrade-btn popular" data-plan="pro">
+                        <span class="btn-text">Choose Pro</span>
+                        <span class="btn-spinner hidden">⟳</span>
+                    </button>
+                </div>
+            </div>
+            <div class="payment-footer">
+                <p>All plans include a 30-day money-back guarantee</p>
+                <p>Cancel anytime • Secure payment by Stripe</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credit Purchase Modal -->
+    <div id="credit-purchase-modal" class="payment-modal modal-hidden">
+        <div class="payment-modal-content">
+            <button type="button" id="credit-purchase-close-btn" class="close-button">&times;</button>
+            <div class="payment-header">
+                <h2>Buy Credits</h2>
+                <p>Purchase additional downloads without a subscription</p>
+            </div>
+            <div class="credits-container">
+                <div class="credit-option" data-credits="10">
+                    <div class="credit-amount">10 Credits</div>
+                    <div class="credit-price">$1.00</div>
+                    <div class="credit-value">$0.10 per download</div>
+                </div>
+                <div class="credit-option popular" data-credits="50">
+                    <div class="credit-badge">Best Value</div>
+                    <div class="credit-amount">50 Credits</div>
+                    <div class="credit-price">$4.00</div>
+                    <div class="credit-value">$0.08 per download</div>
+                </div>
+                <div class="credit-option" data-credits="100">
+                    <div class="credit-amount">100 Credits</div>
+                    <div class="credit-price">$7.00</div>
+                    <div class="credit-value">$0.07 per download</div>
+                </div>
+            </div>
+            <div class="credit-purchase-actions">
+                <button type="button" id="buy-credits-btn" class="credit-purchase-btn" disabled>
+                    <span class="btn-text">Buy Credits</span>
+                    <span class="btn-spinner hidden">⟳</span>
+                </button>
+            </div>
+            <div class="payment-footer">
+                <p>Credits never expire • Secure payment by Stripe</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Success Modal -->
+    <div id="payment-success-modal" class="payment-modal modal-hidden">
+        <div class="payment-modal-content success">
+            <div class="success-icon">✅</div>
+            <div class="payment-header">
+                <h2>Payment Successful!</h2>
+                <p id="success-message">Your account has been upgraded successfully.</p>
+            </div>
+            <div class="success-details">
+                <div class="success-item">
+                    <span class="label">Plan:</span>
+                    <span id="success-plan" class="value">Starter</span>
+                </div>
+                <div class="success-item">
+                    <span class="label">Downloads:</span>
+                    <span id="success-downloads" class="value">50 per month</span>
+                </div>
+                <div class="success-item">
+                    <span class="label">Recording Time:</span>
+                    <span id="success-recording-time" class="value">60 seconds</span>
+                </div>
+            </div>
+            <div class="success-actions">
+                <button type="button" id="success-continue-btn" class="success-btn">Continue Creating</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Error Modal -->
+    <div id="payment-error-modal" class="payment-modal modal-hidden">
+        <div class="payment-modal-content error">
+            <div class="error-icon">❌</div>
+            <div class="payment-header">
+                <h2>Payment Failed</h2>
+                <p id="error-message">We couldn't process your payment. Please try again.</p>
+            </div>
+            <div class="error-actions">
+                <button type="button" id="error-retry-btn" class="error-btn">Try Again</button>
+                <button type="button" id="error-cancel-btn" class="error-btn secondary">Cancel</button>
+            </div>
+            <div class="payment-footer">
+                <p>Need help? <a href="mailto:support@orielfx.com">Contact Support</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Dashboard Modal -->
+    <div id="user-dashboard-modal" class="dashboard-modal modal-hidden">
+        <div class="dashboard-modal-content">
+            <button type="button" id="dashboard-close-btn" class="close-button">&times;</button>
+            <div class="dashboard-header">
+                <h2>Dashboard</h2>
+                <p>Manage your account and preferences</p>
+            </div>
+            
+            <!-- Dashboard Tabs -->
+            <div class="dashboard-tabs">
+                <button type="button" class="dashboard-tab-btn active" data-tab="overview">Overview</button>
+                <button type="button" class="dashboard-tab-btn" data-tab="usage">Usage</button>
+                <button type="button" class="dashboard-tab-btn" data-tab="billing">Billing</button>
+                <button type="button" class="dashboard-tab-btn" data-tab="settings">Settings</button>
+            </div>
+            
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="dashboard-tab-content active">
+                    <div class="dashboard-section">
+                        <h3>Account Information</h3>
+                        <div class="account-info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Email</span>
+                                <span id="dashboard-email" class="info-value">user@example.com</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Member Since</span>
+                                <span id="dashboard-join-date" class="info-value">January 2024</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Current Plan</span>
+                                <span id="dashboard-plan" class="info-value plan-badge">Free</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Status</span>
+                                <span id="dashboard-status" class="info-value status-active">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-section">
+                        <h3>Quick Stats</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">📊</div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="overview-downloads-used">0</div>
+                                    <div class="stat-label">Downloads This Month</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">💎</div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="overview-credits-remaining">3</div>
+                                    <div class="stat-label">Credits Remaining</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🎵</div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="overview-total-downloads">0</div>
+                                    <div class="stat-label">Total Downloads</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">⏱️</div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="overview-recording-time">30s</div>
+                                    <div class="stat-label">Max Recording Time</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Usage Tab -->
+                <div id="usage-tab" class="dashboard-tab-content">
+                    <div class="dashboard-section">
+                        <h3>Usage Statistics</h3>
+                        <div class="usage-overview">
+                            <div class="usage-chart-container">
+                                <div class="usage-progress-ring">
+                                    <svg class="progress-ring" width="120" height="120">
+                                        <circle class="progress-ring-circle-bg" cx="60" cy="60" r="50"></circle>
+                                        <circle class="progress-ring-circle" cx="60" cy="60" r="50" id="usage-progress-circle"></circle>
+                                    </svg>
+                                    <div class="progress-ring-text">
+                                        <div class="progress-percentage" id="usage-percentage">0%</div>
+                                        <div class="progress-label">Used</div>
+                                    </div>
+                                </div>
+                                <div class="usage-details">
+                                    <div class="usage-detail-item">
+                                        <span class="usage-detail-label">Downloads Used</span>
+                                        <span class="usage-detail-value" id="usage-downloads-used">0</span>
+                                    </div>
+                                    <div class="usage-detail-item">
+                                        <span class="usage-detail-label">Downloads Limit</span>
+                                        <span class="usage-detail-value" id="usage-downloads-limit">3</span>
+                                    </div>
+                                    <div class="usage-detail-item">
+                                        <span class="usage-detail-label">Resets On</span>
+                                        <span class="usage-detail-value" id="usage-reset-date">Next month</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-section">
+                        <h3>Download History</h3>
+                        <div class="download-history">
+                            <div class="history-header">
+                                <span>Date</span>
+                                <span>Type</span>
+                                <span>Duration</span>
+                                <span>Status</span>
+                            </div>
+                            <div id="download-history-list" class="history-list">
+                                <div class="history-empty">
+                                    <div class="empty-icon">📁</div>
+                                    <p>No downloads yet</p>
+                                    <p class="empty-subtitle">Start creating visualizations to see your history here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Billing Tab -->
+                <div id="billing-tab" class="dashboard-tab-content">
+                    <div class="dashboard-section">
+                        <h3>Current Plan</h3>
+                        <div class="current-plan-card">
+                            <div class="plan-info">
+                                <div class="plan-name" id="billing-plan-name">Free Plan</div>
+                                <div class="plan-price" id="billing-plan-price">$0/month</div>
+                                <div class="plan-features" id="billing-plan-features">
+                                    <ul>
+                                        <li>3 downloads per month</li>
+                                        <li>30-second recordings</li>
+                                        <li>Basic export formats</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="plan-actions">
+                                <button type="button" id="upgrade-plan-btn" class="upgrade-btn">Upgrade Plan</button>
+                                <button type="button" id="buy-more-credits-btn" class="credits-btn">Buy Credits</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-section">
+                        <h3>Payment History</h3>
+                        <div class="payment-history">
+                            <div class="history-header">
+                                <span>Date</span>
+                                <span>Description</span>
+                                <span>Amount</span>
+                                <span>Status</span>
+                            </div>
+                            <div id="payment-history-list" class="history-list">
+                                <div class="history-empty">
+                                    <div class="empty-icon">💳</div>
+                                    <p>No payments yet</p>
+                                    <p class="empty-subtitle">Your payment history will appear here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Tab -->
+                <div id="settings-tab" class="dashboard-tab-content">
+                    <div class="dashboard-section">
+                        <h3>Profile Settings</h3>
+                        <form id="profile-form" class="settings-form">
+                            <div class="form-group">
+                                <label for="profile-email">Email Address</label>
+                                <input type="email" id="profile-email" name="email" readonly>
+                                <small class="form-help">Contact support to change your email address</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-name">Display Name (Optional)</label>
+                                <input type="text" id="profile-name" name="name" placeholder="Enter your display name">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="save-btn">
+                                    <span class="btn-text">Save Changes</span>
+                                    <span class="btn-spinner hidden">⟳</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="dashboard-section">
+                        <h3>Visualizer Preferences</h3>
+                        <form id="preferences-form" class="settings-form">
+                            <div class="form-group">
+                                <label for="default-glow-color">Default Glow Color</label>
+                                <input type="color" id="default-glow-color" name="glowColor" value="#8309D5">
+                            </div>
+                            <div class="form-group">
+                                <label for="default-pulse">Default Pulse Intensity</label>
+                                <input type="range" id="default-pulse" name="pulse" min="0" max="3" step="0.1" value="1.5">
+                                <span class="range-value" id="pulse-value">1.5</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="default-shape">Default Shape</label>
+                                <select id="default-shape" name="shape">
+                                    <option value="circle">Circle</option>
+                                    <option value="square">Square</option>
+                                    <option value="triangle">Triangle</option>
+                                    <option value="hexagon">Hexagon</option>
+                                </select>
+                            </div>
+                            <div class="form-group checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="auto-sync" name="autoSync" checked>
+                                    <span class="checkbox-custom"></span>
+                                    Sync preferences across devices
+                                </label>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="save-btn">
+                                    <span class="btn-text">Save Preferences</span>
+                                    <span class="btn-spinner hidden">⟳</span>
+                                </button>
+                                <button type="button" id="reset-preferences-btn" class="reset-btn">Reset to Defaults</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="dashboard-section">
+                        <h3>Preferences Management</h3>
+                        <div class="preferences-management">
+                            <div class="management-actions">
+                                <button type="button" id="sync-preferences-btn" class="action-btn">
+                                    <span class="action-icon">🔄</span>
+                                    <span class="action-text">Sync Preferences</span>
+                                </button>
+                                <button type="button" id="export-preferences-btn" class="action-btn">
+                                    <span class="action-icon">📤</span>
+                                    <span class="action-text">Export Preferences</span>
+                                </button>
+                                <button type="button" id="import-preferences-btn" class="action-btn">
+                                    <span class="action-icon">📥</span>
+                                    <span class="action-text">Import Preferences</span>
+                                </button>
+                            </div>
+                            <div class="sync-status" id="sync-status">
+                                <div class="sync-info">
+                                    <span class="sync-label">Last Sync:</span>
+                                    <span class="sync-value" id="last-sync-time">Never</span>
+                                </div>
+                                <div class="sync-info">
+                                    <span class="sync-label">Status:</span>
+                                    <span class="sync-value" id="sync-status-text">Ready</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-section">
+                        <h3>Custom Presets</h3>
+                        <div class="custom-presets">
+                            <div class="presets-list" id="custom-presets-list">
+                                <div class="presets-empty">
+                                    <div class="empty-icon">🎨</div>
+                                    <p>No custom presets yet</p>
+                                    <p class="empty-subtitle">Save your favorite visualizer settings as presets</p>
+                                </div>
+                            </div>
+                            <div class="preset-actions">
+                                <button type="button" id="save-current-preset-btn" class="action-btn">
+                                    <span class="action-icon">💾</span>
+                                    <span class="action-text">Save Current Settings</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-section">
+                        <h3>Account Actions</h3>
+                        <div class="account-actions">
+                            <button type="button" id="change-password-btn" class="action-btn">Change Password</button>
+                            <button type="button" id="export-data-btn" class="action-btn">Export My Data</button>
+                            <button type="button" id="delete-account-btn" class="action-btn danger">Delete Account</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="change-password-modal" class="auth-modal modal-hidden">
+        <div class="auth-modal-content">
+            <button type="button" id="change-password-close-btn" class="close-button">&times;</button>
+            <div class="auth-header">
+                <h2>Change Password</h2>
+                <p>Enter your current password and choose a new one</p>
+            </div>
+            <form id="change-password-form" class="auth-form">
+                <div class="form-group">
+                    <label for="current-password">Current Password</label>
+                    <input type="password" id="current-password" name="currentPassword" required placeholder="Enter your current password">
+                    <div class="form-error" id="current-password-error"></div>
+                </div>
+                <div class="form-group">
+                    <label for="new-password">New Password</label>
+                    <input type="password" id="new-password" name="newPassword" required placeholder="Enter your new password">
+                    <div class="form-error" id="new-password-error"></div>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-new-password">Confirm New Password</label>
+                    <input type="password" id="confirm-new-password" name="confirmNewPassword" required placeholder="Confirm your new password">
+                    <div class="form-error" id="confirm-new-password-error"></div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" id="change-password-submit-btn" class="auth-submit-btn">
+                        <span class="btn-text">Change Password</span>
+                        <span class="btn-spinner hidden">⟳</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Account Deletion Confirmation Modal -->
+    <div id="delete-account-modal" class="auth-modal modal-hidden">
+        <div class="auth-modal-content">
+            <button type="button" id="delete-account-close-btn" class="close-button">&times;</button>
+            <div class="auth-header">
+                <h2>Delete Account</h2>
+                <p>This action cannot be undone. All your data will be permanently deleted.</p>
+            </div>
+            <div class="delete-account-warning">
+                <div class="warning-icon">⚠️</div>
+                <div class="warning-content">
+                    <h3>What will be deleted:</h3>
+                    <ul>
+                        <li>Your account and profile information</li>
+                        <li>All download history and usage statistics</li>
+                        <li>Saved preferences and custom presets</li>
+                        <li>Payment history (billing records will be retained for legal purposes)</li>
+                    </ul>
+                </div>
+            </div>
+            <form id="delete-account-form" class="auth-form">
+                <div class="form-group">
+                    <label for="delete-confirmation">Type "DELETE" to confirm</label>
+                    <input type="text" id="delete-confirmation" name="confirmation" required placeholder="Type DELETE to confirm">
+                    <div class="form-error" id="delete-confirmation-error"></div>
+                </div>
+                <div class="form-group">
+                    <label for="delete-password">Enter your password</label>
+                    <input type="password" id="delete-password" name="password" required placeholder="Enter your password">
+                    <div class="form-error" id="delete-password-error"></div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="delete-account-cancel-btn" class="auth-submit-btn secondary">Cancel</button>
+                    <button type="submit" id="delete-account-submit-btn" class="auth-submit-btn danger">
+                        <span class="btn-text">Delete Account</span>
+                        <span class="btn-spinner hidden">⟳</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="progress-modal" class="modal-hidden">
         <div class="modal-content">
             <button type="button" id="close-modal-btn" class="close-button">&times;</button>
@@ -155,6 +715,13 @@
     <script src="notification-manager.js"></script>
     <script src="auth-manager.js"></script>
     <script src="auth-ui.js"></script>
+    <script src="usage-tracker.js"></script>
+    <script src="payment-manager.js"></script>
+    <script src="payment-ui.js"></script>
+    <script src="payment-integration.js"></script>
+    <script src="preferences-manager.js"></script>
+    <script src="dashboard-ui.js"></script>
+    <script src="saas-init.js"></script>
     <!-- Main Application Scripts -->
     <script src="script.js"></script>
     <script src="graph.js"></script>

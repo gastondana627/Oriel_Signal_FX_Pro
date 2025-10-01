@@ -37,6 +37,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Initialize usage tracker
         window.usageTracker = await UsageTracker.initialize();
         
+        // Connect AuthUI with UsageTracker
+        if (window.authUI && window.usageTracker) {
+            window.authUI.setUsageTracker(window.usageTracker);
+        }
+        
         console.log('Authentication and usage tracking systems initialized successfully');
     } catch (error) {
         console.error('Failed to initialize authentication/usage systems:', error);
@@ -142,70 +147,141 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- GIF DOWNLOAD LOGIC ---
     downloadGifButton.addEventListener('click', async () => {
-        // Check download limits
-        const remainingDownloads = getDownloadsRemaining();
-        if (remainingDownloads <= 0) {
-            if (window.authManager && window.authManager.isAuthenticated) {
-                // Show upgrade prompt for authenticated users
-                window.notificationManager?.show("You've reached your download limit. Upgrade your plan for more downloads!", 'warning');
-            } else {
-                // Show login/upgrade prompt for anonymous users
-                window.notificationManager?.show("You've used all your free downloads! Sign up for more downloads or clear browser data to reset.", 'warning');
+        try {
+            // Check download limits first
+            const canDownload = await checkDownloadLimits();
+            if (!canDownload.allowed) {
+                showUpgradePrompt(canDownload.reason, canDownload.message);
+                return;
             }
-            return;
-        }
-        
-        choiceView.classList.add('hidden');
-        progressView.classList.remove('hidden');
+            
+            // Show progress view
+            choiceView.classList.add('hidden');
+            progressView.classList.remove('hidden');
 
-        // Track download for authenticated users
-        if (window.authManager && window.authManager.isAuthenticated) {
-            try {
-                // This would call the backend to track the download
-                // For now, we'll just update local state
-                console.log('Tracking download for authenticated user');
-            } catch (error) {
-                console.error('Failed to track download:', error);
-            }
-        }
+            // Prepare download metadata
+            const downloadMetadata = {
+                format: 'gif',
+                duration: 30,
+                quality: 'standard',
+                timestamp: new Date().toISOString()
+            };
 
-        window.capturer = new CCapture({
-            format: 'gif', workersPath: 'assets/', framerate: 30,
-            onProgress: (progress) => {
-                const percentage = Math.round(progress * 100);
-                progressBarInner.style.width = `${percentage}%`;
-                modalStatus.textContent = `Processing... ${percentage}%`;
+            // Start the capture process
+            window.capturer = new CCapture({
+                format: 'gif', 
+                workersPath: 'assets/', 
+                framerate: 30,
+                onProgress: (progress) => {
+                    const percentage = Math.round(progress * 100);
+                    progressBarInner.style.width = `${percentage}%`;
+                    modalStatus.textContent = `Processing... ${percentage}%`;
+                }
+            });
+            
+            progressBarInner.style.width = '0%';
+            modalStatus.textContent = 'Recording for 30 seconds...';
+            capturer.start();
+            
+            // Start audio if not playing
+            if (!audioInitialized || (audioContext && audioContext.state === 'suspended')) {
+                window.togglePlayPause();
             }
-        });
-        
-        useDownload();
-        progressBarInner.style.width = '0%';
-        modalStatus.textContent = 'Recording for 30 seconds...';
-        capturer.start();
-        
-        if (!audioInitialized || (audioContext && audioContext.state === 'suspended')) {
-            window.togglePlayPause();
+            
+            // Record for 30 seconds then finalize
+            setTimeout(async () => {
+                try {
+                    capturer.stop();
+                    modalStatus.textContent = 'Finalizing... Download will begin shortly.';
+                    capturer.save();
+                    
+                    // Track the successful download
+                    await trackDownload('gif', downloadMetadata);
+                    
+                    // Update UI to reflect new usage
+                    updateDownloadCounter();
+                    
+                    // Close modal after a delay
+                    setTimeout(() => {
+                        progressModal.classList.add('modal-hidden');
+                    }, 4000);
+                    
+                } catch (error) {
+                    console.error('Error finalizing download:', error);
+                    modalStatus.textContent = 'Download completed with warnings.';
+                    
+                    // Still close the modal
+                    setTimeout(() => {
+                        progressModal.classList.add('modal-hidden');
+                    }, 2000);
+                }
+            }, 30000);
+            
+        } catch (error) {
+            console.error('Error starting GIF download:', error);
+            
+            // Show error message
+            if (window.notificationManager) {
+                window.notificationManager.show('Failed to start download. Please try again.', 'error');
+            }
+            
+            // Reset modal state
+            progressModal.classList.add('modal-hidden');
         }
-        
-        setTimeout(() => {
-            capturer.stop();
-            modalStatus.textContent = 'Finalizing... Download will begin shortly.';
-            capturer.save();
-            setTimeout(() => {
-                progressModal.classList.add('modal-hidden');
-            }, 4000);
-        }, 30000);
     });
 
     // --- MP3 DOWNLOAD LOGIC ---
-    downloadMp3Button.addEventListener('click', () => {
-        const link = document.createElement('a');
-        link.href = audioElement.src;
-        link.download = 'Oriel_FX_Audio.mp3';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        progressModal.classList.add('modal-hidden');
+    downloadMp3Button.addEventListener('click', async () => {
+        try {
+            // Check download limits first
+            const canDownload = await checkDownloadLimits();
+            if (!canDownload.allowed) {
+                showUpgradePrompt(canDownload.reason, canDownload.message);
+                return;
+            }
+            
+            // Prepare download metadata
+            const downloadMetadata = {
+                format: 'mp3',
+                duration: 0, // MP3 downloads don't have duration limits
+                quality: 'standard',
+                timestamp: new Date().toISOString(),
+                fileSize: 'unknown' // Could be calculated if needed
+            };
+            
+            // Perform the download
+            const link = document.createElement('a');
+            link.href = audioElement.src;
+            link.download = 'Oriel_FX_Audio.mp3';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Track the successful download
+            await trackDownload('mp3', downloadMetadata);
+            
+            // Update UI to reflect new usage
+            updateDownloadCounter();
+            
+            // Close modal
+            progressModal.classList.add('modal-hidden');
+            
+            // Show success message
+            if (window.notificationManager) {
+                window.notificationManager.show('MP3 download started successfully!', 'success');
+            }
+            
+        } catch (error) {
+            console.error('Error downloading MP3:', error);
+            
+            // Show error message
+            if (window.notificationManager) {
+                window.notificationManager.show('Failed to download MP3. Please try again.', 'error');
+            }
+            
+            // Close modal
+            progressModal.classList.add('modal-hidden');
+        }
     });
 
     // --- Master list of all available shapes ---
