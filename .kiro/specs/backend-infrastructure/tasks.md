@@ -31,7 +31,7 @@
   - Create basic worker script structure for background processing
   - _Requirements: 3.7, 3.8_
 
-- [-] 5. Implement Stripe payment integration
+- [x] 5. Implement Stripe payment integration
   - Install Stripe Python SDK and configure API keys
   - Create payment blueprint with session creation endpoint
   - Implement Stripe webhook handler for payment confirmations
@@ -39,7 +39,7 @@
   - Create payment validation and error handling logic
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 6. Build video rendering job system
+- [x] 6. Build video rendering job system
   - Create render job submission endpoint with file upload validation
   - Implement job enqueueing logic that adds tasks to Redis queue
   - Create job status polling endpoint for frontend progress tracking
@@ -47,7 +47,7 @@
   - Implement job cleanup and error recovery mechanisms
   - _Requirements: 3.1, 3.7, 9.4_
 
-- [ ] 7. Implement video rendering worker process
+- [x] 7. Implement video rendering worker process
   - Install Playwright and FFmpeg dependencies for video generation
   - Create worker function that processes render jobs from Redis queue
   - Implement headless browser automation to capture visualizer
@@ -55,7 +55,7 @@
   - Create temporary file management and cleanup logic
   - _Requirements: 3.2, 3.3, 3.5_
 
-- [ ] 8. Set up Google Cloud Storage integration
+- [x] 8. Set up Google Cloud Storage integration
   - Install Google Cloud Storage Python client library
   - Configure GCS bucket and authentication credentials
   - Implement video file upload functionality in worker process
@@ -63,7 +63,7 @@
   - Add automatic file cleanup for expired videos
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 9. Implement email delivery system
+- [x] 9. Implement email delivery system
   - Install SendGrid Python SDK and configure API credentials
   - Create email template for video completion notifications
   - Implement email sending functionality in worker process
@@ -71,7 +71,7 @@
   - Create email validation for user registration
   - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 10. Add API security and rate limiting
+- [x] 10. Add API security and rate limiting
   - Install Flask-Limiter for rate limiting implementation
   - Configure rate limits for different endpoint categories
   - Implement file upload security validation (type, size, content scanning)
@@ -79,7 +79,7 @@
   - Create request validation middleware for API endpoints
   - _Requirements: 6.2, 6.3, 6.4, 6.5_
 
-- [ ] 11. Create user dashboard and profile management
+- [x] 11. Create user dashboard and profile management
   - Implement user profile endpoint with account information
   - Create user history endpoint showing past render jobs and payments
   - Add profile update functionality for email and password changes

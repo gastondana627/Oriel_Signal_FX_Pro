@@ -7,9 +7,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import secrets
 import re
+import logging
 from app import db
 from app.models import User, PasswordResetToken
 from app.auth import bp
+from app.security import auth_rate_limit
+from app.security.validators import sanitize_input, validate_json_input, SecurityValidationError
+
+logger = logging.getLogger(__name__)
 
 
 def validate_email(email):
@@ -30,6 +35,7 @@ def validate_password(password):
 
 
 @bp.route('/register', methods=['POST'])
+@auth_rate_limit()
 def register():
     """Register a new user"""
     try:
@@ -87,6 +93,15 @@ def register():
         db.session.add(user)
         db.session.commit()
         
+        # Send welcome email (non-blocking)
+        try:
+            from app.email import get_email_service
+            email_service = get_email_service()
+            email_service.send_welcome_email(user.email, user.email.split('@')[0])
+        except Exception as email_error:
+            logger.warning(f"Failed to send welcome email to {user.email}: {email_error}")
+            # Don't fail registration if email fails
+        
         return jsonify({
             'message': 'Account created successfully',
             'user': {
@@ -108,6 +123,7 @@ def register():
 
 
 @bp.route('/login', methods=['POST'])
+@auth_rate_limit()
 def login():
     """Authenticate user and return JWT tokens"""
     try:
@@ -205,60 +221,10 @@ def refresh():
         }), 500
 
 
-@bp.route('/logout', methods=['POST'])
-@jwt_required()
-def logout():
-    """Logout user (client should discard tokens)"""
-    try:
-        # In a more advanced implementation, we could maintain a blacklist of tokens
-        # For now, we rely on the client to discard the tokens
-        return jsonify({
-            'message': 'Logged out successfully'
-        }), 200
-        
-    except Exception as e:
-        current_app.logger.error(f"Logout error: {str(e)}")
-        return jsonify({
-            'error': {
-                'code': 'LOGOUT_FAILED',
-                'message': 'Logout failed'
-            }
-        }), 500
 
 
-@bp.route('/profile', methods=['GET'])
-@jwt_required()
-def get_profile():
-    """Get current user profile"""
-    try:
-        current_user_id = int(get_jwt_identity())
-        user = User.query.get(current_user_id)
-        
-        if not user:
-            return jsonify({
-                'error': {
-                    'code': 'USER_NOT_FOUND',
-                    'message': 'User not found'
-                }
-            }), 404
-        
-        return jsonify({
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'created_at': user.created_at.isoformat(),
-                'is_active': user.is_active
-            }
-        }), 200
-        
-    except Exception as e:
-        current_app.logger.error(f"Profile fetch error: {str(e)}")
-        return jsonify({
-            'error': {
-                'code': 'PROFILE_FETCH_FAILED',
-                'message': 'Failed to fetch profile'
-            }
-        }), 500
+
+
 
 
 @bp.route('/verify', methods=['GET'])

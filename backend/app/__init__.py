@@ -3,21 +3,57 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
-from config import Config
+from config import config
 
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 
-def create_app(config_class=Config):
+def create_app(config_name='default'):
     app = Flask(__name__)
-    app.config.from_object(config_class)
+    app.config.from_object(config[config_name])
     
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    CORS(app)
+    CORS(app, resources={r"/api/*": {"origins": app.config['CORS_ORIGINS']}})
+    
+    # Initialize security features
+    from app.security import init_limiter
+    init_limiter(app)
+    
+    # Add security headers
+    @app.after_request
+    def add_security_headers(response):
+        # Prevent clickjacking
+        response.headers['X-Frame-Options'] = 'DENY'
+        
+        # Prevent MIME type sniffing
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        
+        # Enable XSS protection
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        
+        # Strict transport security (HTTPS only)
+        if app.config.get('HTTPS_ONLY', False):
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        
+        # Content Security Policy
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' https:; "
+            "connect-src 'self' https:; "
+            "media-src 'self' https:; "
+            "object-src 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+        
+        return response
     
     # Initialize job queue system
     try:
@@ -25,48 +61,35 @@ def create_app(config_class=Config):
         init_queue(app)
     except Exception as e:
         app.logger.error(f"Failed to initialize job queue: {e}")
-        # Don't fail app startup if Redis is not available in development
-    
+        
     # JWT error handlers
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
-        return {
-            'error': {
-                'code': 'TOKEN_EXPIRED',
-                'message': 'The token has expired'
-            }
-        }, 401
+        return {'error': {'code': 'TOKEN_EXPIRED', 'message': 'The token has expired'}}, 401
     
     @jwt.invalid_token_loader
     def invalid_token_callback(error):
-        return {
-            'error': {
-                'code': 'INVALID_TOKEN',
-                'message': 'Invalid token'
-            }
-        }, 401
+        return {'error': {'code': 'INVALID_TOKEN', 'message': 'Invalid token'}}, 401
     
     @jwt.unauthorized_loader
     def missing_token_callback(error):
-        return {
-            'error': {
-                'code': 'TOKEN_REQUIRED',
-                'message': 'Authorization token is required'
-            }
-        }, 401
+        return {'error': {'code': 'TOKEN_REQUIRED', 'message': 'Authorization token is required'}}, 401
     
     # Register blueprints
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
     
     from app.auth import bp as auth_bp
-    app.register_blueprint(auth_bp)
+    app.register_blueprint(auth_bp, url_prefix='/api/auth')
     
-    from app.jobs import routes as jobs_routes
-    app.register_blueprint(jobs_routes.bp)
+    from app.jobs import bp as jobs_bp
+    app.register_blueprint(jobs_bp, url_prefix='/api/jobs')
     
     from app.payments import bp as payments_bp
-    app.register_blueprint(payments_bp)
+    app.register_blueprint(payments_bp, url_prefix='/api/payments')
+    
+    from app.user import bp as user_bp
+    app.register_blueprint(user_bp, url_prefix='/api/user')
     
     return app
 

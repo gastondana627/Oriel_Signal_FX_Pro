@@ -32,6 +32,7 @@ class RenderJob(db.Model):
     audio_filename = db.Column(db.String(255))
     render_config = db.Column(db.JSON)
     video_url = db.Column(db.String(500))
+    gcs_blob_name = db.Column(db.String(500))  # GCS blob path for the video file
     error_message = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime)

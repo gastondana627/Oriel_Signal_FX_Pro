@@ -13,3 +13,17 @@ rq==1.15.1
 
 # Stripe payment processing
 stripe==13.0.0
+
+# Video rendering dependencies
+playwright==1.40.0
+ffmpeg-python==0.2.0
+
+# Google Cloud Storage
+google-cloud-storage==2.10.0
+
+# Email delivery
+sendgrid==6.10.0
+
+# Rate limiting and security
+Flask-Limiter==3.5.0
+python-magic==0.4.27

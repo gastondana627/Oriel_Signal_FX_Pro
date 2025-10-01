@@ -47,6 +47,7 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
+    
     # Railway automatically provides DATABASE_URL for PostgreSQL
     if os.environ.get('DATABASE_URL'):
         # Fix for Railway PostgreSQL URL format
@@ -54,6 +55,26 @@ class ProductionConfig(Config):
         if uri and uri.startswith('postgres://'):
             uri = uri.replace('postgres://', 'postgresql://', 1)
         SQLALCHEMY_DATABASE_URI = uri
+    
+    # Production-specific settings
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+        'pool_timeout': 20,
+        'max_overflow': 0
+    }
+    
+    # Security settings for production
+    HTTPS_ONLY = os.environ.get('HTTPS_ONLY', 'false').lower() == 'true'
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    
+    # Logging configuration
+    LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+    
+    # Rate limiting - use Redis in production
+    RATELIMIT_STORAGE_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/1')
 
 class TestingConfig(Config):
     TESTING = True
