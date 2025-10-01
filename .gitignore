@@ -1,0 +1,56 @@
+# Admin and sensitive files
+admin/
+README_ADMIN.md
+*.env
+.env.*
+
+# Dependencies
+node_modules/
+backend/venv/
+backend/.venv/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+backend/logs/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Secrets and credentials
+secrets/
+credentials/
+keys/
+*.key
+*.pem
+*.p12
