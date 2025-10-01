@@ -1,0 +1,222 @@
+{% extends 'admin/base.html' %}
+
+{% block body %}
+<div class="admin-dashboard">
+    <h1>Oriel Signal FX Pro - Admin Dashboard</h1>
+    <p class="text-muted">System overview and metrics</p>
+    
+    <!-- System Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>System Status</h3>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value status-{{ 'healthy' if queue_status.status == 'connected' else 'unhealthy' }}">
+                            {{ queue_status.total_queued if queue_status.status == 'connected' else '?' }}
+                        </div>
+                        <div class="metric-label">Queue Jobs</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value status-healthy">
+                            {{ active_users }}
+                        </div>
+                        <div class="metric-label">Active Users</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value status-healthy">
+                            {{ processing_jobs }}
+                        </div>
+                        <div class="metric-label">Processing Jobs</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value status-healthy">
+                            ${{ "%.2f"|format(total_revenue_dollars) }}
+                        </div>
+                        <div class="metric-label">Total Revenue</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Metrics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>User Metrics</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ total_users }}</div>
+                        <div class="metric-label">Total Users</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ active_users }}</div>
+                        <div class="metric-label">Active Users</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ new_users_today }}</div>
+                        <div class="metric-label">New Today</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment Metrics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>Payment Metrics</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ total_payments }}</div>
+                        <div class="metric-label">Total Payments</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ completed_payments }}</div>
+                        <div class="metric-label">Completed</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <div class="metric-value">${{ "%.2f"|format(total_revenue_dollars) }}</div>
+                        <div class="metric-label">Revenue</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Job Metrics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>Render Job Metrics</h3>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ total_jobs }}</div>
+                        <div class="metric-label">Total Jobs</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ completed_jobs }}</div>
+                        <div class="metric-label">Completed</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value status-warning">{{ processing_jobs }}</div>
+                        <div class="metric-label">Processing</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value status-unhealthy">{{ failed_jobs }}</div>
+                        <div class="metric-label">Failed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Queue Status -->
+    {% if queue_status.status == 'connected' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>Job Queue Status</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ queue_status.high_queue }}</div>
+                        <div class="metric-label">High Priority</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ queue_status.default_queue }}</div>
+                        <div class="metric-label">Default Queue</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ queue_status.low_queue }}</div>
+                        <div class="metric-label">Low Priority</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="recent-activity">
+                <h4>Recent Users</h4>
+                {% if recent_users %}
+                    {% for user in recent_users %}
+                    <div class="activity-item">
+                        <strong>{{ user.email }}</strong>
+                        <small class="text-muted">
+                            - Registered {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            {% if not user.is_active %}<span class="badge badge-warning">Inactive</span>{% endif %}
+                        </small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No recent users</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="recent-activity">
+                <h4>Recent Jobs</h4>
+                {% if recent_jobs %}
+                    {% for job in recent_jobs %}
+                    <div class="activity-item">
+                        <strong>Job #{{ job.id }}</strong>
+                        <span class="badge badge-{{ 'success' if job.status == 'completed' else 'warning' if job.status == 'processing' else 'danger' if job.status == 'failed' else 'secondary' }}">
+                            {{ job.status.title() }}
+                        </span>
+                        <small class="text-muted">
+                            - {{ job.audio_filename or 'Unknown file' }}
+                            - {{ job.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        </small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No recent jobs</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3>Quick Actions</h3>
+            <div class="btn-group" role="group">
+                <a href="{{ url_for('user.index_view') }}" class="btn btn-primary">Manage Users</a>
+                <a href="{{ url_for('payment.index_view') }}" class="btn btn-success">View Payments</a>
+                <a href="{{ url_for('renderjob.index_view') }}" class="btn btn-info">Manage Jobs</a>
+                <button class="btn btn-secondary" onclick="location.reload()">Refresh Dashboard</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

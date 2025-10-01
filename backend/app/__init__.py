@@ -91,6 +91,13 @@ def create_app(config_name='default'):
     from app.user import bp as user_bp
     app.register_blueprint(user_bp, url_prefix='/api/user')
     
+    from app.admin import bp as admin_api_bp
+    app.register_blueprint(admin_api_bp, url_prefix='/admin/api')
+    
+    # Initialize Flask-Admin
+    from app.admin.views import init_admin
+    init_admin(app)
+    
     return app
 
 from app import models

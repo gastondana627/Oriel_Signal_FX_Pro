@@ -1,0 +1,72 @@
+{% extends 'admin/master.html' %}
+
+{% block head_css %}
+{{ super() }}
+<style>
+    .admin-dashboard {
+        padding: 20px;
+    }
+    
+    .metric-card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #007bff;
+        margin-bottom: 10px;
+    }
+    
+    .metric-label {
+        font-size: 1rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .status-healthy {
+        color: #28a745;
+    }
+    
+    .status-unhealthy {
+        color: #dc3545;
+    }
+    
+    .status-warning {
+        color: #ffc107;
+    }
+    
+    .recent-activity {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    .activity-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block head_js %}
+{{ super() }}
+<script>
+    // Auto-refresh dashboard every 30 seconds
+    setTimeout(function() {
+        location.reload();
+    }, 30000);
+</script>
+{% endblock %}

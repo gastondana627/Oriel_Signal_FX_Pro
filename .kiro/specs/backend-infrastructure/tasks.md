@@ -87,7 +87,7 @@
   - Create user session management and logout functionality
   - _Requirements: 7.4, 7.6_
 
-- [ ] 12. Set up Flask-Admin interface
+- [x] 12. Set up Flask-Admin interface
   - Install and configure Flask-Admin for administrative access
   - Create admin views for User, Payment, and RenderJob models
   - Implement admin authentication and role-based access control

@@ -39,6 +39,10 @@ class Config:
     
     # CORS configuration
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')
+    
+    # Admin configuration
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
 
 class DevelopmentConfig(Config):
     DEBUG = True
