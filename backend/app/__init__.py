@@ -19,6 +19,14 @@ def create_app(config_class=Config):
     jwt.init_app(app)
     CORS(app)
     
+    # Initialize job queue system
+    try:
+        from app.jobs.queue import init_queue
+        init_queue(app)
+    except Exception as e:
+        app.logger.error(f"Failed to initialize job queue: {e}")
+        # Don't fail app startup if Redis is not available in development
+    
     # JWT error handlers
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
@@ -53,6 +61,9 @@ def create_app(config_class=Config):
     
     from app.auth import bp as auth_bp
     app.register_blueprint(auth_bp)
+    
+    from app.jobs import routes as jobs_routes
+    app.register_blueprint(jobs_routes.bp)
     
     return app
 

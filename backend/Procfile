@@ -1,2 +1,0 @@
-web: gunicorn oriel_backend:app
-worker: python -m rq worker --url $REDIS_URL

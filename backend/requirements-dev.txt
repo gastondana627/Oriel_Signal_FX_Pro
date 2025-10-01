@@ -6,3 +6,7 @@ Flask-JWT-Extended==4.5.3
 Flask-CORS==4.0.0
 python-dotenv==1.0.0
 werkzeug==2.3.7
+
+# Redis and job queue
+redis==5.0.1
+rq==1.15.1
