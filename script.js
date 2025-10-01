@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // --- Get all elements ---
     const playPauseButton = document.getElementById('play-pause-button');
     const audioElement = document.getElementById('background-music');
@@ -24,19 +24,108 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let audioContext;
     let audioInitialized = false;
+    let isAnimationPaused = false;
+
+    // --- Initialize Authentication System ---
+    try {
+        // Initialize authentication manager
+        window.authManager = await AuthManager.initialize();
+        
+        // Initialize authentication UI
+        window.authUI = await AuthUI.initialize();
+        
+        // Initialize usage tracker
+        window.usageTracker = await UsageTracker.initialize();
+        
+        console.log('Authentication and usage tracking systems initialized successfully');
+    } catch (error) {
+        console.error('Failed to initialize authentication/usage systems:', error);
+        // Continue without authentication features
+    }
+
+    // --- ANIMATION PAUSE CONTROL ---
+    window.setAnimationPaused = function(paused) {
+        isAnimationPaused = paused;
+        // This will be used by the graph.js file to pause/resume animation
+        if (window.pauseAnimation) {
+            window.pauseAnimation(paused);
+        }
+    };
 
     // --- DOWNLOAD & USAGE LIMIT LOGIC ---
     function getDownloadsRemaining() {
+        if (window.usageTracker) {
+            return window.usageTracker.getRemainingDownloads();
+        }
+        
+        // Fallback to old logic if usage tracker not available
         const count = localStorage.getItem('orielFxDownloads');
         return count === null ? 3 : parseInt(count);
     }
-    function useDownload() {
-        let count = getDownloadsRemaining();
-        localStorage.setItem('orielFxDownloads', Math.max(0, count - 1));
+    
+    async function checkDownloadLimits() {
+        if (window.usageTracker) {
+            return window.usageTracker.canUserDownload();
+        }
+        
+        // Fallback logic
+        const remaining = getDownloadsRemaining();
+        if (remaining <= 0) {
+            return {
+                allowed: false,
+                reason: 'free_limit',
+                message: 'Free download limit reached. Sign up for more downloads!'
+            };
+        }
+        
+        return { allowed: true };
+    }
+    
+    async function trackDownload(downloadType, metadata = {}) {
+        if (window.usageTracker) {
+            try {
+                return await window.usageTracker.trackDownload(downloadType, metadata);
+            } catch (error) {
+                console.error('Failed to track download:', error);
+                throw error;
+            }
+        }
+        
+        // Fallback to old logic
+        useDownloadFallback();
+        return { success: true };
+    }
+    
+    function useDownloadFallback() {
+        // Legacy fallback for when usage tracker is not available
+        if (!window.authManager || !window.authManager.isAuthenticated) {
+            let count = getDownloadsRemaining();
+            localStorage.setItem('orielFxDownloads', Math.max(0, count - 1));
+        }
         updateDownloadCounter();
     }
+    
     function updateDownloadCounter() {
-        downloadsRemainingText.textContent = `${getDownloadsRemaining()} free downloads remaining.`;
+        // This function is now handled by the AuthUI component
+        // Keep it for backward compatibility but let AuthUI handle the display
+        if (window.authUI) {
+            window.authUI.updateAnonymousDownloads();
+        } else {
+            // Fallback for when auth system isn't loaded
+            if (downloadsRemainingText) {
+                downloadsRemainingText.textContent = `${getDownloadsRemaining()} free downloads remaining.`;
+            }
+        }
+    }
+    
+    function showUpgradePrompt(reason, message) {
+        if (window.usageTracker) {
+            window.usageTracker.showUpgradePrompt(reason);
+        } else if (window.notificationManager) {
+            window.notificationManager.show(message, 'warning');
+        } else {
+            alert(message);
+        }
     }
 
     // --- MODAL CONTROL LOGIC ---
@@ -52,14 +141,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- GIF DOWNLOAD LOGIC ---
-    downloadGifButton.addEventListener('click', () => {
-        if (getDownloadsRemaining() <= 0) {
-            alert("You've used all your free downloads! Clear browser data to reset for this prototype.");
+    downloadGifButton.addEventListener('click', async () => {
+        // Check download limits
+        const remainingDownloads = getDownloadsRemaining();
+        if (remainingDownloads <= 0) {
+            if (window.authManager && window.authManager.isAuthenticated) {
+                // Show upgrade prompt for authenticated users
+                window.notificationManager?.show("You've reached your download limit. Upgrade your plan for more downloads!", 'warning');
+            } else {
+                // Show login/upgrade prompt for anonymous users
+                window.notificationManager?.show("You've used all your free downloads! Sign up for more downloads or clear browser data to reset.", 'warning');
+            }
             return;
         }
         
         choiceView.classList.add('hidden');
         progressView.classList.remove('hidden');
+
+        // Track download for authenticated users
+        if (window.authManager && window.authManager.isAuthenticated) {
+            try {
+                // This would call the backend to track the download
+                // For now, we'll just update local state
+                console.log('Tracking download for authenticated user');
+            } catch (error) {
+                console.error('Failed to track download:', error);
+            }
+        }
 
         window.capturer = new CCapture({
             format: 'gif', workersPath: 'assets/', framerate: 30,
@@ -69,13 +177,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 modalStatus.textContent = `Processing... ${percentage}%`;
             }
         });
+        
         useDownload();
         progressBarInner.style.width = '0%';
         modalStatus.textContent = 'Recording for 30 seconds...';
         capturer.start();
+        
         if (!audioInitialized || (audioContext && audioContext.state === 'suspended')) {
             window.togglePlayPause();
         }
+        
         setTimeout(() => {
             capturer.stop();
             modalStatus.textContent = 'Finalizing... Download will begin shortly.';
@@ -140,6 +251,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Play/Pause Logic ---
     window.togglePlayPause = function() {
+        // Don't allow play/pause if animation is paused by modal
+        if (isAnimationPaused) {
+            return;
+        }
+        
         if (!audioInitialized) {
             audioContext = initAudio();
             audioInitialized = true;
@@ -148,12 +264,12 @@ document.addEventListener('DOMContentLoaded', () => {
             audioContext.resume();
             audioElement.play();
             playPauseButton.textContent = "Pause";
-            if (window.setAnimationPaused) window.setAnimationPaused(false);
+            if (window.pauseAnimation) window.pauseAnimation(false);
         } else {
             audioContext.suspend();
             audioElement.pause();
             playPauseButton.textContent = "Play";
-            if (window.setAnimationPaused) window.setAnimationPaused(true);
+            if (window.pauseAnimation) window.pauseAnimation(true);
         }
     };
     playPauseButton.addEventListener('click', window.togglePlayPause);
@@ -202,4 +318,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Setup ---
     updateDownloadCounter();
     updateShapeButtons();
+    
+    // Update UI after auth system is initialized
+    if (window.authUI) {
+        window.authUI.updateUI();
+    }
 });

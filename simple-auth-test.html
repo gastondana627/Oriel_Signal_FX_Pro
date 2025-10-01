@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Unit Tests - Simple Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .pass { background: #d4edda; color: #155724; }
+        .fail { background: #f8d7da; color: #721c24; }
+        .info { background: #e2e3e5; color: #383d41; }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover { background: #45a049; }
+        button:disabled { background: #cccccc; cursor: not-allowed; }
+        
+        .hidden { display: none; }
+        .modal-hidden { display: none; }
+        .form-error { color: red; font-size: 12px; }
+        input.error { border: 2px solid red; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 Authentication Unit Tests</h1>
+        <p>Simple demonstration of authentication system testing</p>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Controls</h3>
+        <button onclick="runBasicTests()">Run Basic Tests</button>
+        <button onclick="runTokenTests()">Run Token Tests</button>
+        <button onclick="runUITests()">Run UI Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+    
+    <div id="test-results" class="test-section">
+        <h3>Test Results</h3>
+        <div id="results-container">
+            <div class="test-result info">Click a test button to run tests...</div>
+        </div>
+    </div>
+
+    <!-- Hidden DOM elements for testing -->
+    <div style="display: none;">
+        <div id="anonymous-status"></div>
+        <div id="authenticated-status" class="hidden"></div>
+        <div id="user-email"></div>
+        <div id="user-credits"></div>
+        <div id="downloads-remaining"></div>
+        
+        <div id="login-modal" class="modal-hidden">
+            <form id="login-form">
+                <input id="login-email" type="email" name="email">
+                <input id="login-password" type="password" name="password">
+                <button id="login-submit-btn" type="submit">
+                    <span class="btn-text">Login</span>
+                    <span class="btn-spinner hidden">Loading...</span>
+                </button>
+            </form>
+            <div id="login-email-error" class="form-error"></div>
+            <div id="login-password-error" class="form-error"></div>
+        </div>
+        
+        <div id="register-modal" class="modal-hidden">
+            <form id="register-form">
+                <input id="register-email" type="email" name="email">
+                <input id="register-password" type="password" name="password">
+                <input id="register-confirm-password" type="password" name="confirmPassword">
+                <button id="register-submit-btn" type="submit">Register</button>
+            </form>
+            <div id="register-email-error" class="form-error"></div>
+            <div id="register-password-error" class="form-error"></div>
+            <div id="register-confirm-password-error" class="form-error"></div>
+        </div>
+    </div>
+
+    <!-- Load authentication modules -->
+    <script src="app-config.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="api-client.js"></script>
+    <script src="auth-manager.js"></script>
+    <script src="auth-ui.js"></script>
+
+    <script>
+        // Simple test framework
+        class SimpleTestFramework {
+            constructor() {
+                this.results = [];
+                this.container = document.getElementById('results-container');
+            }
+            
+            assert(condition, message) {
+                const result = {
+                    message: message,
+                    passed: condition,
+                    timestamp: new Date().toLocaleTimeString()
+                };
+                this.results.push(result);
+                this.displayResult(result);
+                return condition;
+            }
+            
+            assertEquals(actual, expected, message) {
+                const passed = actual === expected;
+                const fullMessage = `${message} (expected: ${expected}, actual: ${actual})`;
+                return this.assert(passed, fullMessage);
+            }
+            
+            assertTrue(condition, message) {
+                return this.assert(condition === true, message);
+            }
+            
+            assertFalse(condition, message) {
+                return this.assert(condition === false, message);
+            }
+            
+            displayResult(result) {
+                const div = document.createElement('div');
+                div.className = `test-result ${result.passed ? 'pass' : 'fail'}`;
+                div.textContent = `[${result.timestamp}] ${result.passed ? '✅' : '❌'} ${result.message}`;
+                this.container.appendChild(div);
+                this.container.scrollTop = this.container.scrollHeight;
+            }
+            
+            info(message) {
+                const div = document.createElement('div');
+                div.className = 'test-result info';
+                div.textContent = `[${new Date().toLocaleTimeString()}] ℹ️ ${message}`;
+                this.container.appendChild(div);
+            }
+            
+            clear() {
+                this.results = [];
+                this.container.innerHTML = '<div class="test-result info">Results cleared...</div>';
+            }
+            
+            getSummary() {
+                const passed = this.results.filter(r => r.passed).length;
+                const failed = this.results.filter(r => !r.passed).length;
+                return { passed, failed, total: this.results.length };
+            }
+        }
+        
+        const testFramework = new SimpleTestFramework();
+        
+        // Mock classes for testing
+        class MockApiClient {
+            constructor() {
+                this.token = null;
+                this.responses = new Map();
+                this.requestHistory = [];
+            }
+            
+            setMockResponse(endpoint, response) {
+                this.responses.set(endpoint, response);
+            }
+            
+            saveToken(token) {
+                this.token = token;
+                if (token) {
+                    localStorage.setItem('oriel_jwt_token', token);
+                } else {
+                    localStorage.removeItem('oriel_jwt_token');
+                }
+            }
+            
+            async post(endpoint, data) {
+                this.requestHistory.push({ method: 'POST', endpoint, data });
+                
+                const mockResponse = this.responses.get(endpoint);
+                if (mockResponse) {
+                    if (mockResponse.shouldThrow) {
+                        const error = new Error(mockResponse.error || 'Mock error');
+                        error.status = mockResponse.status || 500;
+                        error.response = { data: mockResponse.data };
+                        throw error;
+                    }
+                    return mockResponse;
+                }
+                
+                return { ok: true, data: { success: true } };
+            }
+        }
+        
+        class MockNotificationManager {
+            constructor() {
+                this.notifications = [];
+            }
+            
+            show(message, type) {
+                this.notifications.push({ message, type });
+            }
+            
+            getNotifications() {
+                return this.notifications;
+            }
+        }
+        
+        // Test utilities
+        function createValidJWT(expiresIn = 3600) {
+            const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payload = btoa(JSON.stringify({
+                sub: 'test-user-id',
+                email: 'test@example.com',
+                exp: Math.floor(Date.now() / 1000) + expiresIn
+            }));
+            return `${header}.${payload}.mock-signature`;
+        }
+        
+        function createExpiredJWT() {
+            const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payload = btoa(JSON.stringify({
+                sub: 'test-user-id',
+                email: 'test@example.com',
+                exp: Math.floor(Date.now() / 1000) - 3600 // Expired 1 hour ago
+            }));
+            return `${header}.${payload}.mock-signature`;
+        }
+        
+        // Test functions
+        async function runBasicTests() {
+            testFramework.info('Running Basic AuthManager Tests...');
+            
+            try {
+                // Test 1: AuthManager initialization
+                const mockApiClient = new MockApiClient();
+                const mockNotificationManager = new MockNotificationManager();
+                const authManager = new AuthManager(mockApiClient, window.appConfig, mockNotificationManager);
+                
+                testFramework.assertFalse(authManager.isAuthenticated, 'Should not be authenticated initially');
+                testFramework.assertEquals(authManager.user, null, 'User should be null initially');
+                testFramework.assertEquals(authManager.token, null, 'Token should be null initially');
+                
+                // Test 2: Token validation
+                const validToken = createValidJWT();
+                const expiredToken = createExpiredJWT();
+                
+                testFramework.assertTrue(authManager.isTokenValid(validToken), 'Should validate valid token');
+                testFramework.assertFalse(authManager.isTokenValid(expiredToken), 'Should reject expired token');
+                testFramework.assertFalse(authManager.isTokenValid(null), 'Should reject null token');
+                
+                // Test 3: Mock login
+                const mockResponse = {
+                    ok: true,
+                    data: {
+                        token: validToken,
+                        user: { id: 1, email: 'test@example.com', plan: 'free' }
+                    }
+                };
+                
+                mockApiClient.setMockResponse('/api/auth/login', mockResponse);
+                const result = await authManager.login('test@example.com', 'password123');
+                
+                testFramework.assertTrue(result.success, 'Login should succeed');
+                testFramework.assertTrue(authManager.isAuthenticated, 'Should be authenticated after login');
+                testFramework.assertEquals(authManager.user.email, 'test@example.com', 'Should set user email');
+                
+                testFramework.info('Basic tests completed successfully!');
+                
+            } catch (error) {
+                testFramework.assert(false, `Basic test failed: ${error.message}`);
+            }
+        }
+        
+        async function runTokenTests() {
+            testFramework.info('Running Token Management Tests...');
+            
+            try {
+                const mockApiClient = new MockApiClient();
+                const mockNotificationManager = new MockNotificationManager();
+                const authManager = new AuthManager(mockApiClient, window.appConfig, mockNotificationManager);
+                
+                // Test token storage
+                const testToken = createValidJWT();
+                mockApiClient.saveToken(testToken);
+                
+                testFramework.assertEquals(mockApiClient.token, testToken, 'Should save token in API client');
+                testFramework.assertEquals(localStorage.getItem('oriel_jwt_token'), testToken, 'Should persist token to localStorage');
+                
+                // Test token clearing
+                mockApiClient.saveToken(null);
+                testFramework.assertEquals(mockApiClient.token, null, 'Should clear token from API client');
+                testFramework.assertEquals(localStorage.getItem('oriel_jwt_token'), null, 'Should remove token from localStorage');
+                
+                // Test token refresh
+                const oldToken = createValidJWT();
+                const newToken = createValidJWT(7200);
+                
+                authManager.token = oldToken;
+                authManager.isAuthenticated = true;
+                
+                const mockResponse = {
+                    ok: true,
+                    data: { token: newToken, user: { id: 1, email: 'test@example.com' } }
+                };
+                
+                mockApiClient.setMockResponse('/api/auth/refresh', mockResponse);
+                const refreshResult = await authManager.refreshToken();
+                
+                testFramework.assertTrue(refreshResult.success, 'Token refresh should succeed');
+                testFramework.assertEquals(authManager.token, newToken, 'Should update to new token');
+                
+                testFramework.info('Token tests completed successfully!');
+                
+            } catch (error) {
+                testFramework.assert(false, `Token test failed: ${error.message}`);
+            }
+        }
+        
+        async function runUITests() {
+            testFramework.info('Running UI Component Tests...');
+            
+            try {
+                const mockApiClient = new MockApiClient();
+                const mockNotificationManager = new MockNotificationManager();
+                const authManager = new AuthManager(mockApiClient, window.appConfig, mockNotificationManager);
+                const authUI = new AuthUI(authManager, mockNotificationManager);
+                
+                // Test modal visibility
+                authUI.showLoginModal();
+                testFramework.assertFalse(authUI.loginModal.classList.contains('modal-hidden'), 'Login modal should be visible');
+                
+                authUI.hideLoginModal();
+                testFramework.assertTrue(authUI.loginModal.classList.contains('modal-hidden'), 'Login modal should be hidden');
+                
+                // Test form validation
+                document.getElementById('login-email').value = 'invalid-email';
+                testFramework.assertFalse(authUI.validateField('login', 'email'), 'Should reject invalid email');
+                
+                document.getElementById('login-email').value = 'valid@example.com';
+                testFramework.assertTrue(authUI.validateField('login', 'email'), 'Should accept valid email');
+                
+                document.getElementById('login-password').value = '123';
+                testFramework.assertFalse(authUI.validateField('login', 'password'), 'Should reject short password');
+                
+                document.getElementById('login-password').value = 'validpassword';
+                testFramework.assertTrue(authUI.validateField('login', 'password'), 'Should accept valid password');
+                
+                // Test UI state updates
+                authUI.updateUI({ isAuthenticated: false, user: null });
+                testFramework.assertFalse(document.getElementById('anonymous-status').classList.contains('hidden'), 'Should show anonymous status');
+                
+                const authState = {
+                    isAuthenticated: true,
+                    user: { email: 'test@example.com', credits: 25 }
+                };
+                
+                authUI.updateUI(authState);
+                testFramework.assertTrue(document.getElementById('anonymous-status').classList.contains('hidden'), 'Should hide anonymous status when authenticated');
+                
+                testFramework.info('UI tests completed successfully!');
+                
+            } catch (error) {
+                testFramework.assert(false, `UI test failed: ${error.message}`);
+            }
+        }
+        
+        function clearResults() {
+            testFramework.clear();
+        }
+        
+        // Show initial message
+        testFramework.info('Authentication test framework loaded. Click a test button to begin.');
+    </script>
+</body>
+</html>

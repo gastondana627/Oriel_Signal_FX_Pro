@@ -34,6 +34,8 @@ let isAnimationPaused = false;
 window.setAnimationPaused = function(pausedState) {
     isAnimationPaused = pausedState;
 }
+// Alias for backward compatibility
+window.pauseAnimation = window.setAnimationPaused;
 
 // --- 3. AUDIO ANALYSIS SETUP ---
 let analyser;

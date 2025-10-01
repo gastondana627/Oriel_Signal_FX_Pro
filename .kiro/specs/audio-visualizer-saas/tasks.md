@@ -24,7 +24,7 @@
   - Add plan configuration for free/starter/pro tiers
   - _Requirements: 5.1, 5.2_
 
-- [-] 2. Implement authentication system
+- [x] 2. Implement authentication system
   - Create AuthManager class for user authentication
   - Build login and registration modal UI components
   - Integrate with backend authentication endpoints
@@ -37,40 +37,40 @@
   - Create user state management and persistence
   - _Requirements: 1.3, 1.4, 1.5, 1.6_
 
-- [-] 2.2 Build authentication UI components
+- [x] 2.2 Build authentication UI components
   - Create login modal with email/password form
   - Create registration modal with validation
   - Add user status bar showing login state
   - Implement modal show/hide animations and accessibility
   - _Requirements: 1.1, 1.2_
 
-- [ ] 2.3 Integrate authentication with visualizer
+- [x] 2.3 Integrate authentication with visualizer
   - Add login/register buttons to existing UI
   - Implement authentication state management
   - Ensure visualizer pauses during auth modals
   - Add logout functionality and state cleanup
   - _Requirements: 1.7, 6.1, 6.3_
 
-- [ ]* 2.4 Write authentication unit tests
+- [x] 2.4 Write authentication unit tests
   - Test AuthManager methods with mock API responses
   - Test JWT token handling and refresh logic
   - Test authentication UI component interactions
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-- [ ] 3. Implement usage tracking and limits system
+- [-] 3. Implement usage tracking and limits system
   - Create UsageTracker class for download monitoring
   - Update existing download logic to check user limits
   - Add usage display in UI for both anonymous and authenticated users
   - Connect usage tracking to backend endpoints
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 3.1 Create UsageTracker class
+- [x] 3.1 Create UsageTracker class
   - Implement download tracking and limit checking methods
   - Add local storage fallback for anonymous users
   - Create usage statistics calculation and display logic
   - _Requirements: 2.1, 2.2, 2.5_
 
-- [ ] 3.2 Update download functionality
+- [-] 3.2 Update download functionality
   - Modify existing download buttons to check limits first
   - Add usage tracking calls after successful downloads
   - Implement limit exceeded handling and upgrade prompts
