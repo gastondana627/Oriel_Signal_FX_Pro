@@ -65,6 +65,9 @@ def create_app(config_class=Config):
     from app.jobs import routes as jobs_routes
     app.register_blueprint(jobs_routes.bp)
     
+    from app.payments import bp as payments_bp
+    app.register_blueprint(payments_bp)
+    
     return app
 
 from app import models

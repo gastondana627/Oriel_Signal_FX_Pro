@@ -15,4 +15,4 @@ COPY . .
 
 # Define the command to run your app
 # This will use the PORT environment variable provided by Railway
-CMD gunicorn app:app --chdir backend -b 0.0.0.0:$PORT
+CMD gunicorn backend.app:app -b 0.0.0.0:$PORT

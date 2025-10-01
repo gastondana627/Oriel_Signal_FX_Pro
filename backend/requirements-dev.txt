@@ -10,3 +10,6 @@ werkzeug==2.3.7
 # Redis and job queue
 redis==5.0.1
 rq==1.15.1
+
+# Stripe payment processing
+stripe==13.0.0

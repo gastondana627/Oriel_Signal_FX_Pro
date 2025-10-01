@@ -31,7 +31,7 @@
   - Create basic worker script structure for background processing
   - _Requirements: 3.7, 3.8_
 
-- [ ] 5. Implement Stripe payment integration
+- [-] 5. Implement Stripe payment integration
   - Install Stripe Python SDK and configure API keys
   - Create payment blueprint with session creation endpoint
   - Implement Stripe webhook handler for payment confirmations
