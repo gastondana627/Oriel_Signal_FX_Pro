@@ -166,7 +166,7 @@ def submit_render_job():
 @bp.route('/render/status/<int:job_id>', methods=['GET'])
 @jwt_required()
 def render_job_status(job_id):
-    """Get the status of a specific render job."""
+    """Get the status of a specific render job with real-time progress."""
     try:
         user_id = get_jwt_identity()
         
@@ -181,23 +181,61 @@ def render_job_status(job_id):
             }), 404
         
         # Get RQ job status if available
-        rq_status = None
-        progress = 0
+        rq_job_data = None
+        try:
+            from rq.job import Job
+            from app.jobs.queue import get_redis_connection
+            
+            # Try to find RQ job by searching for jobs with matching args
+            redis_conn = get_redis_connection()
+            
+            # Get job status from RQ if job is still in queue/processing
+            if render_job.status in ['queued', 'processing']:
+                # Search for job in all queues
+                from app.jobs.queue import queues
+                for queue_name, queue in queues.items():
+                    for rq_job in queue.jobs:
+                        if (hasattr(rq_job, 'args') and len(rq_job.args) > 0 and 
+                            str(rq_job.args[0]) == str(job_id)):
+                            rq_job_data = {
+                                'id': rq_job.id,
+                                'status': rq_job.get_status(),
+                                'progress': rq_job.meta.get('progress', 0),
+                                'stage': rq_job.meta.get('stage', 'unknown'),
+                                'started_at': rq_job.meta.get('started_at'),
+                                'estimated_duration': rq_job.meta.get('estimated_duration'),
+                                'error': rq_job.meta.get('error')
+                            }
+                            break
+                    if rq_job_data:
+                        break
+        except Exception as rq_error:
+            logger.warning(f"Could not get RQ job status: {rq_error}")
         
-        # For now, we'll use the database status
-        # In a full implementation, we'd also check RQ job status
+        # Calculate estimated completion time
+        estimated_completion = None
+        if rq_job_data and rq_job_data.get('started_at') and rq_job_data.get('estimated_duration'):
+            try:
+                from datetime import datetime, timedelta
+                started_at = datetime.fromisoformat(rq_job_data['started_at'].replace('Z', '+00:00'))
+                estimated_completion = (started_at + timedelta(seconds=rq_job_data['estimated_duration'])).isoformat()
+            except Exception:
+                pass
         
         response_data = {
             'success': True,
             'job': {
                 'id': render_job.id,
                 'status': render_job.status,
-                'progress': progress,
+                'progress': rq_job_data.get('progress', 0) if rq_job_data else 0,
+                'stage': rq_job_data.get('stage', 'unknown') if rq_job_data else None,
                 'audio_filename': render_job.audio_filename,
                 'video_url': render_job.video_url,
-                'error_message': render_job.error_message,
+                'error_message': render_job.error_message or (rq_job_data.get('error') if rq_job_data else None),
                 'created_at': render_job.created_at.isoformat(),
-                'completed_at': render_job.completed_at.isoformat() if render_job.completed_at else None
+                'completed_at': render_job.completed_at.isoformat() if render_job.completed_at else None,
+                'estimated_completion': estimated_completion,
+                'rq_job_id': rq_job_data.get('id') if rq_job_data else None
             }
         }
         
@@ -624,5 +662,317 @@ def list_render_jobs():
             'error': {
                 'code': 'LIST_JOBS_ERROR',
                 'message': 'Failed to list render jobs'
+            }
+        }), 500
+
+@bp.route('/monitoring/health', methods=['GET'])
+@jwt_required()
+def system_health():
+    """Get comprehensive system health status."""
+    try:
+        from app.monitoring.health import check_system_health
+        health_status = check_system_health()
+        
+        return jsonify({
+            'success': True,
+            'health': health_status
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting system health: {e}")
+        return jsonify({
+            'error': {
+                'code': 'HEALTH_CHECK_ERROR',
+                'message': 'Failed to get system health'
+            }
+        }), 500
+
+@bp.route('/monitoring/metrics', methods=['GET'])
+@jwt_required()
+def performance_metrics():
+    """Get performance metrics and statistics."""
+    try:
+        from app.monitoring.metrics import MetricsCollector
+        
+        hours = int(request.args.get('hours', 24))
+        hours = min(hours, 168)  # Max 7 days
+        
+        collector = MetricsCollector()
+        metrics = collector.get_performance_summary(hours=hours)
+        
+        return jsonify({
+            'success': True,
+            'metrics': metrics
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting performance metrics: {e}")
+        return jsonify({
+            'error': {
+                'code': 'METRICS_ERROR',
+                'message': 'Failed to get performance metrics'
+            }
+        }), 500
+
+@bp.route('/monitoring/alerts', methods=['GET'])
+@jwt_required()
+def active_alerts():
+    """Get active system alerts."""
+    try:
+        from app.monitoring.alerts import AlertManager
+        
+        alert_manager = AlertManager()
+        alerts = alert_manager.check_alerts()
+        
+        return jsonify({
+            'success': True,
+            'alerts': alerts,
+            'alert_count': len(alerts)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting alerts: {e}")
+        return jsonify({
+            'error': {
+                'code': 'ALERTS_ERROR',
+                'message': 'Failed to get alerts'
+            }
+        }), 500
+
+@bp.route('/monitoring/dead-letter-queue', methods=['GET'])
+@jwt_required()
+def dead_letter_queue_status():
+    """Get dead letter queue (failed jobs) status."""
+    try:
+        from app.monitoring.health import HealthChecker
+        
+        health_checker = HealthChecker()
+        dlq_status = health_checker.check_dead_letter_queue()
+        
+        return jsonify({
+            'success': True,
+            'dead_letter_queue': dlq_status
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting dead letter queue status: {e}")
+        return jsonify({
+            'error': {
+                'code': 'DLQ_ERROR',
+                'message': 'Failed to get dead letter queue status'
+            }
+        }), 500
+
+@bp.route('/monitoring/queue-stats', methods=['GET'])
+@jwt_required()
+def queue_statistics():
+    """Get detailed queue statistics and worker information."""
+    try:
+        from app.jobs.queue import queues, get_redis_connection
+        from rq import Worker
+        
+        redis_conn = get_redis_connection()
+        
+        # Get queue statistics
+        queue_stats = {}
+        for name, queue in queues.items():
+            try:
+                # Get job counts by status
+                started_registry = queue.started_job_registry
+                finished_registry = queue.finished_job_registry
+                failed_registry = queue.failed_job_registry
+                deferred_registry = queue.deferred_job_registry
+                
+                queue_stats[name] = {
+                    'length': len(queue),
+                    'started_jobs': started_registry.count,
+                    'finished_jobs': finished_registry.count,
+                    'failed_jobs': failed_registry.count,
+                    'deferred_jobs': deferred_registry.count,
+                    'total_jobs': (len(queue) + started_registry.count + 
+                                 finished_registry.count + failed_registry.count)
+                }
+                
+                # Get sample of job IDs for debugging
+                if len(queue) > 0:
+                    queue_stats[name]['sample_job_ids'] = [job.id for job in queue.jobs[:3]]
+                
+            except Exception as queue_error:
+                logger.warning(f"Error getting stats for queue {name}: {queue_error}")
+                queue_stats[name] = {'error': str(queue_error)}
+        
+        # Get worker information
+        workers = Worker.all(connection=redis_conn)
+        worker_stats = {
+            'total_workers': len(workers),
+            'busy_workers': len([w for w in workers if w.state == 'busy']),
+            'idle_workers': len([w for w in workers if w.state == 'idle']),
+            'workers': []
+        }
+        
+        for worker in workers:
+            try:
+                worker_info = {
+                    'name': worker.name,
+                    'state': worker.state,
+                    'current_job': worker.get_current_job_id(),
+                    'successful_jobs': worker.successful_job_count,
+                    'failed_jobs': worker.failed_job_count,
+                    'birth_date': worker.birth_date.isoformat() if worker.birth_date else None
+                }
+                worker_stats['workers'].append(worker_info)
+            except Exception as worker_error:
+                logger.warning(f"Error getting worker info: {worker_error}")
+        
+        return jsonify({
+            'success': True,
+            'queues': queue_stats,
+            'workers': worker_stats,
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting queue statistics: {e}")
+        return jsonify({
+            'error': {
+                'code': 'QUEUE_STATS_ERROR',
+                'message': 'Failed to get queue statistics'
+            }
+        }), 500
+
+@bp.route('/monitoring/collect-health', methods=['POST'])
+@jwt_required()
+def trigger_health_collection():
+    """Manually trigger system health metrics collection."""
+    try:
+        from app.jobs.jobs import collect_system_health_job
+        
+        # Enqueue health collection job
+        job = enqueue_job(
+            'high_priority',
+            collect_system_health_job
+        )
+        
+        return jsonify({
+            'success': True,
+            'job_id': job.id,
+            'message': 'Health collection job started'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error triggering health collection: {e}")
+        return jsonify({
+            'error': {
+                'code': 'HEALTH_COLLECTION_ERROR',
+                'message': 'Failed to trigger health collection'
+            }
+        }), 500
+
+@bp.route('/monitoring/cleanup-metrics', methods=['POST'])
+@jwt_required()
+def trigger_metrics_cleanup():
+    """Manually trigger cleanup of old metrics."""
+    try:
+        data = request.get_json() or {}
+        days_to_keep = data.get('days_to_keep', 30)
+        
+        # Validate days_to_keep
+        if days_to_keep < 1 or days_to_keep > 365:
+            return jsonify({
+                'error': {
+                    'code': 'INVALID_DAYS',
+                    'message': 'days_to_keep must be between 1 and 365'
+                }
+            }), 400
+        
+        from app.jobs.jobs import cleanup_old_metrics_job
+        
+        # Enqueue cleanup job
+        job = enqueue_job(
+            'cleanup',
+            cleanup_old_metrics_job,
+            days_to_keep
+        )
+        
+        return jsonify({
+            'success': True,
+            'job_id': job.id,
+            'days_to_keep': days_to_keep,
+            'message': 'Metrics cleanup job started'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error triggering metrics cleanup: {e}")
+        return jsonify({
+            'error': {
+                'code': 'METRICS_CLEANUP_ERROR',
+                'message': 'Failed to trigger metrics cleanup'
+            }
+        }), 500
+
+@bp.route('/monitoring/requeue-failed', methods=['POST'])
+@jwt_required()
+def requeue_failed_jobs():
+    """Requeue failed jobs from dead letter queue."""
+    try:
+        data = request.get_json() or {}
+        queue_name = data.get('queue_name')  # Optional: specific queue
+        max_jobs = data.get('max_jobs', 10)  # Limit number of jobs to requeue
+        
+        from app.jobs.queue import queues
+        
+        requeued_count = 0
+        
+        if queue_name:
+            # Requeue from specific queue
+            if queue_name not in queues:
+                return jsonify({
+                    'error': {
+                        'code': 'INVALID_QUEUE',
+                        'message': f'Queue {queue_name} not found'
+                    }
+                }), 400
+            
+            queue = queues[queue_name]
+            failed_registry = queue.failed_job_registry
+            
+            # Get failed job IDs
+            failed_job_ids = failed_registry.get_job_ids(0, max_jobs)
+            
+            for job_id in failed_job_ids:
+                try:
+                    failed_registry.requeue(job_id)
+                    requeued_count += 1
+                except Exception as requeue_error:
+                    logger.warning(f"Failed to requeue job {job_id}: {requeue_error}")
+        else:
+            # Requeue from all queues
+            for name, queue in queues.items():
+                failed_registry = queue.failed_job_registry
+                failed_job_ids = failed_registry.get_job_ids(0, max_jobs)
+                
+                for job_id in failed_job_ids:
+                    try:
+                        failed_registry.requeue(job_id)
+                        requeued_count += 1
+                    except Exception as requeue_error:
+                        logger.warning(f"Failed to requeue job {job_id} from {name}: {requeue_error}")
+                
+                if requeued_count >= max_jobs:
+                    break
+        
+        return jsonify({
+            'success': True,
+            'requeued_count': requeued_count,
+            'max_jobs': max_jobs,
+            'message': f'Requeued {requeued_count} failed jobs'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error requeuing failed jobs: {e}")
+        return jsonify({
+            'error': {
+                'code': 'REQUEUE_ERROR',
+                'message': 'Failed to requeue failed jobs'
             }
         }), 500

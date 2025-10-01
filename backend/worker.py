@@ -51,6 +51,37 @@ def exception_handler(job, exc_type, exc_value, traceback):
     except Exception as e:
         logger.error(f"Failed to update database status for job {job.id}: {e}")
     
+    # Collect job metrics for failed job
+    try:
+        from app.monitoring.metrics import collect_job_metrics
+        
+        # Determine job type from function name
+        job_type = 'unknown'
+        if hasattr(job, 'func_name'):
+            if 'render_video' in job.func_name:
+                job_type = 'render_video'
+            elif 'send_email' in job.func_name:
+                job_type = 'send_email'
+            elif 'cleanup' in job.func_name:
+                job_type = 'cleanup'
+        
+        # Calculate duration if job has started
+        duration = None
+        if job.started_at:
+            from datetime import datetime
+            duration = (datetime.utcnow() - job.started_at).total_seconds()
+        
+        collect_job_metrics(
+            job_id=job.id,
+            job_type=job_type,
+            status='failed',
+            duration=duration,
+            error_message=str(exc_value)
+        )
+        
+    except Exception as metrics_error:
+        logger.warning(f"Failed to collect metrics for failed job {job.id}: {metrics_error}")
+    
     return False  # Don't reraise the exception
 
 def main():

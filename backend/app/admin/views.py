@@ -135,6 +135,9 @@ class SecureAdminIndexView(AdminIndexView):
             # Job queue status
             queue_status = self.get_queue_status()
             
+            # System health and monitoring metrics
+            monitoring_metrics = self.get_monitoring_metrics()
+            
             return {
                 'total_users': total_users,
                 'active_users': active_users,
@@ -149,11 +152,56 @@ class SecureAdminIndexView(AdminIndexView):
                 'processing_jobs': processing_jobs,
                 'recent_users': recent_users,
                 'recent_jobs': recent_jobs,
-                'queue_status': queue_status
+                'queue_status': queue_status,
+                'monitoring': monitoring_metrics
             }
             
         except Exception as e:
             current_app.logger.error(f"Error getting system metrics: {e}")
+            return {}
+    
+    def get_monitoring_metrics(self):
+        """Get monitoring and health metrics."""
+        try:
+            from app.models import SystemHealth, JobMetrics
+            from app.monitoring.alerts import AlertManager
+            
+            # Get latest system health
+            latest_health = SystemHealth.query.order_by(
+                SystemHealth.timestamp.desc()
+            ).first()
+            
+            # Get recent job performance
+            cutoff_time = datetime.utcnow() - timedelta(hours=24)
+            recent_job_metrics = JobMetrics.query.filter(
+                JobMetrics.created_at >= cutoff_time
+            ).all()
+            
+            # Calculate performance stats
+            total_jobs_24h = len(recent_job_metrics)
+            failed_jobs_24h = len([m for m in recent_job_metrics if m.status == 'failed'])
+            failure_rate = (failed_jobs_24h / total_jobs_24h * 100) if total_jobs_24h > 0 else 0
+            
+            # Average render time
+            render_jobs = [m for m in recent_job_metrics if m.job_type == 'render_video' and m.duration_seconds]
+            avg_render_time = sum(m.duration_seconds for m in render_jobs) / len(render_jobs) if render_jobs else 0
+            
+            # Check for active alerts
+            alert_manager = AlertManager()
+            active_alerts = alert_manager.check_alerts()
+            
+            return {
+                'latest_health': latest_health,
+                'jobs_24h': total_jobs_24h,
+                'failed_jobs_24h': failed_jobs_24h,
+                'failure_rate': failure_rate,
+                'avg_render_time': avg_render_time,
+                'active_alerts': active_alerts,
+                'alert_count': len(active_alerts)
+            }
+            
+        except Exception as e:
+            current_app.logger.error(f"Error getting monitoring metrics: {e}")
             return {}
     
     def get_queue_status(self):

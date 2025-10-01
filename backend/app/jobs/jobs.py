@@ -31,13 +31,14 @@ def render_video_job(job_id, user_id, audio_file_path, render_config):
     """
     current_job = get_current_job()
     temp_dir = None
+    start_time = datetime.utcnow()
     
     try:
         logger.info(f"Starting video render job {job_id} for user {user_id}")
         
         # Update database job status (only if we have Flask app context)
         try:
-            update_render_job_status(job_id, 'processing')
+            update_render_job_status(job_id, 'processing', started_at=start_time)
         except Exception as e:
             logger.warning(f"Could not update database status (testing mode?): {e}")
         
@@ -45,6 +46,9 @@ def render_video_job(job_id, user_id, audio_file_path, render_config):
         if current_job:
             current_job.meta['status'] = 'initializing'
             current_job.meta['progress'] = 0
+            current_job.meta['stage'] = 'setup'
+            current_job.meta['started_at'] = start_time.isoformat()
+            current_job.meta['estimated_duration'] = 120  # 2 minutes estimate
             current_job.save_meta()
         
         # Create temporary directory for processing
@@ -59,6 +63,7 @@ def render_video_job(job_id, user_id, audio_file_path, render_config):
         if current_job:
             current_job.meta['status'] = 'processing'
             current_job.meta['progress'] = 25
+            current_job.meta['stage'] = 'validating_audio'
             current_job.save_meta()
         
         # Render video using Playwright and FFmpeg
@@ -72,6 +77,7 @@ def render_video_job(job_id, user_id, audio_file_path, render_config):
         
         if current_job:
             current_job.meta['progress'] = 30
+            current_job.meta['stage'] = 'preparing_files'
             current_job.save_meta()
         
         # Render video using headless browser
@@ -84,6 +90,7 @@ def render_video_job(job_id, user_id, audio_file_path, render_config):
         
         if current_job:
             current_job.meta['progress'] = 75
+            current_job.meta['stage'] = 'uploading_video'
             current_job.save_meta()
         
         # Upload video to Google Cloud Storage
@@ -114,7 +121,10 @@ def render_video_job(job_id, user_id, audio_file_path, render_config):
         if current_job:
             current_job.meta['status'] = 'completed'
             current_job.meta['progress'] = 100
+            current_job.meta['stage'] = 'completed'
             current_job.meta['video_url'] = video_url
+            current_job.meta['completed_at'] = datetime.utcnow().isoformat()
+            current_job.meta['duration'] = (datetime.utcnow() - start_time).total_seconds()
             current_job.save_meta()
         
         # Enqueue email notification job (only if we have Flask app context)
@@ -136,6 +146,19 @@ def render_video_job(job_id, user_id, audio_file_path, render_config):
         
         logger.info(f"Video render job {job_id} completed successfully")
         
+        # Collect job metrics
+        try:
+            from app.monitoring.metrics import collect_job_metrics
+            duration = (datetime.utcnow() - start_time).total_seconds()
+            collect_job_metrics(
+                job_id=job_id,
+                job_type='render_video',
+                status='completed',
+                duration=duration
+            )
+        except Exception as metrics_error:
+            logger.warning(f"Failed to collect job metrics: {metrics_error}")
+        
         return {
             'success': True,
             'job_id': job_id,
@@ -156,7 +179,23 @@ def render_video_job(job_id, user_id, audio_file_path, render_config):
         if current_job:
             current_job.meta['status'] = 'failed'
             current_job.meta['error'] = str(e)
+            current_job.meta['failed_at'] = datetime.utcnow().isoformat()
+            current_job.meta['duration'] = (datetime.utcnow() - start_time).total_seconds()
             current_job.save_meta()
+        
+        # Collect job metrics for failed job
+        try:
+            from app.monitoring.metrics import collect_job_metrics
+            duration = (datetime.utcnow() - start_time).total_seconds()
+            collect_job_metrics(
+                job_id=job_id,
+                job_type='render_video',
+                status='failed',
+                duration=duration,
+                error_message=str(e)
+            )
+        except Exception as metrics_error:
+            logger.warning(f"Failed to collect job metrics: {metrics_error}")
         
         return {
             'success': False,
@@ -412,6 +451,8 @@ def render_video_with_browser(audio_path, render_config, output_path, current_jo
         # Update progress
         if current_job:
             current_job.meta['status'] = 'launching_browser'
+            current_job.meta['progress'] = 35
+            current_job.meta['stage'] = 'launching_browser'
             current_job.save_meta()
         
         # Get audio duration for video length
@@ -445,6 +486,8 @@ def render_video_with_browser(audio_path, render_config, output_path, current_jo
                 # Update progress
                 if current_job:
                     current_job.meta['status'] = 'loading_visualizer'
+                    current_job.meta['progress'] = 45
+                    current_job.meta['stage'] = 'loading_visualizer'
                     current_job.save_meta()
                 
                 # Create a local HTML file with the visualizer
@@ -463,6 +506,8 @@ def render_video_with_browser(audio_path, render_config, output_path, current_jo
                 # Update progress
                 if current_job:
                     current_job.meta['status'] = 'recording_video'
+                    current_job.meta['progress'] = 55
+                    current_job.meta['stage'] = 'recording_video'
                     current_job.save_meta()
                 
                 # Start screen recording
@@ -506,6 +551,8 @@ def render_video_with_browser(audio_path, render_config, output_path, current_jo
         # Update progress
         if current_job:
             current_job.meta['status'] = 'encoding_video'
+            current_job.meta['progress'] = 65
+            current_job.meta['stage'] = 'encoding_video'
             current_job.save_meta()
         
         # Process video with FFmpeg for optimization
@@ -699,6 +746,307 @@ def encode_video_with_ffmpeg(input_path, output_path, audio_path):
     except Exception as e:
         logger.error(f"FFmpeg encoding failed: {e}")
         raise
+
+def collect_system_health_job():
+    """
+    Background job to collect system health metrics.
+    """
+    current_job = get_current_job()
+    
+    try:
+        logger.info("Starting system health collection job")
+        
+        if current_job:
+            current_job.meta['status'] = 'collecting_metrics'
+            current_job.save_meta()
+        
+        # Collect system health metrics
+        from app.monitoring.metrics import collect_system_health
+        health_record = collect_system_health()
+        
+        if health_record:
+            logger.info("System health metrics collected successfully")
+            
+            # Check for alerts
+            try:
+                from app.monitoring.alerts import AlertManager
+                alert_manager = AlertManager()
+                alerts = alert_manager.check_alerts()
+                
+                # Send critical alerts
+                critical_alerts = [a for a in alerts if a['level'].value == 'critical']
+                for alert in critical_alerts:
+                    alert_manager.send_alert(alert)
+                
+                if alerts:
+                    logger.info(f"Found {len(alerts)} active alerts ({len(critical_alerts)} critical)")
+                
+            except Exception as alert_error:
+                logger.warning(f"Failed to check alerts: {alert_error}")
+        
+        return {
+            'success': True,
+            'collected_at': datetime.utcnow().isoformat(),
+            'health_record_id': health_record.id if health_record else None
+        }
+        
+    except Exception as e:
+        logger.error(f"System health collection job failed: {e}")
+        
+        if current_job:
+            current_job.meta['status'] = 'failed'
+            current_job.meta['error'] = str(e)
+            current_job.save_meta()
+        
+        return {
+            'success': False,
+            'error': str(e),
+            'failed_at': datetime.utcnow().isoformat()
+        }
+
+def cleanup_old_metrics_job(days_to_keep=30):
+    """
+    Background job to clean up old metrics and health records.
+    
+    Args:
+        days_to_keep (int): Number of days of metrics to keep
+    """
+    current_job = get_current_job()
+    
+    try:
+        logger.info(f"Starting cleanup of metrics older than {days_to_keep} days")
+        
+        if current_job:
+            current_job.meta['status'] = 'cleaning_metrics'
+            current_job.save_meta()
+        
+        cutoff_date = datetime.utcnow() - timedelta(days=days_to_keep)
+        
+        # Clean up old job metrics
+        from app.models import JobMetrics, SystemHealth, db
+        
+        old_job_metrics = JobMetrics.query.filter(
+            JobMetrics.created_at < cutoff_date
+        ).all()
+        
+        for metric in old_job_metrics:
+            db.session.delete(metric)
+        
+        # Clean up old system health records
+        old_health_records = SystemHealth.query.filter(
+            SystemHealth.timestamp < cutoff_date
+        ).all()
+        
+        for record in old_health_records:
+            db.session.delete(record)
+        
+        db.session.commit()
+        
+        logger.info(f"Cleaned up {len(old_job_metrics)} job metrics and {len(old_health_records)} health records")
+        
+        return {
+            'success': True,
+            'cleaned_job_metrics': len(old_job_metrics),
+            'cleaned_health_records': len(old_health_records),
+            'completed_at': datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Metrics cleanup job failed: {e}")
+        
+        if current_job:
+            current_job.meta['status'] = 'failed'
+            current_job.meta['error'] = str(e)
+            current_job.save_meta()
+        
+        return {
+            'success': False,
+            'error': str(e),
+            'failed_at': datetime.utcnow().isoformat()
+        }
+
+
+def validate_audio_file(file_path):
+    """
+    Validate an audio file for rendering.
+    
+    Args:
+        file_path: Path to the audio file
+        
+    Returns:
+        bool: True if valid
+        
+    Raises:
+        ValueError: If file is invalid
+    """
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Audio file not found: {file_path}")
+    
+    # Check file size
+    file_size = os.path.getsize(file_path)
+    max_size = 50 * 1024 * 1024  # 50MB
+    
+    if file_size > max_size:
+        raise ValueError(f"Audio file too large: {file_size} bytes (max: {max_size})")
+    
+    if file_size < 1024:  # 1KB minimum
+        raise ValueError(f"Audio file too small: {file_size} bytes")
+    
+    # Check file format using magic numbers
+    try:
+        import magic
+        mime_type = magic.from_file(file_path, mime=True)
+        allowed_types = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/flac', 'audio/ogg']
+        
+        if mime_type not in allowed_types:
+            raise ValueError(f"Invalid audio format: {mime_type}")
+    
+    except ImportError:
+        # Fallback to extension check if python-magic not available
+        _, ext = os.path.splitext(file_path)
+        allowed_extensions = ['.mp3', '.wav', '.m4a', '.flac', '.ogg']
+        
+        if ext.lower() not in allowed_extensions:
+            raise ValueError(f"Invalid audio format: {ext}")
+    
+    return True
+
+
+def generate_video_config(render_params):
+    """
+    Generate video configuration from render parameters.
+    
+    Args:
+        render_params: Dictionary of render parameters
+        
+    Returns:
+        dict: Video configuration
+    """
+    default_config = {
+        'visualizer_type': 'bars',
+        'color_scheme': 'rainbow',
+        'background': 'dark',
+        'audio_reactive': True,
+        'output_format': 'mp4',
+        'resolution': '1920x1080',
+        'fps': 30,
+        'quality': 'high'
+    }
+    
+    # Merge with provided parameters
+    config = {**default_config, **render_params}
+    
+    # Validate configuration
+    valid_visualizer_types = ['bars', 'waveform', 'circular', 'spectrum']
+    if config['visualizer_type'] not in valid_visualizer_types:
+        config['visualizer_type'] = 'bars'
+    
+    valid_color_schemes = ['rainbow', 'blue', 'red', 'green', 'purple', 'custom']
+    if config['color_scheme'] not in valid_color_schemes:
+        config['color_scheme'] = 'rainbow'
+    
+    valid_backgrounds = ['dark', 'light', 'transparent', 'custom']
+    if config['background'] not in valid_backgrounds:
+        config['background'] = 'dark'
+    
+    return config
+
+
+def cleanup_expired_files():
+    """
+    Clean up expired files and return statistics.
+    
+    Returns:
+        dict: Cleanup statistics
+    """
+    try:
+        from app.models import RenderJob
+        from app import db
+        from datetime import datetime, timedelta
+        
+        # Find expired jobs (older than 30 days)
+        cutoff_date = datetime.utcnow() - timedelta(days=30)
+        
+        expired_jobs = RenderJob.query.filter(
+            RenderJob.status == 'completed',
+            RenderJob.completed_at < cutoff_date,
+            RenderJob.video_url.isnot(None)
+        ).all()
+        
+        cleaned_count = 0
+        
+        for job in expired_jobs:
+            try:
+                # Remove from cloud storage if possible
+                if job.gcs_blob_name:
+                    from app.storage.gcs import get_gcs_manager
+                    gcs_manager = get_gcs_manager()
+                    gcs_manager.delete_file(job.gcs_blob_name)
+                
+                # Clear video URL
+                job.video_url = None
+                cleaned_count += 1
+                
+            except Exception as e:
+                logger.warning(f"Failed to clean up job {job.id}: {e}")
+        
+        db.session.commit()
+        
+        return {
+            'success': True,
+            'cleaned_count': cleaned_count,
+            'total_expired': len(expired_jobs)
+        }
+        
+    except Exception as e:
+        logger.error(f"File cleanup failed: {e}")
+        return {
+            'success': False,
+            'cleaned_count': 0,
+            'error': str(e)
+        }
+
+
+def update_render_job_status(job_id, status, **kwargs):
+    """
+    Update render job status in database.
+    
+    Args:
+        job_id: Job ID
+        status: New status
+        **kwargs: Additional fields to update
+    """
+    try:
+        from app.models import RenderJob
+        from app import db
+        
+        job = RenderJob.query.get(job_id)
+        if job:
+            job.status = status
+            
+            for key, value in kwargs.items():
+                if hasattr(job, key):
+                    setattr(job, key, value)
+            
+            db.session.commit()
+            
+    except Exception as e:
+        logger.warning(f"Could not update job status: {e}")
+
+
+def render_video_with_playwright(audio_path, render_config, output_path):
+    """
+    Render video using Playwright (alias for render_video_with_browser).
+    
+    Args:
+        audio_path: Path to audio file
+        render_config: Render configuration
+        output_path: Output video path
+        
+    Returns:
+        str: Path to rendered video
+    """
+    return render_video_with_browser(audio_path, render_config, output_path)
 
 def update_render_job_status(job_id, status, **kwargs):
     """

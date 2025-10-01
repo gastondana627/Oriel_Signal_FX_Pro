@@ -63,3 +63,54 @@ class PasswordResetToken(db.Model):
     
     def is_valid(self):
         return not self.used and not self.is_expired()
+
+
+class JobMetrics(db.Model):
+    """Model to store job performance metrics"""
+    id = db.Column(db.Integer, primary_key=True)
+    job_id = db.Column(db.String(255), nullable=False, index=True)
+    job_type = db.Column(db.String(50), nullable=False)  # render_video, send_email, cleanup
+    status = db.Column(db.String(50), nullable=False)  # completed, failed
+    duration_seconds = db.Column(db.Float)
+    queue_wait_time = db.Column(db.Float)  # Time spent in queue before processing
+    memory_usage_mb = db.Column(db.Float)
+    cpu_usage_percent = db.Column(db.Float)
+    error_message = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<JobMetrics {self.job_id} - {self.status}>'
+
+
+class SystemHealth(db.Model):
+    """Model to store system health metrics"""
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    
+    # Queue metrics
+    queue_high_priority_length = db.Column(db.Integer, default=0)
+    queue_video_rendering_length = db.Column(db.Integer, default=0)
+    queue_cleanup_length = db.Column(db.Integer, default=0)
+    
+    # Worker metrics
+    active_workers = db.Column(db.Integer, default=0)
+    failed_jobs_count = db.Column(db.Integer, default=0)
+    
+    # Database metrics
+    total_users = db.Column(db.Integer, default=0)
+    active_jobs = db.Column(db.Integer, default=0)
+    completed_jobs_today = db.Column(db.Integer, default=0)
+    failed_jobs_today = db.Column(db.Integer, default=0)
+    
+    # System resources
+    memory_usage_percent = db.Column(db.Float)
+    cpu_usage_percent = db.Column(db.Float)
+    disk_usage_percent = db.Column(db.Float)
+    
+    # External services status
+    redis_status = db.Column(db.String(20), default='unknown')  # healthy, unhealthy, unknown
+    gcs_status = db.Column(db.String(20), default='unknown')
+    sendgrid_status = db.Column(db.String(20), default='unknown')
+    
+    def __repr__(self):
+        return f'<SystemHealth {self.timestamp}>'

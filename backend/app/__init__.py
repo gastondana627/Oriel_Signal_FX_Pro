@@ -17,11 +17,31 @@ def create_app(config_name='default'):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    CORS(app, resources={r"/api/*": {"origins": app.config['CORS_ORIGINS']}})
+    
+    # Configure CORS with detailed settings
+    CORS(app, 
+         resources={
+             r"/api/*": {
+                 "origins": app.config['CORS_ORIGINS'],
+                 "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                 "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+                 "expose_headers": ["X-Total-Count", "X-Page-Count"],
+                 "supports_credentials": True,
+                 "max_age": 3600
+             }
+         })
     
     # Initialize security features
     from app.security import init_limiter
     init_limiter(app)
+    
+    # Initialize logging first
+    from logging_config import setup_logging
+    setup_logging(app)
+    
+    # Initialize error handlers
+    from app.errors import init_error_handlers
+    init_error_handlers(app)
     
     # Add security headers
     @app.after_request
@@ -93,6 +113,14 @@ def create_app(config_name='default'):
     
     from app.admin import bp as admin_api_bp
     app.register_blueprint(admin_api_bp, url_prefix='/admin/api')
+    
+    # Register error monitoring endpoints
+    from app.admin.error_monitoring import bp as error_monitoring_bp
+    app.register_blueprint(error_monitoring_bp, url_prefix='/admin/api/monitoring')
+    
+    # Register API documentation
+    from app.api_docs import api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
     
     # Initialize Flask-Admin
     from app.admin.views import init_admin

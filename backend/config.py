@@ -38,7 +38,10 @@ class Config:
     UPLOAD_FOLDER = os.path.join(basedir, 'uploads')
     
     # CORS configuration
-    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5000,http://127.0.0.1:5000').split(',')
+    
+    # Frontend configuration
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
     
     # Admin configuration
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')

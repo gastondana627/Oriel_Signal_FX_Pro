@@ -138,3 +138,45 @@ def clear_failed_jobs(queue_name=None):
     except Exception as e:
         logger.error(f"Error clearing failed jobs: {e}")
         raise
+
+
+def cancel_job(job_id):
+    """
+    Cancel a job by ID.
+    
+    Args:
+        job_id: Job ID to cancel
+        
+    Returns:
+        bool: True if cancelled successfully
+    """
+    try:
+        from rq.job import Job
+        job = Job.fetch(job_id, connection=redis_conn)
+        job.cancel()
+        logger.info(f"Job {job_id} cancelled successfully")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to cancel job {job_id}: {e}")
+        return False
+
+
+def retry_failed_job(job_id):
+    """
+    Retry a failed job by ID.
+    
+    Args:
+        job_id: Job ID to retry
+        
+    Returns:
+        bool: True if requeued successfully
+    """
+    try:
+        from rq.job import Job
+        job = Job.fetch(job_id, connection=redis_conn)
+        job.requeue()
+        logger.info(f"Job {job_id} requeued successfully")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to retry job {job_id}: {e}")
+        return False

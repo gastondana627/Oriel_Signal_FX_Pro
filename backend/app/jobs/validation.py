@@ -263,3 +263,117 @@ def estimate_processing_time(file_size, duration=None):
     
     # Cap at reasonable maximum (10 minutes)
     return min(int(estimated_time), 600)
+
+
+def validate_render_request(request_data):
+    """
+    Validate a complete render request.
+    
+    Args:
+        request_data: Dictionary containing render request data
+        
+    Returns:
+        bool: True if valid
+        
+    Raises:
+        ValueError: If validation fails
+    """
+    required_fields = ['audio_file', 'visualizer_type', 'color_scheme', 'background']
+    
+    for field in required_fields:
+        if field not in request_data:
+            raise ValueError(f"Missing required field: {field}")
+    
+    # Validate visualizer type
+    valid_visualizer_types = ['bars', 'waveform', 'circular', 'spectrum']
+    if request_data['visualizer_type'] not in valid_visualizer_types:
+        raise ValueError(f"Invalid visualizer type: {request_data['visualizer_type']}")
+    
+    # Validate duration if provided
+    if 'duration' in request_data:
+        duration = request_data['duration']
+        if not isinstance(duration, (int, float)) or duration <= 0:
+            raise ValueError("Duration must be a positive number")
+        if duration > MAX_DURATION:
+            raise ValueError(f"Duration exceeds maximum allowed ({MAX_DURATION} seconds)")
+    
+    return True
+
+
+def sanitize_filename(filename):
+    """
+    Sanitize a filename to prevent path traversal and other security issues.
+    
+    Args:
+        filename: Original filename
+        
+    Returns:
+        str: Sanitized filename
+    """
+    import re
+    import os
+    
+    if not filename:
+        return 'unnamed_file'
+    
+    # Remove path components
+    filename = os.path.basename(filename)
+    
+    # Remove dangerous characters
+    filename = re.sub(r'[<>:"/\\|?*]', '', filename)
+    
+    # Remove script tags and other dangerous content
+    filename = re.sub(r'<[^>]*>', '', filename)
+    
+    # Remove path traversal attempts
+    filename = filename.replace('..', '')
+    
+    # Limit length
+    if len(filename) > 255:
+        name, ext = os.path.splitext(filename)
+        filename = name[:250] + ext
+    
+    # Ensure we have a filename
+    if not filename or filename.isspace():
+        filename = 'sanitized_file'
+    
+    return filename
+
+
+def check_file_size_limits(file_path):
+    """
+    Check if a file meets size requirements.
+    
+    Args:
+        file_path: Path to the file
+        
+    Returns:
+        bool: True if file size is within limits
+    """
+    try:
+        file_size = os.path.getsize(file_path)
+        return MIN_FILE_SIZE <= file_size <= MAX_FILE_SIZE
+    except OSError:
+        return False
+
+
+def validate_audio_format(file_path):
+    """
+    Validate audio file format using magic numbers.
+    
+    Args:
+        file_path: Path to the audio file
+        
+    Returns:
+        bool: True if format is valid
+    """
+    try:
+        import magic
+        mime_type = magic.from_file(file_path, mime=True)
+        return mime_type in ALLOWED_MIME_TYPES
+    except ImportError:
+        # Fallback to extension-based validation
+        _, ext = os.path.splitext(file_path)
+        return ext.lower().lstrip('.') in ALLOWED_EXTENSIONS
+    except Exception:
+        return False

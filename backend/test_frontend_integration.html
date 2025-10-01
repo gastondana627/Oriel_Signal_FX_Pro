@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS and API Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CORS and API Integration Test</h1>
+        <p>This page tests the CORS configuration and API endpoints of the Oriel Signal FX Pro backend.</p>
+        
+        <div class="test-section info">
+            <h3>Configuration</h3>
+            <label for="apiUrl">Backend API URL:</label>
+            <input type="text" id="apiUrl" value="http://localhost:5000" style="width: 300px; margin-left: 10px;">
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 1: Health Check</h3>
+            <button onclick="testHealthCheck()">Test Health Check</button>
+            <div id="healthResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 2: API Info</h3>
+            <button onclick="testApiInfo()">Test API Info</button>
+            <div id="apiInfoResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 3: CORS Test Endpoint</h3>
+            <button onclick="testCors()">Test CORS</button>
+            <div id="corsResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 4: Error Response Format</h3>
+            <button onclick="testErrorResponse()">Test Error Response</button>
+            <div id="errorResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 5: Authentication Endpoint</h3>
+            <button onclick="testAuthEndpoint()">Test Auth Endpoint</button>
+            <div id="authResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 6: API Documentation</h3>
+            <button onclick="testApiDocs()">Test API Docs</button>
+            <div id="docsResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Run All Tests</h3>
+            <button onclick="runAllTests()">Run All Tests</button>
+        </div>
+    </div>
+
+    <script>
+        const getApiUrl = () => document.getElementById('apiUrl').value;
+        
+        function displayResult(elementId, success, message, data = null) {
+            const element = document.getElementById(elementId);
+            const className = success ? 'success' : 'error';
+            let content = `<div class="status ${className}">${message}</div>`;
+            
+            if (data) {
+                content += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            element.innerHTML = content;
+        }
+        
+        async function testHealthCheck() {
+            try {
+                const response = await fetch(`${getApiUrl()}/health`);
+                const data = await response.json();
+                
+                displayResult('healthResult', 
+                    response.ok, 
+                    `Health Check: ${response.status} ${response.statusText}`,
+                    data
+                );
+            } catch (error) {
+                displayResult('healthResult', false, `Health Check Failed: ${error.message}`);
+            }
+        }
+        
+        async function testApiInfo() {
+            try {
+                const response = await fetch(`${getApiUrl()}/api/info`);
+                const data = await response.json();
+                
+                displayResult('apiInfoResult', 
+                    response.ok, 
+                    `API Info: ${response.status} ${response.statusText}`,
+                    data
+                );
+            } catch (error) {
+                displayResult('apiInfoResult', false, `API Info Failed: ${error.message}`);
+            }
+        }
+        
+        async function testCors() {
+            try {
+                const response = await fetch(`${getApiUrl()}/api/cors-test`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    }
+                });
+                const data = await response.json();
+                
+                displayResult('corsResult', 
+                    response.ok, 
+                    `CORS Test: ${response.status} ${response.statusText}`,
+                    data
+                );
+            } catch (error) {
+                displayResult('corsResult', false, `CORS Test Failed: ${error.message}`);
+            }
+        }
+        
+        async function testErrorResponse() {
+            try {
+                // Try to access a protected endpoint without authentication
+                const response = await fetch(`${getApiUrl()}/api/user/profile`);
+                const data = await response.json();
+                
+                displayResult('errorResult', 
+                    !response.ok, // Success if we get an error response (401)
+                    `Error Response Test: ${response.status} ${response.statusText}`,
+                    data
+                );
+            } catch (error) {
+                displayResult('errorResult', false, `Error Response Test Failed: ${error.message}`);
+            }
+        }
+        
+        async function testAuthEndpoint() {
+            try {
+                // Test with invalid data to see error response format
+                const response = await fetch(`${getApiUrl()}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'invalid-email',
+                        password: '123'
+                    })
+                });
+                const data = await response.json();
+                
+                displayResult('authResult', 
+                    !response.ok, // Success if we get validation errors
+                    `Auth Endpoint Test: ${response.status} ${response.statusText}`,
+                    data
+                );
+            } catch (error) {
+                displayResult('authResult', false, `Auth Endpoint Test Failed: ${error.message}`);
+            }
+        }
+        
+        async function testApiDocs() {
+            try {
+                const response = await fetch(`${getApiUrl()}/api/docs/`);
+                
+                displayResult('docsResult', 
+                    response.ok, 
+                    `API Documentation: ${response.status} ${response.statusText}`,
+                    response.ok ? { message: 'API documentation is accessible', url: `${getApiUrl()}/api/docs/` } : null
+                );
+            } catch (error) {
+                displayResult('docsResult', false, `API Documentation Test Failed: ${error.message}`);
+            }
+        }
+        
+        async function runAllTests() {
+            await testHealthCheck();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testApiInfo();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testCors();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testErrorResponse();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testAuthEndpoint();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testApiDocs();
+        }
+        
+        // Run health check on page load
+        window.addEventListener('load', testHealthCheck);
+    </script>
+</body>
+</html>

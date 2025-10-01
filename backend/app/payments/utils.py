@@ -2,8 +2,10 @@
 Payment utility functions for validation and error handling
 """
 import stripe
+import re
 from flask import current_app
 from app.models import Payment, User
+from app import db
 
 
 def validate_payment_amount(amount):
@@ -208,3 +210,151 @@ def validate_webhook_signature(payload, sig_header, webhook_secret):
         return None, "Invalid signature"
     except Exception as e:
         return None, f"Webhook validation error: {str(e)}"
+
+
+def calculate_payment_amount(product_type, quantity=1):
+    """
+    Calculate payment amount based on product type and quantity.
+    
+    Args:
+        product_type: Type of product ('basic_video', 'premium_video')
+        quantity: Number of items
+        
+    Returns:
+        int: Amount in cents
+    """
+    prices = {
+        'basic_video': 999,    # $9.99
+        'premium_video': 1999  # $19.99
+    }
+    
+    if product_type not in prices:
+        raise ValueError(f"Invalid product type: {product_type}")
+    
+    base_amount = prices[product_type] * quantity
+    
+    # Apply bulk discount for 5+ items
+    if quantity >= 5:
+        base_amount = int(base_amount * 0.9)  # 10% discount
+    
+    return base_amount
+
+
+def validate_payment_data(data):
+    """
+    Validate payment request data.
+    
+    Args:
+        data: Dictionary containing payment data
+        
+    Returns:
+        bool: True if valid
+        
+    Raises:
+        ValueError: If validation fails
+    """
+    required_fields = ['product_type', 'quantity', 'user_email', 'success_url', 'cancel_url']
+    
+    for field in required_fields:
+        if field not in data:
+            raise ValueError(f"Missing required field: {field}")
+    
+    # Validate email format
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, data['user_email']):
+        raise ValueError("Invalid email format")
+    
+    # Validate URLs
+    url_pattern = r'^https?://.+'
+    if not re.match(url_pattern, data['success_url']):
+        raise ValueError("Invalid URL format for success_url")
+    if not re.match(url_pattern, data['cancel_url']):
+        raise ValueError("Invalid URL format for cancel_url")
+    
+    # Validate quantity
+    if not isinstance(data['quantity'], int) or data['quantity'] < 1:
+        raise ValueError("Quantity must be a positive integer")
+    
+    return True
+
+
+def create_stripe_session(payment_data):
+    """
+    Create a Stripe checkout session.
+    
+    Args:
+        payment_data: Dictionary containing payment information
+        
+    Returns:
+        dict: Session information
+    """
+    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+    
+    amount = calculate_payment_amount(payment_data['product_type'], payment_data['quantity'])
+    
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price_data': {
+                'currency': 'usd',
+                'product_data': {
+                    'name': f"{payment_data['product_type'].replace('_', ' ').title()} Rendering",
+                },
+                'unit_amount': calculate_payment_amount(payment_data['product_type']),
+            },
+            'quantity': payment_data['quantity'],
+        }],
+        mode='payment',
+        success_url=payment_data['success_url'],
+        cancel_url=payment_data['cancel_url'],
+        customer_email=payment_data['user_email'],
+    )
+    
+    return {
+        'id': session.id,
+        'url': session.url
+    }
+
+
+def verify_stripe_webhook(payload, signature, webhook_secret):
+    """
+    Verify and construct Stripe webhook event.
+    
+    Args:
+        payload: Raw request payload
+        signature: Stripe signature header
+        webhook_secret: Webhook secret
+        
+    Returns:
+        dict: Webhook event data
+    """
+    return stripe.Webhook.construct_event(payload, signature, webhook_secret)
+
+
+def process_payment_completion(webhook_event):
+    """
+    Process payment completion webhook.
+    
+    Args:
+        webhook_event: Stripe webhook event
+        
+    Returns:
+        bool: True if processed successfully
+    """
+    if webhook_event['type'] != 'checkout.session.completed':
+        return False
+    
+    session = webhook_event['data']['object']
+    session_id = session['id']
+    
+    # Find the payment record
+    payment = Payment.query.filter_by(stripe_session_id=session_id).first()
+    if not payment:
+        return False
+    
+    # Update payment status
+    if payment.status != 'completed':
+        payment.status = 'completed'
+        db.session.commit()
+    
+    return True
