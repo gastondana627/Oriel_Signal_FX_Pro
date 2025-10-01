@@ -22,14 +22,17 @@ def make_shell_context():
         'RenderJob': RenderJob
     }
 
-@app.before_first_request
 def create_tables():
-    """Create database tables on first request if they don't exist."""
-    try:
-        db.create_all()
-        app.logger.info("Database tables created successfully")
-    except Exception as e:
-        app.logger.error(f"Error creating database tables: {e}")
+    """Create database tables if they don't exist."""
+    with app.app_context():
+        try:
+            db.create_all()
+            app.logger.info("Database tables created successfully")
+        except Exception as e:
+            app.logger.error(f"Error creating database tables: {e}")
+
+# Create tables on startup
+create_tables()
 
 # Add production error handlers
 @app.errorhandler(500)
@@ -55,7 +58,7 @@ def not_found_error(error):
     }, 404
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 8000))
     debug = app.config.get('DEBUG', False)
     
     if config_name == 'production':

@@ -243,6 +243,11 @@ body, html {
 .hidden {
     display: none !important;
 }
+
+.hidden-input {
+    display: none;
+}
+
 .modal-content {
     position: relative;
 }

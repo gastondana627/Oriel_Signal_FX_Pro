@@ -24,7 +24,7 @@ jobs:
       postgres:
         image: postgres:13
         env:
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres' }}
           POSTGRES_DB: test_db
         options: >-
           --health-cmd pg_isready
@@ -79,7 +79,7 @@ jobs:
     - name: Set up environment variables
       run: |
         echo "FLASK_ENV=testing" >> $GITHUB_ENV
-        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_db" >> $GITHUB_ENV
+        echo "DATABASE_URL=postgresql://postgres:${{ secrets.POSTGRES_PASSWORD || 'postgres' }}@localhost:5432/test_db" >> $GITHUB_ENV
         echo "REDIS_URL=redis://localhost:6379/0" >> $GITHUB_ENV
         echo "SECRET_KEY=test-secret-key" >> $GITHUB_ENV
         echo "JWT_SECRET_KEY=test-jwt-secret" >> $GITHUB_ENV
@@ -195,7 +195,7 @@ jobs:
       postgres:
         image: postgres:13
         env:
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'postgres' }}
           POSTGRES_DB: test_db
         options: >-
           --health-cmd pg_isready

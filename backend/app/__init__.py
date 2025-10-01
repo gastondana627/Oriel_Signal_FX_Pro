@@ -35,6 +35,19 @@ def create_app(config_name='default'):
     from app.security import init_limiter
     init_limiter(app)
     
+    # Initialize comprehensive security only in production
+    if not app.debug and config_name == 'production':
+        from app.security_config import init_all_security_features
+        init_all_security_features(app)
+    
+    # Initialize caching
+    from app.cache import cache
+    cache.init_app(app)
+    
+    # Initialize performance monitoring
+    from app.performance import init_performance_monitoring
+    init_performance_monitoring(app)
+    
     # Initialize logging first
     from logging_config import setup_logging
     setup_logging(app)

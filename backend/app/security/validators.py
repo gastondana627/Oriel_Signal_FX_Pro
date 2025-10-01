@@ -5,6 +5,7 @@ import os
 import re
 import magic
 import logging
+from functools import wraps
 from typing import Dict, Any, Optional
 from werkzeug.datastructures import FileStorage
 from flask import current_app
@@ -145,13 +146,14 @@ def sanitize_filename(filename: str) -> str:
     
     return filename
 
-def sanitize_input(input_str: str, max_length: int = 1000) -> str:
+def sanitize_input(input_str: str, max_length: int = 1000, allow_html: bool = False) -> str:
     """
-    Sanitize user input to prevent injection attacks.
+    Enhanced sanitize user input to prevent injection attacks.
     
     Args:
         input_str: Input string to sanitize
         max_length: Maximum allowed length
+        allow_html: Whether to allow basic HTML tags
         
     Returns:
         str: Sanitized input
@@ -162,21 +164,66 @@ def sanitize_input(input_str: str, max_length: int = 1000) -> str:
     # Limit length
     input_str = input_str[:max_length]
     
-    # Remove control characters
-    input_str = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', input_str)
+    # Remove null bytes and control characters
+    input_str = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', input_str)
     
-    # Remove potentially dangerous HTML/script tags
-    input_str = re.sub(r'<[^>]*>', '', input_str)
-    
-    # Remove SQL injection patterns
+    # Enhanced SQL injection prevention
     sql_patterns = [
-        r'(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b)',
-        r'(--|#|/\*|\*/)',
-        r'(\bOR\b.*=.*\bOR\b)',
-        r'(\bAND\b.*=.*\bAND\b)'
+        r'(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|TRUNCATE|REPLACE)\b)',
+        r'(--|#|/\*|\*/|;)',
+        r'(\bOR\b\s+\d+\s*=\s*\d+)',
+        r'(\bAND\b\s+\d+\s*=\s*\d+)',
+        r'(\bUNION\b\s+(ALL\s+)?SELECT)',
+        r'(\bINTO\b\s+(OUTFILE|DUMPFILE))',
+        r'(\bLOAD_FILE\s*\()',
+        r'(\bSLEEP\s*\()',
+        r'(\bBENCHMARK\s*\()',
+        r'(\bEXTRACTVALUE\s*\()',
+        r'(\bUPDATEXML\s*\()',
+        r'(\bWAITFOR\s+DELAY)',
+        r'(\bEXEC\s*\()',
+        r'(\bSP_\w+)',
+        r'(\bXP_\w+)',
+        r'(\bCMDSHELL)',
+        r'(\bSHUTDOWN)',
+        r'(\bDBCC\s+\w+)'
     ]
     
     for pattern in sql_patterns:
+        input_str = re.sub(pattern, '', input_str, flags=re.IGNORECASE)
+    
+    # XSS prevention
+    if not allow_html:
+        # Remove all HTML/XML tags
+        input_str = re.sub(r'<[^>]*>', '', input_str)
+    else:
+        # Remove dangerous attributes and scripts
+        input_str = re.sub(r'<(\w+)[^>]*?(on\w+|javascript:|vbscript:|data:)[^>]*?>', r'<\1>', input_str, flags=re.IGNORECASE)
+        input_str = re.sub(r'<script[^>]*>.*?</script>', '', input_str, flags=re.IGNORECASE | re.DOTALL)
+        input_str = re.sub(r'<style[^>]*>.*?</style>', '', input_str, flags=re.IGNORECASE | re.DOTALL)
+    
+    # Remove JavaScript protocols
+    js_protocols = [
+        r'javascript:',
+        r'vbscript:',
+        r'data:text/html',
+        r'file://'
+    ]
+    
+    for protocol in js_protocols:
+        input_str = re.sub(protocol, '', input_str, flags=re.IGNORECASE)
+    
+    # Command injection prevention
+    input_str = re.sub(r'[;&|`$(){}[\]\\]', '', input_str)
+    
+    # Path traversal prevention
+    input_str = re.sub(r'\.\./', '', input_str)
+    input_str = re.sub(r'\.\.\\', '', input_str)
+    input_str = re.sub(r'%2e%2e%2f', '', input_str, flags=re.IGNORECASE)
+    
+    # NoSQL injection prevention
+    nosql_patterns = [r'\$where', r'\$ne', r'\$gt', r'\$lt', r'\$regex']
+    for pattern in nosql_patterns:
         input_str = re.sub(pattern, '', input_str, flags=re.IGNORECASE)
     
     return input_str.strip()
@@ -325,3 +372,176 @@ def is_safe_redirect_url(url: str, allowed_hosts: list = None) -> bool:
             return parsed.netloc.lower() == app_host.lower()
     
     return False
+
+def prevent_sql_injection(func):
+    """
+    Decorator to automatically sanitize function arguments for SQL injection prevention.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # Sanitize string arguments
+        sanitized_args = []
+        for arg in args:
+            if isinstance(arg, str):
+                sanitized_args.append(sanitize_input(arg))
+            else:
+                sanitized_args.append(arg)
+        
+        # Sanitize string keyword arguments
+        sanitized_kwargs = {}
+        for key, value in kwargs.items():
+            if isinstance(value, str):
+                sanitized_kwargs[key] = sanitize_input(value)
+            else:
+                sanitized_kwargs[key] = value
+        
+        return func(*sanitized_args, **sanitized_kwargs)
+    return wrapper
+
+def validate_database_query(query: str, allowed_operations: list = None) -> bool:
+    """
+    Validate database query for security issues.
+    
+    Args:
+        query: SQL query to validate
+        allowed_operations: List of allowed SQL operations (SELECT, INSERT, etc.)
+        
+    Returns:
+        bool: True if query is safe
+    """
+    if not isinstance(query, str):
+        return False
+    
+    # Default allowed operations
+    if allowed_operations is None:
+        allowed_operations = ['SELECT', 'INSERT', 'UPDATE']
+    
+    # Convert to uppercase for checking
+    query_upper = query.upper().strip()
+    
+    # Check if query starts with allowed operation
+    starts_with_allowed = any(query_upper.startswith(op) for op in allowed_operations)
+    if not starts_with_allowed:
+        logger.warning(f"Query starts with disallowed operation: {query[:50]}...")
+        return False
+    
+    # Check for dangerous patterns
+    dangerous_patterns = [
+        r';\s*(DROP|DELETE|TRUNCATE|ALTER|CREATE)',
+        r'UNION\s+SELECT',
+        r'INTO\s+(OUTFILE|DUMPFILE)',
+        r'LOAD_FILE\s*\(',
+        r'BENCHMARK\s*\(',
+        r'SLEEP\s*\(',
+        r'WAITFOR\s+DELAY',
+        r'EXEC\s*\(',
+        r'SP_\w+',
+        r'XP_\w+',
+        r'CMDSHELL',
+        r'SHUTDOWN',
+        r'--\s*[^\r\n]*(\r|\n|$)',  # SQL comments
+        r'/\*.*?\*/',  # Multi-line comments
+        r'INFORMATION_SCHEMA',
+        r'SYS\.',
+        r'MASTER\.',
+        r'MSDB\.',
+        r'TEMPDB\.'
+    ]
+    
+    for pattern in dangerous_patterns:
+        if re.search(pattern, query_upper):
+            logger.warning(f"Dangerous pattern found in query: {pattern}")
+            return False
+    
+    # Check for excessive UNION statements (potential UNION-based injection)
+    union_count = len(re.findall(r'\bUNION\b', query_upper))
+    if union_count > 2:
+        logger.warning(f"Excessive UNION statements in query: {union_count}")
+        return False
+    
+    # Check for suspicious WHERE clauses (1=1, OR 1=1, etc.)
+    suspicious_where = [
+        r'WHERE\s+1\s*=\s*1',
+        r'WHERE\s+\d+\s*=\s*\d+',
+        r'OR\s+1\s*=\s*1',
+        r'OR\s+\d+\s*=\s*\d+',
+        r'AND\s+1\s*=\s*1',
+        r'AND\s+\d+\s*=\s*\d+'
+    ]
+    
+    for pattern in suspicious_where:
+        if re.search(pattern, query_upper):
+            logger.warning(f"Suspicious WHERE clause in query: {pattern}")
+            return False
+    
+    return True
+
+def escape_sql_identifier(identifier: str) -> str:
+    """
+    Escape SQL identifier (table name, column name) to prevent injection.
+    
+    Args:
+        identifier: SQL identifier to escape
+        
+    Returns:
+        str: Escaped identifier
+    """
+    if not isinstance(identifier, str):
+        raise ValueError("Identifier must be a string")
+    
+    # Remove any existing quotes
+    identifier = identifier.strip('"').strip("'").strip('`')
+    
+    # Validate identifier format (alphanumeric + underscore only)
+    if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', identifier):
+        raise ValueError(f"Invalid identifier format: {identifier}")
+    
+    # Escape with double quotes (ANSI SQL standard)
+    return f'"{identifier}"'
+
+def validate_email_security(email: str) -> bool:
+    """
+    Enhanced email validation with security checks.
+    
+    Args:
+        email: Email address to validate
+        
+    Returns:
+        bool: True if email is valid and safe
+    """
+    if not isinstance(email, str):
+        return False
+    
+    # Basic format validation
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, email):
+        return False
+    
+    # Length check
+    if len(email) > 254:  # RFC 5321 limit
+        return False
+    
+    # Check for dangerous characters
+    dangerous_chars = ['<', '>', '"', "'", '\\', '\x00', '\r', '\n', '\t']
+    if any(char in email for char in dangerous_chars):
+        return False
+    
+    # Check for suspicious patterns
+    suspicious_patterns = [
+        r'javascript:',
+        r'vbscript:',
+        r'data:',
+        r'file:',
+        r'<script',
+        r'</script>',
+        r'onload=',
+        r'onerror=',
+        r'eval\(',
+        r'exec\('
+    ]
+    
+    for pattern in suspicious_patterns:
+        if re.search(pattern, email, re.IGNORECASE):
+            return False
+    
+    return True
