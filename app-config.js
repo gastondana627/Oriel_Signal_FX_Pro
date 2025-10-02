@@ -33,7 +33,7 @@ class AppConfig {
         const baseConfig = {
             development: {
                 api: {
-                    baseUrl: 'http://localhost:8000',
+                    baseUrl: 'http://localhost:9999',
                     timeout: 10000,
                     retries: 3
                 },

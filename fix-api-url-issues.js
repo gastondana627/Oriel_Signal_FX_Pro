@@ -130,29 +130,29 @@
     
     // Test the API connection
     function testApiConnection() {
-        const baseUrl = getApiBaseUrl();
-        console.log(`🧪 Testing API connection to: ${baseUrl}`);
-        
-        fetch(`${baseUrl}/api/health`)
-            .then(response => {
-                if (response.ok) {
-                    console.log('✅ API connection test successful');
-                    return response.json();
-                } else {
-                    console.warn(`⚠️ API connection test returned ${response.status}`);
-                    throw new Error(`HTTP ${response.status}`);
-                }
-            })
-            .then(data => {
-                console.log('📊 API health data:', data);
-            })
-            .catch(error => {
-                console.error('❌ API connection test failed:', error);
-                console.log('💡 Troubleshooting:');
-                console.log('  1. Check if backend server is running on port 8000');
-                console.log('  2. Verify CORS configuration');
-                console.log('  3. Check browser console for additional errors');
-            });
+        try {
+            const baseUrl = getApiBaseUrl();
+            console.log(`🧪 Testing API connection to: ${baseUrl}`);
+            
+            fetch(`${baseUrl}/api/health`)
+                .then(response => {
+                    if (response.ok) {
+                        console.log('✅ API connection test successful');
+                        return response.json();
+                    } else {
+                        console.warn(`⚠️ API connection test returned ${response.status}`);
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                })
+                .then(data => {
+                    console.log('📊 API health data:', data);
+                })
+                .catch(error => {
+                    console.warn('⚠️ API connection test failed:', error.message);
+                });
+        } catch (error) {
+            console.warn('⚠️ API test setup failed:', error.message);
+        }
     }
     
     // Run API test after a short delay

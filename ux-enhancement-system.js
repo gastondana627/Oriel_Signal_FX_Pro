@@ -412,11 +412,96 @@ class UXEnhancementSystem {
     }
 
     /**
+     * Track successful operations for user feedback
+     */
+    trackSuccessfulOperations() {
+        // Track form submissions
+        document.addEventListener('submit', (event) => {
+            const form = event.target;
+            if (form.tagName === 'FORM') {
+                setTimeout(() => {
+                    if (window.notifications) {
+                        window.notifications.show('Operation completed successfully', 'success');
+                    }
+                }, 100);
+            }
+        });
+
+        // Track successful API calls
+        if (window.ApiClient) {
+            const originalRequest = window.ApiClient.prototype.request;
+            if (originalRequest) {
+                window.ApiClient.prototype.request = function(...args) {
+                    return originalRequest.apply(this, args).then(response => {
+                        if (response.ok && window.notifications) {
+                            // Only show for certain operations
+                            const url = args[1] || args[0];
+                            if (url && (url.includes('register') || url.includes('login') || url.includes('download'))) {
+                                window.notifications.show('Operation completed successfully', 'success');
+                            }
+                        }
+                        return response;
+                    });
+                };
+            }
+        }
+    }
+
+    /**
      * Setup error messaging system
      */
     setupErrorMessaging() {
         // Create user-friendly error messages
         this.createErrorMessageSystem();
+    }
+
+    /**
+     * Create error message system
+     */
+    createErrorMessageSystem() {
+        // Simple, non-intrusive error message system
+        const errorContainer = document.createElement('div');
+        errorContainer.id = 'ux-error-messages';
+        errorContainer.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 300px;
+            pointer-events: none;
+        `;
+        document.body.appendChild(errorContainer);
+        
+        this.showErrorMessage = (message, type = 'error') => {
+            const messageEl = document.createElement('div');
+            messageEl.style.cssText = `
+                background: ${type === 'error' ? '#f8d7da' : '#d4edda'};
+                color: ${type === 'error' ? '#721c24' : '#155724'};
+                padding: 12px;
+                border-radius: 4px;
+                margin-bottom: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                pointer-events: auto;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            `;
+            messageEl.textContent = message;
+            
+            errorContainer.appendChild(messageEl);
+            
+            // Fade in
+            setTimeout(() => messageEl.style.opacity = '1', 10);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                messageEl.style.opacity = '0';
+                setTimeout(() => {
+                    if (messageEl.parentNode) {
+                        messageEl.parentNode.removeChild(messageEl);
+                    }
+                }, 300);
+            }, 5000);
+        };
     }
 
     /**

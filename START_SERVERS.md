@@ -2,11 +2,18 @@
 
 ## Quick Start (3 Terminals Required)
 
-### **Terminal 1: Backend Server (Port 8000)**
+### **Terminal 1: Clear Ports & Start Backend (Port 9999)**
 ```bash
+# Kill existing processes first
+pkill -f oriel_backend
+lsof -ti:8000 | xargs kill -9 2>/dev/null || true
+lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+lsof -ti:9999 | xargs kill -9 2>/dev/null || true
+
+# Start backend on port 9999
 cd /Users/gastondana/Oriel_Signal_FX_Pro/backend
 source venv/bin/activate
-python oriel_backend.py
+PORT=9999 python oriel_backend.py
 ```
 
 ### **Terminal 2: Frontend Server (Port 3000)**
@@ -19,13 +26,13 @@ python3 -m http.server 3000
 ```bash
 cd /Users/gastondana/Oriel_Signal_FX_Pro
 # Use this terminal for testing API calls, git commands, etc.
-curl http://localhost:8000/api/health
+curl http://localhost:9999/api/health
 ```
 
 ## 🌐 Access URLs
 - **Frontend App**: http://127.0.0.1:3000
-- **Backend API**: http://localhost:8000
-- **Health Check**: http://localhost:8000/api/health
+- **Backend API**: http://localhost:9999
+- **Health Check**: http://localhost:9999/api/health
 
 ## 🔧 Troubleshooting
 

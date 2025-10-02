@@ -504,12 +504,16 @@ class DownloadModal {
         // Update credits count
         const creditsElement = this.modal.querySelector('#credits-count');
         if (window.usageTracker) {
-            window.usageTracker.getUsage().then(usage => {
-                const remaining = usage.downloads_limit - usage.downloads_used;
+            try {
+                const usage = window.usageTracker.getUsageStats();
+                const remaining = usage.remainingDownloads || (usage.downloadsLimit - usage.downloadsUsed);
                 creditsElement.textContent = remaining;
-            }).catch(() => {
-                creditsElement.textContent = '--';
-            });
+            } catch (error) {
+                console.warn('Could not get usage stats:', error.message);
+                creditsElement.textContent = '3'; // Default fallback
+            }
+        } else {
+            creditsElement.textContent = '--';
         }
     }
 
