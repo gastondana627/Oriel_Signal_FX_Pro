@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Format-Specific Download Tests</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(131, 9, 213, 0.3);
+        }
+
+        .header h1 {
+            margin: 0 0 10px 0;
+            color: #8309D5;
+            font-size: 2.5rem;
+        }
+
+        .header p {
+            margin: 0;
+            color: #ccc;
+            font-size: 1.1rem;
+        }
+
+        .test-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #8309D5, #FF6B35);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(131, 9, 213, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-format {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+            color: #4CAF50;
+        }
+
+        .btn-format:hover {
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .test-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .category-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .category-card h3 {
+            margin-top: 0;
+            color: #8309D5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-tests {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .category-tests li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .category-tests li:last-child {
+            border-bottom: none;
+        }
+
+        .test-status {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #8309D5;
+            background: rgba(131, 9, 213, 0.1);
+            display: none;
+        }
+
+        .progress-container {
+            margin: 15px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #8309D5, #FF6B35);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-top: 5px;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #8309D5;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .test-results {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .test-results h3 {
+            margin-top: 0;
+            color: #8309D5;
+        }
+
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .test-item:last-child {
+            border-bottom: none;
+        }
+
+        .test-name {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .test-duration {
+            font-size: 0.8rem;
+            color: #999;
+            margin-right: 15px;
+        }
+
+        .test-status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-passed {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .status-failed {
+            background: #f44336;
+            color: white;
+        }
+
+        .status-running {
+            background: #FF9800;
+            color: white;
+        }
+
+        .error-details {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .error-details h4 {
+            color: #f44336;
+            margin-top: 0;
+        }
+
+        .log-output {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+
+        .format-indicators {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .format-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .format-mp4 {
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid rgba(33, 150, 243, 0.4);
+            color: #2196F3;
+        }
+
+        .format-mov {
+            background: rgba(156, 39, 176, 0.2);
+            border: 1px solid rgba(156, 39, 176, 0.4);
+            color: #9C27B0;
+        }
+
+        .format-mp3 {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+            color: #4CAF50;
+        }
+
+        .format-gif {
+            background: rgba(255, 152, 0, 0.2);
+            border: 1px solid rgba(255, 152, 0, 0.4);
+            color: #FF9800;
+        }
+
+        @media (max-width: 768px) {
+            .test-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .test-categories {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Format-Specific Download Tests</h1>
+            <p>Comprehensive testing suite for MP4, MOV, MP3, and GIF download functionality with quality validation and file integrity verification</p>
+            
+            <div class="format-indicators">
+                <div class="format-indicator format-mp4">MP4 Video</div>
+                <div class="format-indicator format-mov">MOV Video</div>
+                <div class="format-indicator format-mp3">MP3 Audio</div>
+                <div class="format-indicator format-gif">GIF Animation</div>
+            </div>
+        </div>
+
+        <div class="test-controls">
+            <button id="run-all-tests" class="btn btn-primary">
+                <span>🚀</span>
+                Run All Tests
+            </button>
+            <button id="run-mp4-tests" class="btn btn-format">
+                <span>🎬</span>
+                MP4 Tests
+            </button>
+            <button id="run-mov-tests" class="btn btn-format">
+                <span>🎥</span>
+                MOV Tests
+            </button>
+            <button id="run-integrity-tests" class="btn btn-format">
+                <span>🔍</span>
+                Integrity Tests
+            </button>
+            <button id="run-progress-tests" class="btn btn-format">
+                <span>📊</span>
+                Progress Tests
+            </button>
+            <button id="run-performance-tests" class="btn btn-format">
+                <span>⚡</span>
+                Performance Tests
+            </button>
+            <button id="clear-results" class="btn btn-secondary">
+                <span>🗑️</span>
+                Clear Results
+            </button>
+            <button id="toggle-log" class="btn btn-secondary">
+                <span>📋</span>
+                Toggle Log
+            </button>
+        </div>
+
+        <div class="test-categories">
+            <div class="category-card">
+                <h3><span>🎬</span> MP4 Video Tests</h3>
+                <ul class="category-tests">
+                    <li>Quality validation (Standard, High, Ultra)</li>
+                    <li>H.264 codec verification</li>
+                    <li>AAC audio codec validation</li>
+                    <li>File structure integrity</li>
+                    <li>Audio-video synchronization</li>
+                </ul>
+            </div>
+
+            <div class="category-card">
+                <h3><span>🎥</span> MOV Video Tests</h3>
+                <ul class="category-tests">
+                    <li>Professional editing compatibility</li>
+                    <li>Quality preservation testing</li>
+                    <li>Metadata integrity validation</li>
+                    <li>Timecode accuracy verification</li>
+                    <li>Color space information</li>
+                </ul>
+            </div>
+
+            <div class="category-card">
+                <h3><span>🔍</span> File Integrity Tests</h3>
+                <ul class="category-tests">
+                    <li>MP4 structure validation</li>
+                    <li>MOV professional metadata</li>
+                    <li>MP3 frame structure</li>
+                    <li>GIF animation properties</li>
+                    <li>Checksum verification</li>
+                </ul>
+            </div>
+
+            <div class="category-card">
+                <h3><span>📊</span> Progress & Performance</h3>
+                <ul class="category-tests">
+                    <li>Progress indicator accuracy</li>
+                    <li>Callback functionality</li>
+                    <li>Large file performance</li>
+                    <li>Concurrent download handling</li>
+                    <li>Memory management</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="test-status" class="test-status">
+            <div id="status-text">Ready to run tests...</div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <div id="progress-text" class="progress-text">0% complete</div>
+            </div>
+        </div>
+
+        <div id="summary-section" style="display: none;">
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <div id="total-tests" class="stat-value">0</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat-card">
+                    <div id="passed-tests" class="stat-value">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat-card">
+                    <div id="failed-tests" class="stat-value">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-card">
+                    <div id="success-rate" class="stat-value">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div id="test-duration" class="stat-value">0s</div>
+                    <div class="stat-label">Duration</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="test-results" class="test-results">
+            <h3>Test Results</h3>
+            <div id="results-list"></div>
+        </div>
+
+        <div id="log-output" class="log-output"></div>
+    </div>
+
+    <!-- Include required dependencies -->
+    <script src="format-specific-download-tests.js"></script>
+
+    <script>
+        class FormatTestRunner {
+            constructor() {
+                this.tester = null;
+                this.isRunning = false;
+                this.currentTest = 0;
+                this.totalTests = 0;
+                this.results = [];
+                
+                this.initializeUI();
+                this.setupEventListeners();
+            }
+
+            initializeUI() {
+                this.statusSection = document.getElementById('test-status');
+                this.statusText = document.getElementById('status-text');
+                this.progressFill = document.getElementById('progress-fill');
+                this.progressText = document.getElementById('progress-text');
+                this.summarySection = document.getElementById('summary-section');
+                this.resultsSection = document.getElementById('test-results');
+                this.resultsList = document.getElementById('results-list');
+                this.logOutput = document.getElementById('log-output');
+                
+                this.setupConsoleCapture();
+            }
+
+            setupEventListeners() {
+                document.getElementById('run-all-tests').addEventListener('click', () => this.runAllTests());
+                document.getElementById('run-mp4-tests').addEventListener('click', () => this.runMP4Tests());
+                document.getElementById('run-mov-tests').addEventListener('click', () => this.runMOVTests());
+                document.getElementById('run-integrity-tests').addEventListener('click', () => this.runIntegrityTests());
+                document.getElementById('run-progress-tests').addEventListener('click', () => this.runProgressTests());
+                document.getElementById('run-performance-tests').addEventListener('click', () => this.runPerformanceTests());
+                document.getElementById('clear-results').addEventListener('click', () => this.clearResults());
+                document.getElementById('toggle-log').addEventListener('click', () => this.toggleLog());
+            }
+
+            setupConsoleCapture() {
+                const originalLog = console.log;
+                const originalError = console.error;
+                
+                console.log = (...args) => {
+                    originalLog.apply(console, args);
+                    this.addToLog('LOG', args.join(' '));
+                };
+                
+                console.error = (...args) => {
+                    originalError.apply(console, args);
+                    this.addToLog('ERROR', args.join(' '));
+                };
+            }
+
+            addToLog(level, message) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${level}: ${message}\n`;
+                
+                this.logOutput.textContent += logEntry;
+                this.logOutput.scrollTop = this.logOutput.scrollHeight;
+            }
+
+            async runAllTests() {
+                if (this.isRunning) return;
+                
+                try {
+                    this.isRunning = true;
+                    this.updateRunButton(true);
+                    this.showStatus('Initializing format-specific download tests...');
+                    
+                    this.tester = new FormatSpecificDownloadTester();
+                    await this.tester.init();
+                    
+                    this.showStatus('Running comprehensive format tests...');
+                    const report = await this.tester.runAllTests();
+                    
+                    this.displayResults(report);
+                    this.showStatus('All format tests completed!');
+                    
+                } catch (error) {
+                    console.error('Test execution failed:', error);
+                    this.showStatus(`Test execution failed: ${error.message}`);
+                    this.showErrorDetails(error);
+                } finally {
+                    this.isRunning = false;
+                    this.updateRunButton(false);
+                }
+            }
+
+            async runMP4Tests() {
+                await this.runSpecificTests([
+                    'testMP4DownloadQuality',
+                    'testMP4CodecVerification',
+                    'testFileIntegrityMP4'
+                ], 'MP4 Tests');
+            }
+
+            async runMOVTests() {
+                await this.runSpecificTests([
+                    'testMOVDownloadCompatibility',
+                    'testMOVQualityPreservation',
+                    'testFileIntegrityMOV'
+                ], 'MOV Tests');
+            }
+
+            async runIntegrityTests() {
+                await this.runSpecificTests([
+                    'testFileIntegrityMP4',
+                    'testFileIntegrityMOV',
+                    'testFileIntegrityMP3',
+                    'testFileIntegrityGIF'
+                ], 'File Integrity Tests');
+            }
+
+            async runProgressTests() {
+                await this.runSpecificTests([
+                    'testProgressIndicatorGeneration',
+                    'testProgressPercentageAccuracy',
+                    'testProgressCallbacks'
+                ], 'Progress Tests');
+            }
+
+            async runPerformanceTests() {
+                await this.runSpecificTests([
+                    'testLargeFilePerformance',
+                    'testConcurrentDownloads',
+                    'testMemoryManagement'
+                ], 'Performance Tests');
+            }
+
+            async runSpecificTests(testMethods, testCategory) {
+                if (this.isRunning) return;
+                
+                try {
+                    this.isRunning = true;
+                    this.updateRunButton(true);
+                    this.showStatus(`Running ${testCategory}...`);
+                    
+                    this.tester = new FormatSpecificDownloadTester();
+                    await this.tester.init();
+                    
+                    // Run specific test methods
+                    for (const method of testMethods) {
+                        if (typeof this.tester[method] === 'function') {
+                            try {
+                                console.log(`Running ${method}...`);
+                                await this.tester[method]();
+                                this.tester.addTestResult(method, 'PASSED', 'Test completed successfully');
+                            } catch (error) {
+                                console.error(`${method} failed:`, error);
+                                this.tester.addTestResult(method, 'FAILED', error.message);
+                            }
+                        }
+                    }
+                    
+                    const report = this.tester.generateTestReport();
+                    this.displayResults(report);
+                    this.showStatus(`${testCategory} completed!`);
+                    
+                } catch (error) {
+                    console.error(`${testCategory} execution failed:`, error);
+                    this.showStatus(`${testCategory} execution failed: ${error.message}`);
+                    this.showErrorDetails(error);
+                } finally {
+                    this.isRunning = false;
+                    this.updateRunButton(false);
+                }
+            }
+
+            showStatus(message) {
+                this.statusText.textContent = message;
+                this.statusSection.style.display = 'block';
+            }
+
+            updateRunButton(isRunning) {
+                const runButton = document.getElementById('run-all-tests');
+                runButton.disabled = isRunning;
+                runButton.innerHTML = isRunning ? 
+                    '<span>⏳</span> Running Tests...' : 
+                    '<span>🚀</span> Run All Tests';
+                
+                // Disable other buttons while running
+                const otherButtons = document.querySelectorAll('.btn:not(#run-all-tests):not(#clear-results):not(#toggle-log)');
+                otherButtons.forEach(btn => btn.disabled = isRunning);
+            }
+
+            displayResults(report) {
+                // Update summary stats
+                document.getElementById('total-tests').textContent = report.summary.total;
+                document.getElementById('passed-tests').textContent = report.summary.passed;
+                document.getElementById('failed-tests').textContent = report.summary.failed;
+                document.getElementById('success-rate').textContent = report.summary.successRate + '%';
+                document.getElementById('test-duration').textContent = Math.round(report.summary.duration / 1000) + 's';
+                
+                // Show summary section
+                this.summarySection.style.display = 'block';
+                
+                // Display individual test results
+                this.resultsList.innerHTML = '';
+                
+                report.results.forEach(result => {
+                    const testItem = document.createElement('div');
+                    testItem.className = 'test-item';
+                    
+                    const statusClass = result.status === 'PASSED' ? 'status-passed' : 'status-failed';
+                    const duration = result.duration ? Math.round(result.duration) + 'ms' : '';
+                    
+                    testItem.innerHTML = `
+                        <div class="test-name">${result.test}</div>
+                        <div class="test-duration">${duration}</div>
+                        <div class="test-status-badge ${statusClass}">${result.status}</div>
+                    `;
+                    
+                    if (result.status === 'FAILED' && result.message) {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-details';
+                        errorDiv.innerHTML = `
+                            <h4>Error Details</h4>
+                            <p>${result.message}</p>
+                        `;
+                        testItem.appendChild(errorDiv);
+                    }
+                    
+                    this.resultsList.appendChild(testItem);
+                });
+                
+                this.resultsSection.style.display = 'block';
+            }
+
+            showErrorDetails(error) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-details';
+                errorDiv.innerHTML = `
+                    <h4>Execution Error</h4>
+                    <p><strong>Message:</strong> ${error.message}</p>
+                    <p><strong>Stack:</strong></p>
+                    <pre>${error.stack}</pre>
+                `;
+                
+                this.resultsSection.appendChild(errorDiv);
+                this.resultsSection.style.display = 'block';
+            }
+
+            toggleLog() {
+                const isVisible = this.logOutput.style.display !== 'none';
+                this.logOutput.style.display = isVisible ? 'none' : 'block';
+                
+                const button = document.getElementById('toggle-log');
+                button.innerHTML = isVisible ? 
+                    '<span>📋</span> Show Log' : 
+                    '<span>📋</span> Hide Log';
+            }
+
+            clearResults() {
+                this.summarySection.style.display = 'none';
+                this.resultsSection.style.display = 'none';
+                this.statusSection.style.display = 'none';
+                this.logOutput.textContent = '';
+                this.resultsList.innerHTML = '';
+                this.progressFill.style.width = '0%';
+                this.progressText.textContent = '0% complete';
+            }
+        }
+
+        // Initialize test runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const testRunner = new FormatTestRunner();
+            console.log('✅ Format-Specific Download Test Runner initialized');
+        });
+    </script>
+</body>
+</html>

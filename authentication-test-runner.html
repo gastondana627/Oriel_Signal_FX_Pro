@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Testing Suite</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .status-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .status-card {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            text-align: center;
+        }
+        
+        .status-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .status-label {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .success { color: #28a745; }
+        .danger { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .warning { color: #ffc107; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .log-container {
+            background: #1e1e1e;
+            color: #f8f8f2;
+            border-radius: 6px;
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        
+        .log-timestamp {
+            color: #6272a4;
+            margin-right: 10px;
+        }
+        
+        .log-level-info { color: #8be9fd; }
+        .log-level-success { color: #50fa7b; }
+        .log-level-error { color: #ff5555; }
+        .log-level-warning { color: #f1fa8c; }
+        
+        .results-section {
+            margin-top: 30px;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .results-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .test-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .test-status.passed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .test-status.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff40;
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .category-section {
+            margin-bottom: 25px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .category-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .category-content {
+            padding: 20px;
+        }
+        
+        /* Mock UI elements for testing */
+        .mock-ui {
+            position: fixed;
+            top: -1000px;
+            left: -1000px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .modal-hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Authentication Testing Suite</h1>
+            <p>Comprehensive testing for user registration and login flows</p>
+        </div>
+        
+        <div class="content">
+            <div class="test-controls">
+                <button id="run-all-tests" class="btn btn-primary">
+                    <span class="btn-text">🧪 Run All Tests</span>
+                    <span class="btn-spinner hidden"><div class="spinner"></div></span>
+                </button>
+                <button id="run-registration-tests" class="btn btn-secondary">
+                    📝 Registration Tests
+                </button>
+                <button id="run-login-tests" class="btn btn-secondary">
+                    🔐 Login Tests
+                </button>
+                <button id="run-integration-tests" class="btn btn-secondary">
+                    🔗 Integration Tests
+                </button>
+                <button id="clear-results" class="btn btn-secondary">
+                    🗑️ Clear Results
+                </button>
+            </div>
+            
+            <div class="status-panel">
+                <h3>Test Status</h3>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <div class="status-grid">
+                    <div class="status-card">
+                        <div id="total-tests" class="status-number info">0</div>
+                        <div class="status-label">Total Tests</div>
+                    </div>
+                    <div class="status-card">
+                        <div id="passed-tests" class="status-number success">0</div>
+                        <div class="status-label">Passed</div>
+                    </div>
+                    <div class="status-card">
+                        <div id="failed-tests" class="status-number danger">0</div>
+                        <div class="status-label">Failed</div>
+                    </div>
+                    <div class="status-card">
+                        <div id="success-rate" class="status-number info">0%</div>
+                        <div class="status-label">Success Rate</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-section">
+                <h3>Test Results</h3>
+                
+                <div id="registration-results" class="category-section hidden">
+                    <div class="category-header">
+                        <span>📝 Registration Flow Tests</span>
+                        <span id="registration-summary" class="test-status">Not Run</span>
+                    </div>
+                    <div class="category-content">
+                        <table id="registration-table" class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Test Name</th>
+                                    <th>Status</th>
+                                    <th>Error</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="login-results" class="category-section hidden">
+                    <div class="category-header">
+                        <span>🔐 Login Flow Tests</span>
+                        <span id="login-summary" class="test-status">Not Run</span>
+                    </div>
+                    <div class="category-content">
+                        <table id="login-table" class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Test Name</th>
+                                    <th>Status</th>
+                                    <th>Error</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="integration-results" class="category-section hidden">
+                    <div class="category-header">
+                        <span>🔗 Integration Tests</span>
+                        <span id="integration-summary" class="test-status">Not Run</span>
+                    </div>
+                    <div class="category-content">
+                        <table id="integration-table" class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Test Name</th>
+                                    <th>Status</th>
+                                    <th>Error</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="log-container" id="log-container">
+                <div class="log-entry">
+                    <span class="log-timestamp">[00:00:00]</span>
+                    <span class="log-level-info">Authentication Testing Suite initialized</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mock UI elements for testing -->
+    <div class="mock-ui">
+        <!-- Authentication Status Elements -->
+        <div id="anonymous-status">Anonymous User</div>
+        <div id="authenticated-status" class="hidden">
+            <span id="user-email">user@example.com</span>
+            <span id="user-credits">3 credits</span>
+        </div>
+        <div id="downloads-remaining">3 free downloads remaining</div>
+        
+        <!-- Authentication Buttons -->
+        <button id="login-btn">Login</button>
+        <button id="register-btn">Register</button>
+        <button id="logout-btn">Logout</button>
+        <button id="dashboard-btn">Dashboard</button>
+        
+        <!-- Login Modal -->
+        <div id="login-modal" class="modal-hidden">
+            <form id="login-form">
+                <input id="login-email" type="email" name="email" placeholder="Email">
+                <input id="login-password" type="password" name="password" placeholder="Password">
+                <button id="login-submit-btn" type="submit">
+                    <span class="btn-text">Login</span>
+                    <span class="btn-spinner hidden">Loading...</span>
+                </button>
+            </form>
+            <div id="login-email-error" class="form-error"></div>
+            <div id="login-password-error" class="form-error"></div>
+            <button id="login-close-btn">Close</button>
+            <a id="show-register-link" href="#">Register</a>
+            <a id="forgot-password-link" href="#">Forgot Password</a>
+        </div>
+        
+        <!-- Register Modal -->
+        <div id="register-modal" class="modal-hidden">
+            <form id="register-form">
+                <input id="register-email" type="email" name="email" placeholder="Email">
+                <input id="register-password" type="password" name="password" placeholder="Password">
+                <input id="register-confirm-password" type="password" name="confirmPassword" placeholder="Confirm Password">
+                <button id="register-submit-btn" type="submit">
+                    <span class="btn-text">Register</span>
+                    <span class="btn-spinner hidden">Loading...</span>
+                </button>
+            </form>
+            <div id="register-email-error" class="form-error"></div>
+            <div id="register-password-error" class="form-error"></div>
+            <div id="register-confirm-password-error" class="form-error"></div>
+            <button id="register-close-btn">Close</button>
+            <a id="show-login-link" href="#">Login</a>
+        </div>
+        
+        <!-- Welcome Modal -->
+        <div id="welcome-modal" class="modal-hidden">
+            <h2>Welcome!</h2>
+            <p>Your account has been created successfully.</p>
+            <button id="welcome-close-btn">Close</button>
+            <button id="start-creating-btn">Start Creating</button>
+            <button id="view-dashboard-btn">View Dashboard</button>
+        </div>
+    </div>
+    
+    <!-- Load dependencies -->
+    <script src="app-config.js"></script>
+    <script src="api-client.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="auth-manager.js"></script>
+    <script src="auth-ui.js"></script>
+    
+    <!-- Load test modules -->
+    <script src="registration-flow-tests.js"></script>
+    <script src="login-flow-tests.js"></script>
+    <script src="authentication-testing-module.js"></script>
+    
+    <script>
+        class AuthenticationTestRunner {
+            constructor() {
+                this.testingModule = null;
+                this.isRunning = false;
+                this.logContainer = document.getElementById('log-container');
+                this.startTime = null;
+                
+                this.initializeUI();
+                this.setupEventListeners();
+                this.initializeDependencies();
+            }
+            
+            async initializeDependencies() {
+                try {
+                    this.log('Initializing dependencies...', 'info');
+                    
+                    // Initialize app config
+                    if (typeof AppConfig !== 'undefined') {
+                        window.appConfig = new AppConfig();
+                    }
+                    
+                    // Initialize API client
+                    if (typeof ApiClient !== 'undefined' && window.appConfig) {
+                        window.apiClient = new ApiClient(window.appConfig.getApiBaseUrl());
+                    }
+                    
+                    // Initialize notification manager
+                    if (typeof NotificationManager !== 'undefined') {
+                        window.notifications = new NotificationManager();
+                    }
+                    
+                    // Initialize auth manager
+                    if (typeof AuthManager !== 'undefined' && window.apiClient && window.appConfig && window.notifications) {
+                        window.authManager = new AuthManager(window.apiClient, window.appConfig, window.notifications);
+                    }
+                    
+                    // Initialize auth UI
+                    if (typeof AuthUI !== 'undefined' && window.authManager && window.notifications) {
+                        window.authUI = new AuthUI(window.authManager, window.notifications);
+                    }
+                    
+                    // Initialize testing module
+                    if (typeof AuthenticationTestingModule !== 'undefined') {
+                        this.testingModule = new AuthenticationTestingModule();
+                        await this.testingModule.initialize();
+                    }
+                    
+                    this.log('Dependencies initialized successfully', 'success');
+                    
+                } catch (error) {
+                    this.log(`Failed to initialize dependencies: ${error.message}`, 'error');
+                }
+            }
+            
+            initializeUI() {
+                this.updateStatus(0, 0, 0);
+            }
+            
+            setupEventListeners() {
+                document.getElementById('run-all-tests').addEventListener('click', () => this.runAllTests());
+                document.getElementById('run-registration-tests').addEventListener('click', () => this.runTestCategory('registration'));
+                document.getElementById('run-login-tests').addEventListener('click', () => this.runTestCategory('login'));
+                document.getElementById('run-integration-tests').addEventListener('click', () => this.runTestCategory('integration'));
+                document.getElementById('clear-results').addEventListener('click', () => this.clearResults());
+            }
+            
+            async runAllTests() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.startTime = Date.now();
+                this.setButtonLoading('run-all-tests', true);
+                this.clearResults();
+                
+                try {
+                    this.log('Starting comprehensive authentication tests...', 'info');
+                    
+                    if (!this.testingModule) {
+                        throw new Error('Testing module not initialized');
+                    }
+                    
+                    const results = await this.testingModule.runAllTests();
+                    this.displayResults(results);
+                    
+                    const duration = ((Date.now() - this.startTime) / 1000).toFixed(2);
+                    this.log(`All tests completed in ${duration}s`, 'success');
+                    
+                } catch (error) {
+                    this.log(`Test execution failed: ${error.message}`, 'error');
+                } finally {
+                    this.isRunning = false;
+                    this.setButtonLoading('run-all-tests', false);
+                }
+            }
+            
+            async runTestCategory(category) {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.startTime = Date.now();
+                
+                try {
+                    this.log(`Starting ${category} tests...`, 'info');
+                    
+                    if (!this.testingModule) {
+                        throw new Error('Testing module not initialized');
+                    }
+                    
+                    const results = await this.testingModule.runTestCategory(category);
+                    this.displayCategoryResults(category, results);
+                    
+                    const duration = ((Date.now() - this.startTime) / 1000).toFixed(2);
+                    this.log(`${category} tests completed in ${duration}s`, 'success');
+                    
+                } catch (error) {
+                    this.log(`${category} test execution failed: ${error.message}`, 'error');
+                } finally {
+                    this.isRunning = false;
+                }
+            }
+            
+            displayResults(results) {
+                if (results.overall) {
+                    this.updateStatus(results.overall.total, results.overall.passed, results.overall.failed);
+                    
+                    // Display category results
+                    if (results.registration) {
+                        this.displayCategoryResults('registration', results.registration);
+                    }
+                    if (results.login) {
+                        this.displayCategoryResults('login', results.login);
+                    }
+                    if (results.integration) {
+                        this.displayCategoryResults('integration', results.integration);
+                    }
+                }
+            }
+            
+            displayCategoryResults(category, results) {
+                const resultsSection = document.getElementById(`${category}-results`);
+                const summaryElement = document.getElementById(`${category}-summary`);
+                const tableBody = document.querySelector(`#${category}-table tbody`);
+                
+                if (resultsSection && summaryElement && tableBody) {
+                    resultsSection.classList.remove('hidden');
+                    
+                    // Update summary
+                    const successRate = results.successRate || 0;
+                    summaryElement.textContent = `${results.passed}/${results.total} (${successRate.toFixed(1)}%)`;
+                    summaryElement.className = `test-status ${successRate === 100 ? 'passed' : 'failed'}`;
+                    
+                    // Clear and populate table
+                    tableBody.innerHTML = '';
+                    
+                    if (results.results) {
+                        results.results.forEach(result => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${result.test}</td>
+                                <td><span class="test-status ${result.status.toLowerCase()}">${result.status}</span></td>
+                                <td>${result.error || '-'}</td>
+                                <td>${new Date(result.timestamp).toLocaleTimeString()}</td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    }
+                }
+                
+                // Update overall status if this is part of comprehensive results
+                if (category !== 'integration') {
+                    this.updateStatus(results.total, results.passed, results.failed);
+                }
+            }
+            
+            updateStatus(total, passed, failed) {
+                document.getElementById('total-tests').textContent = total;
+                document.getElementById('passed-tests').textContent = passed;
+                document.getElementById('failed-tests').textContent = failed;
+                
+                const successRate = total > 0 ? (passed / total) * 100 : 0;
+                document.getElementById('success-rate').textContent = `${successRate.toFixed(1)}%`;
+                document.getElementById('progress-fill').style.width = `${successRate}%`;
+            }
+            
+            clearResults() {
+                this.updateStatus(0, 0, 0);
+                
+                // Hide all result sections
+                ['registration', 'login', 'integration'].forEach(category => {
+                    const section = document.getElementById(`${category}-results`);
+                    if (section) {
+                        section.classList.add('hidden');
+                    }
+                });
+                
+                // Clear log
+                this.logContainer.innerHTML = '<div class="log-entry"><span class="log-timestamp">[00:00:00]</span><span class="log-level-info">Results cleared</span></div>';
+            }
+            
+            setButtonLoading(buttonId, isLoading) {
+                const button = document.getElementById(buttonId);
+                const text = button.querySelector('.btn-text');
+                const spinner = button.querySelector('.btn-spinner');
+                
+                if (isLoading) {
+                    button.disabled = true;
+                    text.classList.add('hidden');
+                    spinner.classList.remove('hidden');
+                } else {
+                    button.disabled = false;
+                    text.classList.remove('hidden');
+                    spinner.classList.add('hidden');
+                }
+            }
+            
+            log(message, level = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                logEntry.innerHTML = `
+                    <span class="log-timestamp">[${timestamp}]</span>
+                    <span class="log-level-${level}">${message}</span>
+                `;
+                
+                this.logContainer.appendChild(logEntry);
+                this.logContainer.scrollTop = this.logContainer.scrollHeight;
+                
+                // Also log to console
+                console.log(`[${timestamp}] ${message}`);
+            }
+        }
+        
+        // Initialize test runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.testRunner = new AuthenticationTestRunner();
+        });
+    </script>
+</body>
+</html>

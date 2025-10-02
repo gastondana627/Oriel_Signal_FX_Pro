@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
 </head>
+
 <body>
     <div id="graph-container"></div>
     <button id="play-pause-button">Play Music</button>
@@ -21,7 +23,7 @@
                 <button type="button" id="register-btn" class="auth-btn">Sign Up</button>
             </div>
         </div>
-        
+
         <!-- Authenticated User Status -->
         <div id="authenticated-status" class="status-section hidden">
             <div class="user-info">
@@ -37,8 +39,10 @@
 
     <div class="control-panel">
         <div class="control-group">
-            <div class="control"><label for="glowColor">Glow Color</label><input type="color" id="glowColor" value="#8309D5"></div>
-            <div class="control"><label for="pulse">Pulse Intensity</label><input type="range" id="pulse" min="0" max="3" step="0.1" value="1.5"></div>
+            <div class="control"><label for="glowColor">Glow Color</label><input type="color" id="glowColor"
+                    value="#8309D5"></div>
+            <div class="control"><label for="pulse">Pulse Intensity</label><input type="range" id="pulse" min="0"
+                    max="3" step="0.1" value="1.5"></div>
         </div>
         <div class="control-group shape-selector"></div>
         <button type="button" id="randomize-button" class="dynamic-color">Randomize</button>
@@ -48,12 +52,13 @@
         </div>
         <!-- Upgrade Button (replaces Buy Me a Coffee) -->
         <button type="button" id="upgrade-button" class="dynamic-color hidden">✨ Upgrade Plan</button>
-        
+
         <!-- Buy Credits Button -->
         <button type="button" id="buy-credits-button" class="dynamic-color hidden">💎 Buy Credits</button>
-        
+
         <!-- Legacy Buy Me a Coffee (for anonymous users) -->
-        <a href="https://www.buymeacoffee.com/gastondana627" target="_blank" rel="noopener" id="bmac-button" class="dynamic-color">✨ Buy Me a Coffee</a>
+        <a href="https://www.buymeacoffee.com/gastondana627" target="_blank" rel="noopener" id="bmac-button"
+            class="dynamic-color">✨ Buy Me a Coffee</a>
     </div>
 
     <img src="assets/qr-code.png" id="bmac-qrcode" class="qrcode-hidden" alt="Buy Me a Coffee QR Code">
@@ -75,7 +80,8 @@
                 </div>
                 <div class="form-group">
                     <label for="login-password">Password</label>
-                    <input type="password" id="login-password" name="password" required placeholder="Enter your password">
+                    <input type="password" id="login-password" name="password" required
+                        placeholder="Enter your password">
                     <div class="form-error" id="login-password-error"></div>
                 </div>
                 <div class="form-actions">
@@ -110,12 +116,14 @@
                 </div>
                 <div class="form-group">
                     <label for="register-password">Password</label>
-                    <input type="password" id="register-password" name="password" required placeholder="Create a password">
+                    <input type="password" id="register-password" name="password" required
+                        placeholder="Create a password">
                     <div class="form-error" id="register-password-error"></div>
                 </div>
                 <div class="form-group">
                     <label for="register-confirm-password">Confirm Password</label>
-                    <input type="password" id="register-confirm-password" name="confirmPassword" required placeholder="Confirm your password">
+                    <input type="password" id="register-confirm-password" name="confirmPassword" required
+                        placeholder="Confirm your password">
                     <div class="form-error" id="register-confirm-password-error"></div>
                 </div>
                 <div class="form-actions">
@@ -313,7 +321,7 @@
                 <h2>Dashboard</h2>
                 <p>Manage your account and preferences</p>
             </div>
-            
+
             <!-- Dashboard Tabs -->
             <div class="dashboard-tabs">
                 <button type="button" class="dashboard-tab-btn active" data-tab="overview">Overview</button>
@@ -321,7 +329,7 @@
                 <button type="button" class="dashboard-tab-btn" data-tab="billing">Billing</button>
                 <button type="button" class="dashboard-tab-btn" data-tab="settings">Settings</button>
             </div>
-            
+
             <!-- Dashboard Content -->
             <div class="dashboard-content">
                 <!-- Overview Tab -->
@@ -347,7 +355,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="dashboard-section">
                         <h3>Quick Stats</h3>
                         <div class="stats-grid">
@@ -382,7 +390,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Usage Tab -->
                 <div id="usage-tab" class="dashboard-tab-content">
                     <div class="dashboard-section">
@@ -392,7 +400,8 @@
                                 <div class="usage-progress-ring">
                                     <svg class="progress-ring" width="120" height="120">
                                         <circle class="progress-ring-circle-bg" cx="60" cy="60" r="50"></circle>
-                                        <circle class="progress-ring-circle" cx="60" cy="60" r="50" id="usage-progress-circle"></circle>
+                                        <circle class="progress-ring-circle" cx="60" cy="60" r="50"
+                                            id="usage-progress-circle"></circle>
                                     </svg>
                                     <div class="progress-ring-text">
                                         <div class="progress-percentage" id="usage-percentage">0%</div>
@@ -416,7 +425,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="dashboard-section">
                         <h3>Download History</h3>
                         <div class="download-history">
@@ -436,7 +445,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Billing Tab -->
                 <div id="billing-tab" class="dashboard-tab-content">
                     <div class="dashboard-section">
@@ -459,7 +468,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="dashboard-section">
                         <h3>Payment History</h3>
                         <div class="payment-history">
@@ -479,7 +488,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Settings Tab -->
                 <div id="settings-tab" class="dashboard-tab-content">
                     <div class="dashboard-section">
@@ -502,7 +511,7 @@
                             </div>
                         </form>
                     </div>
-                    
+
                     <div class="dashboard-section">
                         <h3>Visualizer Preferences</h3>
                         <form id="preferences-form" class="settings-form">
@@ -512,7 +521,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="default-pulse">Default Pulse Intensity</label>
-                                <input type="range" id="default-pulse" name="pulse" min="0" max="3" step="0.1" value="1.5">
+                                <input type="range" id="default-pulse" name="pulse" min="0" max="3" step="0.1"
+                                    value="1.5">
                                 <span class="range-value" id="pulse-value">1.5</span>
                             </div>
                             <div class="form-group">
@@ -536,11 +546,12 @@
                                     <span class="btn-text">Save Preferences</span>
                                     <span class="btn-spinner hidden">⟳</span>
                                 </button>
-                                <button type="button" id="reset-preferences-btn" class="reset-btn">Reset to Defaults</button>
+                                <button type="button" id="reset-preferences-btn" class="reset-btn">Reset to
+                                    Defaults</button>
                             </div>
                         </form>
                     </div>
-                    
+
                     <div class="dashboard-section">
                         <h3>Preferences Management</h3>
                         <div class="preferences-management">
@@ -570,7 +581,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="dashboard-section">
                         <h3>Custom Presets</h3>
                         <div class="custom-presets">
@@ -589,13 +600,14 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="dashboard-section">
                         <h3>Account Actions</h3>
                         <div class="account-actions">
                             <button type="button" id="change-password-btn" class="action-btn">Change Password</button>
                             <button type="button" id="export-data-btn" class="action-btn">Export My Data</button>
-                            <button type="button" id="delete-account-btn" class="action-btn danger">Delete Account</button>
+                            <button type="button" id="delete-account-btn" class="action-btn danger">Delete
+                                Account</button>
                         </div>
                     </div>
                 </div>
@@ -604,11 +616,11 @@
     </div>
 
     <!-- Change Password Modal -->
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+    </form>
+    </div>
+    </div>
+    </div>
+    </div>
     </div>
 
     <!-- Change Password Modal -->
@@ -622,17 +634,20 @@
             <form id="change-password-form" class="auth-form">
                 <div class="form-group">
                     <label for="current-password">Current Password</label>
-                    <input type="password" id="current-password" name="currentPassword" required placeholder="Enter your current password">
+                    <input type="password" id="current-password" name="currentPassword" required
+                        placeholder="Enter your current password">
                     <div class="form-error" id="current-password-error"></div>
                 </div>
                 <div class="form-group">
                     <label for="new-password">New Password</label>
-                    <input type="password" id="new-password" name="newPassword" required placeholder="Enter your new password">
+                    <input type="password" id="new-password" name="newPassword" required
+                        placeholder="Enter your new password">
                     <div class="form-error" id="new-password-error"></div>
                 </div>
                 <div class="form-group">
                     <label for="confirm-new-password">Confirm New Password</label>
-                    <input type="password" id="confirm-new-password" name="confirmNewPassword" required placeholder="Confirm your new password">
+                    <input type="password" id="confirm-new-password" name="confirmNewPassword" required
+                        placeholder="Confirm your new password">
                     <div class="form-error" id="confirm-new-password-error"></div>
                 </div>
                 <div class="form-actions">
@@ -668,16 +683,19 @@
             <form id="delete-account-form" class="auth-form">
                 <div class="form-group">
                     <label for="delete-confirmation">Type "DELETE" to confirm</label>
-                    <input type="text" id="delete-confirmation" name="confirmation" required placeholder="Type DELETE to confirm">
+                    <input type="text" id="delete-confirmation" name="confirmation" required
+                        placeholder="Type DELETE to confirm">
                     <div class="form-error" id="delete-confirmation-error"></div>
                 </div>
                 <div class="form-group">
                     <label for="delete-password">Enter your password</label>
-                    <input type="password" id="delete-password" name="password" required placeholder="Enter your password">
+                    <input type="password" id="delete-password" name="password" required
+                        placeholder="Enter your password">
                     <div class="form-error" id="delete-password-error"></div>
                 </div>
                 <div class="form-actions">
-                    <button type="button" id="delete-account-cancel-btn" class="auth-submit-btn secondary">Cancel</button>
+                    <button type="button" id="delete-account-cancel-btn"
+                        class="auth-submit-btn secondary">Cancel</button>
                     <button type="submit" id="delete-account-submit-btn" class="auth-submit-btn danger">
                         <span class="btn-text">Delete Account</span>
                         <span class="btn-spinner hidden">⟳</span>
@@ -699,7 +717,9 @@
             </div>
             <div id="progress-view" class="hidden">
                 <h3>Creating Your Masterpiece...</h3>
-                <div class="progress-bar"><div id="progress-bar-inner"></div></div>
+                <div class="progress-bar">
+                    <div id="progress-bar-inner"></div>
+                </div>
                 <p id="modal-status">Recording...</p>
             </div>
         </div>
@@ -713,33 +733,40 @@
                 <h2>🎉 Welcome to Oriel FX!</h2>
                 <p>Your account has been created successfully</p>
             </div>
-            
+
             <div class="welcome-content">
                 <div class="welcome-section">
                     <h3>🎵 What is Oriel FX?</h3>
-                    <p>Oriel FX is a powerful audio visualizer that creates stunning visual representations of your music. Transform any audio into mesmerizing animations with customizable shapes, colors, and effects.</p>
+                    <p>Oriel FX is a powerful audio visualizer that creates stunning visual representations of your
+                        music. Transform any audio into mesmerizing animations with customizable shapes, colors, and
+                        effects.</p>
                 </div>
-                
+
                 <div class="welcome-section">
                     <h3>✨ What can you do?</h3>
                     <ul class="welcome-features">
-                        <li><strong>🎨 Create Visualizations:</strong> Upload your music and watch it come to life with dynamic visual effects</li>
-                        <li><strong>🎛️ Customize Everything:</strong> Change colors, shapes, pulse intensity, and more</li>
-                        <li><strong>📱 Download & Share:</strong> Export your creations as GIF, MP4, or other formats</li>
-                        <li><strong>🚀 Upgrade for More:</strong> Get longer recordings, premium formats, and unlimited downloads</li>
+                        <li><strong>🎨 Create Visualizations:</strong> Upload your music and watch it come to life with
+                            dynamic visual effects</li>
+                        <li><strong>🎛️ Customize Everything:</strong> Change colors, shapes, pulse intensity, and more
+                        </li>
+                        <li><strong>📱 Download & Share:</strong> Export your creations as GIF, MP4, or other formats
+                        </li>
+                        <li><strong>🚀 Upgrade for More:</strong> Get longer recordings, premium formats, and unlimited
+                            downloads</li>
                     </ul>
                 </div>
-                
+
                 <div class="welcome-section">
                     <h3>🎯 Your Current Plan</h3>
                     <div class="plan-summary">
                         <div class="plan-info">
                             <span class="plan-name">Free Plan</span>
-                            <span class="plan-benefits">3 downloads per month • 30-second recordings • GIF & MP3 exports</span>
+                            <span class="plan-benefits">3 downloads per month • 30-second recordings • GIF & MP3
+                                exports</span>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="welcome-section">
                     <h3>🚀 Ready to get started?</h3>
                     <div class="welcome-steps">
@@ -758,7 +785,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="welcome-actions">
                 <button type="button" id="start-creating-btn" class="auth-submit-btn">
                     🎨 Start Creating
@@ -774,14 +801,15 @@
 
     <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    
-    <!-- Application Fix Script (load first) -->
+
+    <!-- Application Fix Scripts (load first) -->
     <script src="fix-application.js"></script>
-    
+    <script src="fix-api-url-issues.js"></script>
+
     <!-- Enhanced Logging System -->
     <script src="enhanced-logger.js"></script>
     <script src="log-formatter.js"></script>
-    
+
     <!-- SaaS Integration Utilities -->
     <script src="app-config.js"></script>
     <script src="api-client.js"></script>
@@ -800,19 +828,37 @@
     <script src="offline-manager.js"></script>
     <script src="preferences-manager.js"></script>
     <script src="dashboard-ui.js"></script>
-    
+
     <!-- Analytics and Monitoring -->
     <script src="analytics-manager.js"></script>
     <script src="error-monitor.js"></script>
     <script src="performance-monitor.js"></script>
     <script src="monitoring-integration.js"></script>
     <script src="download-modal.js"></script>
-    
+    <script src="fix-download-modal-integration.js"></script>
+    <script src="diagnose-network-issues.js"></script>
+
     <script src="saas-init.js"></script>
+
+    <!-- UX Enhancement System -->
+    <script src="ux-enhancement-system.js"></script>
+    <script src="performance-optimization.js"></script>
+    <script src="enhanced-user-feedback.js"></script>
+    
+    <!-- Final UX Integration and Polish -->
+    <script src="final-ux-integration.js"></script>
+    <script src="final-performance-polish.js"></script>
+    <script src="final-ux-validation.js"></script>
+
+    <!-- Production Readiness System -->
+    <script src="production-readiness-validator.js"></script>
+    <script src="monitoring-alerting-system.js"></script>
+
     <!-- Main Application Scripts -->
     <script src="script.js"></script>
     <script src="graph.js"></script>
     <!-- Integration Test (development only) -->
     <script src="integration-test.js"></script>
 </body>
+
 </html>

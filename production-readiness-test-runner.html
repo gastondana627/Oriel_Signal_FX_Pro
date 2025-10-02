@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Readiness Test Runner</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: #fafafa;
+        }
+        
+        .section h2 {
+            margin: 0 0 15px 0;
+            color: #444;
+            font-size: 1.4em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .status-display {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .status-value {
+            font-family: 'Courier New', monospace;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        
+        .status-passed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-running {
+            background: #cce7ff;
+            color: #004085;
+        }
+        
+        .log-container {
+            background: #1e1e1e;
+            color: #f0f0f0;
+            border-radius: 6px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        
+        .log-info { color: #87ceeb; }
+        .log-success { color: #90ee90; }
+        .log-warning { color: #ffd700; }
+        .log-error { color: #ff6b6b; }
+        .log-timestamp { color: #888; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .alert-panel {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .alert-critical {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .pulsing {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Production Readiness Validator</h1>
+            <p>Comprehensive validation system for production environment readiness</p>
+        </div>
+        
+        <div class="content">
+            <!-- Control Panel -->
+            <div class="section">
+                <h2>🎛️ Control Panel</h2>
+                <div class="controls">
+                    <button id="runValidation" class="btn btn-primary">
+                        🔍 Run Full Validation
+                    </button>
+                    <button id="startMonitoring" class="btn btn-success">
+                        📊 Start Monitoring
+                    </button>
+                    <button id="stopMonitoring" class="btn btn-secondary" disabled>
+                        🛑 Stop Monitoring
+                    </button>
+                    <button id="generateReport" class="btn btn-warning">
+                        📋 Generate Report
+                    </button>
+                    <button id="clearLogs" class="btn btn-secondary">
+                        🗑️ Clear Logs
+                    </button>
+                </div>
+                
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div id="progressText" class="status-label">Ready to start validation</div>
+            </div>
+            
+            <!-- System Status -->
+            <div class="section">
+                <h2>🏥 System Status</h2>
+                <div class="status-display">
+                    <div class="status-item">
+                        <span class="status-label">Frontend Service</span>
+                        <span id="frontendStatus" class="status-value">Unknown</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Backend Service</span>
+                        <span id="backendStatus" class="status-value">Unknown</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Database Connection</span>
+                        <span id="databaseStatus" class="status-value">Unknown</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Overall Health</span>
+                        <span id="overallStatus" class="status-value">Unknown</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Performance Metrics -->
+            <div class="section">
+                <h2>📊 Performance Metrics</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Response Time</div>
+                        <div id="responseTime" class="metric-value">--</div>
+                        <div class="metric-label">milliseconds</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Error Rate</div>
+                        <div id="errorRate" class="metric-value">--</div>
+                        <div class="metric-label">percentage</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Memory Usage</div>
+                        <div id="memoryUsage" class="metric-value">--</div>
+                        <div class="metric-label">percentage</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">CPU Usage</div>
+                        <div id="cpuUsage" class="metric-value">--</div>
+                        <div class="metric-label">percentage</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alerts Panel -->
+            <div class="section">
+                <h2>🚨 Alerts & Issues</h2>
+                <div id="alertsContainer">
+                    <div class="alert-panel alert-success">
+                        <strong>✅ System Ready</strong><br>
+                        No critical issues detected. Ready for validation.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Validation Results -->
+            <div class="section">
+                <h2>📋 Validation Results</h2>
+                <div id="validationResults" class="status-display">
+                    <div class="status-item">
+                        <span class="status-label">Click "Run Full Validation" to start</span>
+                        <span class="status-value">Waiting</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Log Output -->
+            <div class="section">
+                <h2>📝 System Logs</h2>
+                <div id="logContainer" class="log-container">
+                    <div class="log-entry log-info">
+                        <span class="log-timestamp">[Ready]</span> Production Readiness Validator initialized
+                    </div>
+                    <div class="log-entry log-info">
+                        <span class="log-timestamp">[Ready]</span> Click "Run Full Validation" to begin comprehensive testing
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the validator and monitoring scripts -->
+    <script src="production-readiness-validator.js"></script>
+    <script src="monitoring-alerting-system.js"></script>
+    
+    <script>
+        class ProductionReadinessTestRunner {
+            constructor() {
+                this.validator = new ProductionReadinessValidator();
+                this.monitor = new MonitoringAlertingSystem({
+                    healthCheckInterval: 30000,
+                    performanceCheckInterval: 60000,
+                    resourceCheckInterval: 120000,
+                    consoleAlerts: false // We'll handle alerts in UI
+                });
+                
+                this.isValidating = false;
+                this.isMonitoring = false;
+                this.validationProgress = 0;
+                this.totalValidationSteps = 10;
+                
+                this.initializeEventListeners();
+                this.startStatusUpdates();
+            }
+            
+            initializeEventListeners() {
+                document.getElementById('runValidation').addEventListener('click', () => this.runValidation());
+                document.getElementById('startMonitoring').addEventListener('click', () => this.startMonitoring());
+                document.getElementById('stopMonitoring').addEventListener('click', () => this.stopMonitoring());
+                document.getElementById('generateReport').addEventListener('click', () => this.generateReport());
+                document.getElementById('clearLogs').addEventListener('click', () => this.clearLogs());
+            }
+            
+            async runValidation() {
+                if (this.isValidating) {
+                    this.log('Validation already in progress', 'warning');
+                    return;
+                }
+                
+                this.isValidating = true;
+                this.validationProgress = 0;
+                this.updateProgress(0, 'Starting validation...');
+                
+                const runButton = document.getElementById('runValidation');
+                runButton.disabled = true;
+                runButton.textContent = '🔄 Validating...';
+                runButton.classList.add('pulsing');
+                
+                try {
+                    this.log('Starting comprehensive production readiness validation', 'info');
+                    this.clearValidationResults();
+                    
+                    // Run validation with progress updates
+                    const results = await this.runValidationWithProgress();
+                    
+                    this.updateProgress(100, 'Validation complete');
+                    this.displayValidationResults(results);
+                    
+                    if (results.success) {
+                        this.showAlert('✅ Production Ready!', 'All critical validations passed. System is ready for production deployment.', 'success');
+                        this.log('✅ Production readiness validation PASSED', 'success');
+                    } else {
+                        this.showAlert('🚨 Production Issues Detected', `${results.criticalIssues.length} critical issues must be resolved before deployment.`, 'critical');
+                        this.log(`❌ Production readiness validation FAILED - ${results.criticalIssues.length} critical issues`, 'error');
+                    }
+                    
+                } catch (error) {
+                    this.log(`❌ Validation failed: ${error.message}`, 'error');
+                    this.showAlert('❌ Validation Error', `Validation process failed: ${error.message}`, 'critical');
+                } finally {
+                    this.isValidating = false;
+                    runButton.disabled = false;
+                    runButton.textContent = '🔍 Run Full Validation';
+                    runButton.classList.remove('pulsing');
+                }
+            }
+            
+            async runValidationWithProgress() {
+                const steps = [
+                    { name: 'Server Health Check', method: () => this.validator.validateServerHealth() },
+                    { name: 'Database Connectivity', method: () => this.validator.validateDatabaseConnectivity() },
+                    { name: 'API Endpoints', method: () => this.validator.validateAPIEndpoints() },
+                    { name: 'Frontend Application', method: () => this.validator.validateFrontendApplication() },
+                    { name: 'Performance Metrics', method: () => this.validator.validatePerformanceMetrics() },
+                    { name: 'Security Configuration', method: () => this.validator.validateSecurityConfiguration() },
+                    { name: 'Environment Configuration', method: () => this.validator.validateEnvironmentConfiguration() },
+                    { name: 'Monitoring & Logging', method: () => this.validator.validateMonitoringAndLogging() },
+                    { name: 'Error Handling', method: () => this.validator.validateErrorHandling() },
+                    { name: 'File System Operations', method: () => this.validator.validateFileSystemOperations() }
+                ];
+                
+                // Reset validator state
+                this.validator.validationResults = [];
+                this.validator.criticalIssues = [];
+                this.validator.warnings = [];
+                
+                for (let i = 0; i < steps.length; i++) {
+                    const step = steps[i];
+                    this.updateProgress((i / steps.length) * 100, `Running: ${step.name}`);
+                    this.log(`🔍 Running: ${step.name}`, 'info');
+                    
+                    try {
+                        await step.method();
+                        this.log(`✅ Completed: ${step.name}`, 'success');
+                    } catch (error) {
+                        this.log(`❌ Failed: ${step.name} - ${error.message}`, 'error');
+                        this.validator.addCriticalIssue('Validation', step.name, error.message);
+                    }
+                    
+                    // Small delay for UI updates
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                return {
+                    success: this.validator.criticalIssues.length === 0,
+                    criticalIssues: this.validator.criticalIssues,
+                    warnings: this.validator.warnings,
+                    results: this.validator.validationResults
+                };
+            }
+            
+            startMonitoring() {
+                if (this.isMonitoring) {
+                    this.log('Monitoring already active', 'warning');
+                    return;
+                }
+                
+                this.log('Starting production monitoring system', 'info');
+                this.monitor.startMonitoring();
+                this.isMonitoring = true;
+                
+                document.getElementById('startMonitoring').disabled = true;
+                document.getElementById('stopMonitoring').disabled = false;
+                
+                // Start monitoring UI updates
+                this.monitoringInterval = setInterval(() => {
+                    this.updateMonitoringMetrics();
+                }, 5000);
+                
+                this.showAlert('📊 Monitoring Started', 'Production monitoring system is now active and collecting metrics.', 'success');
+            }
+            
+            stopMonitoring() {
+                if (!this.isMonitoring) {
+                    this.log('Monitoring not active', 'warning');
+                    return;
+                }
+                
+                this.log('Stopping production monitoring system', 'info');
+                this.monitor.stopMonitoring();
+                this.isMonitoring = false;
+                
+                document.getElementById('startMonitoring').disabled = false;
+                document.getElementById('stopMonitoring').disabled = true;
+                
+                if (this.monitoringInterval) {
+                    clearInterval(this.monitoringInterval);
+                }
+                
+                this.showAlert('🛑 Monitoring Stopped', 'Production monitoring system has been stopped.', 'warning');
+            }
+            
+            generateReport() {
+                this.log('Generating comprehensive system report', 'info');
+                
+                const status = this.monitor.getSystemStatus();
+                const report = {
+                    timestamp: new Date().toISOString(),
+                    validation: {
+                        results: this.validator.validationResults,
+                        criticalIssues: this.validator.criticalIssues,
+                        warnings: this.validator.warnings
+                    },
+                    monitoring: status
+                };
+                
+                // Display report in logs
+                this.log('📋 System Report Generated:', 'info');
+                this.log(`   Validation Results: ${report.validation.results.length} tests`, 'info');
+                this.log(`   Critical Issues: ${report.validation.criticalIssues.length}`, 'info');
+                this.log(`   Warnings: ${report.validation.warnings.length}`, 'info');
+                this.log(`   System Uptime: ${Math.floor(status.uptime / 1000 / 60)} minutes`, 'info');
+                
+                // Create downloadable report
+                const reportBlob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+                const reportUrl = URL.createObjectURL(reportBlob);
+                const reportLink = document.createElement('a');
+                reportLink.href = reportUrl;
+                reportLink.download = `production-readiness-report-${new Date().toISOString().split('T')[0]}.json`;
+                reportLink.click();
+                
+                this.showAlert('📋 Report Generated', 'System report has been generated and downloaded.', 'success');
+            }
+            
+            clearLogs() {
+                const logContainer = document.getElementById('logContainer');
+                logContainer.innerHTML = '<div class="log-entry log-info"><span class="log-timestamp">[Cleared]</span> Log history cleared</div>';
+            }
+            
+            updateProgress(percentage, message) {
+                const progressFill = document.getElementById('progressFill');
+                const progressText = document.getElementById('progressText');
+                
+                progressFill.style.width = `${percentage}%`;
+                progressText.textContent = message;
+            }
+            
+            displayValidationResults(results) {
+                const container = document.getElementById('validationResults');
+                container.innerHTML = '';
+                
+                // Summary
+                const summary = document.createElement('div');
+                summary.className = 'status-item';
+                summary.innerHTML = `
+                    <span class="status-label">Validation Summary</span>
+                    <span class="status-value ${results.success ? 'status-passed' : 'status-failed'}">
+                        ${results.results.length} tests, ${results.criticalIssues.length} critical, ${results.warnings.length} warnings
+                    </span>
+                `;
+                container.appendChild(summary);
+                
+                // Individual results
+                results.results.forEach(result => {
+                    const item = document.createElement('div');
+                    item.className = 'status-item';
+                    item.innerHTML = `
+                        <span class="status-label">${result.category}: ${result.test}</span>
+                        <span class="status-value ${result.status === 'passed' ? 'status-passed' : 'status-failed'}">
+                            ${result.status} ${result.details ? `(${result.details})` : ''}
+                        </span>
+                    `;
+                    container.appendChild(item);
+                });
+            }
+            
+            clearValidationResults() {
+                const container = document.getElementById('validationResults');
+                container.innerHTML = '<div class="status-item"><span class="status-label">Running validation...</span><span class="status-value status-running">In Progress</span></div>';
+            }
+            
+            updateMonitoringMetrics() {
+                if (!this.isMonitoring) return;
+                
+                const status = this.monitor.getSystemStatus();
+                
+                // Update metrics display
+                document.getElementById('responseTime').textContent = Math.round(status.metrics.responseTime) || '--';
+                document.getElementById('errorRate').textContent = (status.metrics.errorRate * 100).toFixed(1) + '%' || '--';
+                document.getElementById('memoryUsage').textContent = (status.metrics.memoryUsage * 100).toFixed(1) + '%' || '--';
+                document.getElementById('cpuUsage').textContent = (status.metrics.cpuUsage * 100).toFixed(1) + '%' || '--';
+                
+                // Check for new alerts
+                const recentAlerts = this.monitor.alerts.slice(-5);
+                if (recentAlerts.length > 0) {
+                    const latestAlert = recentAlerts[recentAlerts.length - 1];
+                    if (!latestAlert.displayed) {
+                        this.showAlert(
+                            `🚨 ${latestAlert.category} Alert`,
+                            latestAlert.message,
+                            latestAlert.severity
+                        );
+                        latestAlert.displayed = true;
+                    }
+                }
+            }
+            
+            startStatusUpdates() {
+                // Update system status every 10 seconds
+                setInterval(async () => {
+                    await this.updateSystemStatus();
+                }, 10000);
+                
+                // Initial status update
+                this.updateSystemStatus();
+            }
+            
+            async updateSystemStatus() {
+                try {
+                    // Check frontend
+                    const frontendResponse = await fetch('http://localhost:3000', { 
+                        method: 'HEAD',
+                        mode: 'no-cors'
+                    }).catch(() => null);
+                    
+                    // Check backend
+                    const backendResponse = await fetch('http://localhost:8000/health').catch(() => null);
+                    
+                    // Update status display
+                    this.updateStatusElement('frontendStatus', frontendResponse !== null);
+                    this.updateStatusElement('backendStatus', backendResponse && backendResponse.ok);
+                    this.updateStatusElement('databaseStatus', backendResponse && backendResponse.ok); // Simplified
+                    
+                    const overallHealthy = frontendResponse !== null && backendResponse && backendResponse.ok;
+                    this.updateStatusElement('overallStatus', overallHealthy);
+                    
+                } catch (error) {
+                    this.log(`Status update failed: ${error.message}`, 'warning');
+                }
+            }
+            
+            updateStatusElement(elementId, isHealthy) {
+                const element = document.getElementById(elementId);
+                if (isHealthy) {
+                    element.textContent = 'Healthy';
+                    element.className = 'status-value status-passed';
+                } else {
+                    element.textContent = 'Unhealthy';
+                    element.className = 'status-value status-failed';
+                }
+            }
+            
+            showAlert(title, message, type = 'info') {
+                const container = document.getElementById('alertsContainer');
+                
+                const alertClass = type === 'critical' ? 'alert-critical' : 
+                                 type === 'success' ? 'alert-success' : 'alert-panel';
+                
+                const alert = document.createElement('div');
+                alert.className = `alert-panel ${alertClass}`;
+                alert.innerHTML = `<strong>${title}</strong><br>${message}`;
+                
+                // Remove old alerts if more than 3
+                while (container.children.length >= 3) {
+                    container.removeChild(container.firstChild);
+                }
+                
+                container.appendChild(alert);
+                
+                // Auto-remove after 10 seconds for non-critical alerts
+                if (type !== 'critical') {
+                    setTimeout(() => {
+                        if (alert.parentNode) {
+                            alert.parentNode.removeChild(alert);
+                        }
+                    }, 10000);
+                }
+            }
+            
+            log(message, type = 'info') {
+                const container = document.getElementById('logContainer');
+                const timestamp = new Date().toLocaleTimeString();
+                
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry log-${type}`;
+                logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+                
+                container.appendChild(logEntry);
+                container.scrollTop = container.scrollHeight;
+                
+                // Keep only last 100 log entries
+                while (container.children.length > 100) {
+                    container.removeChild(container.firstChild);
+                }
+            }
+        }
+        
+        // Initialize the test runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.testRunner = new ProductionReadinessTestRunner();
+        });
+    </script>
+</body>
+</html>

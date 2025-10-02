@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Utilities Unit Test Runner</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(131, 9, 213, 0.3);
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #8309D5;
+            font-size: 2.5rem;
+            text-shadow: 0 0 20px rgba(131, 9, 213, 0.5);
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            color: #ccc;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #8309D5, #FF6B35);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(131, 9, 213, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .test-progress {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #8309D5, #FF6B35);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .results-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-panel h3 {
+            margin: 0 0 20px 0;
+            color: #8309D5;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .summary-item .value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .summary-item .label {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .summary-item.passed .value {
+            color: #4CAF50;
+        }
+
+        .summary-item.failed .value {
+            color: #f44336;
+        }
+
+        .summary-item.rate .value {
+            color: #8309D5;
+        }
+
+        .summary-item.time .value {
+            color: #FF6B35;
+        }
+
+        .test-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border-left: 4px solid transparent;
+        }
+
+        .test-item.passed {
+            border-left-color: #4CAF50;
+        }
+
+        .test-item.failed {
+            border-left-color: #f44336;
+        }
+
+        .test-item.running {
+            border-left-color: #FF6B35;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .test-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .test-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .test-status.passed {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+
+        .test-status.failed {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .test-status.running {
+            background: rgba(255, 107, 53, 0.2);
+            color: #FF6B35;
+        }
+
+        .console-output {
+            background: #000;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .error-details {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #ffcdd2;
+        }
+
+        @media (max-width: 768px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Download Utilities Unit Tests</h1>
+            <p>Testing file format conversion functions and download progress tracking</p>
+            <p><strong>Requirements:</strong> 3.1 (File Format Conversion), 3.2 (Progress Tracking)</p>
+        </div>
+
+        <div class="controls">
+            <button id="run-all-btn" class="btn btn-primary">
+                <span>🚀</span>
+                Run All Tests
+            </button>
+            <button id="run-format-tests-btn" class="btn btn-secondary">
+                <span>📁</span>
+                Format Tests Only
+            </button>
+            <button id="run-progress-tests-btn" class="btn btn-secondary">
+                <span>📊</span>
+                Progress Tests Only
+            </button>
+            <button id="clear-results-btn" class="btn btn-secondary">
+                <span>🗑️</span>
+                Clear Results
+            </button>
+        </div>
+
+        <div class="test-progress" id="test-progress" style="display: none;">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-text" id="progress-text">Initializing tests...</div>
+        </div>
+
+        <div class="results-container">
+            <div class="results-panel">
+                <h3>📊 Test Summary</h3>
+                <div class="summary-grid">
+                    <div class="summary-item passed">
+                        <div class="value" id="passed-count">0</div>
+                        <div class="label">Passed</div>
+                    </div>
+                    <div class="summary-item failed">
+                        <div class="value" id="failed-count">0</div>
+                        <div class="label">Failed</div>
+                    </div>
+                    <div class="summary-item rate">
+                        <div class="value" id="pass-rate">0%</div>
+                        <div class="label">Pass Rate</div>
+                    </div>
+                    <div class="summary-item time">
+                        <div class="value" id="execution-time">0ms</div>
+                        <div class="label">Time</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-panel">
+                <h3>📋 Test Results</h3>
+                <div class="test-list" id="test-list">
+                    <div style="text-align: center; color: #666; padding: 20px;">
+                        No tests run yet. Click "Run All Tests" to begin.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="console-output" id="console-output"></div>
+    </div>
+
+    <!-- Load the test module -->
+    <script src="download-utilities-unit-tests.js"></script>
+
+    <script>
+        class TestRunner {
+            constructor() {
+                this.isRunning = false;
+                this.currentTests = [];
+                this.consoleOutput = document.getElementById('console-output');
+                this.setupEventListeners();
+                this.setupConsoleCapture();
+            }
+
+            setupEventListeners() {
+                document.getElementById('run-all-btn').addEventListener('click', () => {
+                    this.runAllTests();
+                });
+
+                document.getElementById('run-format-tests-btn').addEventListener('click', () => {
+                    this.runFormatTests();
+                });
+
+                document.getElementById('run-progress-tests-btn').addEventListener('click', () => {
+                    this.runProgressTests();
+                });
+
+                document.getElementById('clear-results-btn').addEventListener('click', () => {
+                    this.clearResults();
+                });
+            }
+
+            setupConsoleCapture() {
+                const originalLog = console.log;
+                const originalError = console.error;
+
+                console.log = (...args) => {
+                    originalLog.apply(console, args);
+                    this.addToConsole('LOG', args.join(' '));
+                };
+
+                console.error = (...args) => {
+                    originalError.apply(console, args);
+                    this.addToConsole('ERROR', args.join(' '));
+                };
+            }
+
+            addToConsole(type, message) {
+                const timestamp = new Date().toLocaleTimeString();
+                const prefix = type === 'ERROR' ? '❌' : '📝';
+                const line = `[${timestamp}] ${prefix} ${message}\n`;
+                this.consoleOutput.textContent += line;
+                this.consoleOutput.scrollTop = this.consoleOutput.scrollHeight;
+            }
+
+            async runAllTests() {
+                if (this.isRunning) return;
+
+                try {
+                    this.isRunning = true;
+                    this.updateButtons();
+                    this.clearResults();
+                    this.showProgress();
+
+                    this.addToConsole('LOG', '🚀 Starting all download utilities unit tests...');
+
+                    // Initialize the tester
+                    await window.downloadUtilitiesUnitTester.init();
+
+                    // Run all tests
+                    const report = await window.downloadUtilitiesUnitTester.runAllTests();
+
+                    // Update UI with results
+                    this.updateResults(report);
+                    this.addToConsole('LOG', '✅ All tests completed');
+
+                } catch (error) {
+                    this.addToConsole('ERROR', `Test execution failed: ${error.message}`);
+                    console.error('Test execution error:', error);
+                } finally {
+                    this.isRunning = false;
+                    this.updateButtons();
+                    this.hideProgress();
+                }
+            }
+
+            async runFormatTests() {
+                if (this.isRunning) return;
+
+                try {
+                    this.isRunning = true;
+                    this.updateButtons();
+                    this.clearResults();
+                    this.showProgress();
+
+                    this.addToConsole('LOG', '📁 Starting file format conversion tests...');
+
+                    // Initialize the tester
+                    await window.downloadUtilitiesUnitTester.init();
+
+                    // Run only format-related tests
+                    const formatTests = [
+                        'testMP4FormatConversion',
+                        'testMOVFormatConversion', 
+                        'testMP3FormatConversion',
+                        'testGIFFormatConversion',
+                        'testFileSizeCalculation',
+                        'testQualitySettings',
+                        'testFormatMultipliers',
+                        'testFileGenerationSimulation'
+                    ];
+
+                    const results = [];
+                    for (const testMethod of formatTests) {
+                        try {
+                            await window.downloadUtilitiesUnitTester[testMethod]();
+                            results.push({ name: testMethod, status: 'PASSED', message: 'Test completed successfully' });
+                        } catch (error) {
+                            results.push({ name: testMethod, status: 'FAILED', message: error.message });
+                        }
+                    }
+
+                    const report = {
+                        summary: {
+                            total: results.length,
+                            passed: results.filter(r => r.status === 'PASSED').length,
+                            failed: results.filter(r => r.status === 'FAILED').length,
+                            passRate: Math.round((results.filter(r => r.status === 'PASSED').length / results.length) * 100),
+                            executionTime: 0
+                        },
+                        results: results
+                    };
+
+                    this.updateResults(report);
+                    this.addToConsole('LOG', '✅ Format tests completed');
+
+                } catch (error) {
+                    this.addToConsole('ERROR', `Format test execution failed: ${error.message}`);
+                } finally {
+                    this.isRunning = false;
+                    this.updateButtons();
+                    this.hideProgress();
+                }
+            }
+
+            async runProgressTests() {
+                if (this.isRunning) return;
+
+                try {
+                    this.isRunning = true;
+                    this.updateButtons();
+                    this.clearResults();
+                    this.showProgress();
+
+                    this.addToConsole('LOG', '📊 Starting progress tracking tests...');
+
+                    // Initialize the tester
+                    await window.downloadUtilitiesUnitTester.init();
+
+                    // Run only progress-related tests
+                    const progressTests = [
+                        'testProgressTrackerInit',
+                        'testProgressUpdate',
+                        'testProgressCallbacks',
+                        'testAddProgressCallback',
+                        'testRemoveProgressCallback',
+                        'testProgressValueValidation',
+                        'testProgressMonotonicIncrease',
+                        'testProgressCompletion',
+                        'testMultipleProgressTrackers',
+                        'testProgressErrorHandling'
+                    ];
+
+                    const results = [];
+                    for (const testMethod of progressTests) {
+                        try {
+                            await window.downloadUtilitiesUnitTester[testMethod]();
+                            results.push({ name: testMethod, status: 'PASSED', message: 'Test completed successfully' });
+                        } catch (error) {
+                            results.push({ name: testMethod, status: 'FAILED', message: error.message });
+                        }
+                    }
+
+                    const report = {
+                        summary: {
+                            total: results.length,
+                            passed: results.filter(r => r.status === 'PASSED').length,
+                            failed: results.filter(r => r.status === 'FAILED').length,
+                            passRate: Math.round((results.filter(r => r.status === 'PASSED').length / results.length) * 100),
+                            executionTime: 0
+                        },
+                        results: results
+                    };
+
+                    this.updateResults(report);
+                    this.addToConsole('LOG', '✅ Progress tests completed');
+
+                } catch (error) {
+                    this.addToConsole('ERROR', `Progress test execution failed: ${error.message}`);
+                } finally {
+                    this.isRunning = false;
+                    this.updateButtons();
+                    this.hideProgress();
+                }
+            }
+
+            updateButtons() {
+                const buttons = document.querySelectorAll('.btn');
+                buttons.forEach(btn => {
+                    btn.disabled = this.isRunning;
+                });
+            }
+
+            showProgress() {
+                document.getElementById('test-progress').style.display = 'block';
+                document.getElementById('progress-text').textContent = 'Running tests...';
+                
+                // Simulate progress animation
+                let progress = 0;
+                const progressFill = document.getElementById('progress-fill');
+                
+                const interval = setInterval(() => {
+                    progress += Math.random() * 10;
+                    if (progress > 90) progress = 90;
+                    
+                    progressFill.style.width = `${progress}%`;
+                    
+                    if (!this.isRunning) {
+                        clearInterval(interval);
+                        progressFill.style.width = '100%';
+                    }
+                }, 200);
+            }
+
+            hideProgress() {
+                setTimeout(() => {
+                    document.getElementById('test-progress').style.display = 'none';
+                    document.getElementById('progress-fill').style.width = '0%';
+                }, 1000);
+            }
+
+            updateResults(report) {
+                // Update summary
+                document.getElementById('passed-count').textContent = report.summary.passed;
+                document.getElementById('failed-count').textContent = report.summary.failed;
+                document.getElementById('pass-rate').textContent = `${report.summary.passRate}%`;
+                document.getElementById('execution-time').textContent = `${report.summary.executionTime}ms`;
+
+                // Update test list
+                const testList = document.getElementById('test-list');
+                testList.innerHTML = '';
+
+                report.results.forEach(result => {
+                    const testItem = document.createElement('div');
+                    testItem.className = `test-item ${result.status.toLowerCase()}`;
+                    
+                    testItem.innerHTML = `
+                        <div class="test-name">${this.formatTestName(result.name)}</div>
+                        <div class="test-status ${result.status.toLowerCase()}">${result.status}</div>
+                    `;
+
+                    if (result.status === 'FAILED') {
+                        const errorDetails = document.createElement('div');
+                        errorDetails.className = 'error-details';
+                        errorDetails.textContent = result.message;
+                        testItem.appendChild(errorDetails);
+                    }
+
+                    testList.appendChild(testItem);
+                });
+            }
+
+            formatTestName(testName) {
+                // Convert camelCase to readable format
+                return testName
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase())
+                    .trim();
+            }
+
+            clearResults() {
+                document.getElementById('passed-count').textContent = '0';
+                document.getElementById('failed-count').textContent = '0';
+                document.getElementById('pass-rate').textContent = '0%';
+                document.getElementById('execution-time').textContent = '0ms';
+
+                const testList = document.getElementById('test-list');
+                testList.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 20px;">
+                        No tests run yet. Click a test button to begin.
+                    </div>
+                `;
+
+                this.consoleOutput.textContent = '';
+            }
+        }
+
+        // Initialize test runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new TestRunner();
+            console.log('✅ Download Utilities Unit Test Runner initialized');
+        });
+    </script>
+</body>
+</html>

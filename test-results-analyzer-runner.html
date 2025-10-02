@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Results Analyzer - Oriel Signal FX Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .analysis-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .fixes-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #4a5568;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #cbd5e0;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #38a169;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .analysis-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+
+        .summary-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .summary-card.critical .summary-number {
+            color: #e53e3e;
+        }
+
+        .summary-card.warning .summary-number {
+            color: #d69e2e;
+        }
+
+        .summary-card.success .summary-number {
+            color: #38a169;
+        }
+
+        .patterns-section {
+            margin-bottom: 25px;
+        }
+
+        .pattern-item {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #e2e8f0;
+        }
+
+        .pattern-item.critical {
+            border-left-color: #e53e3e;
+            background: #fff5f5;
+        }
+
+        .pattern-item.warning {
+            border-left-color: #d69e2e;
+            background: #fffaf0;
+        }
+
+        .pattern-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .pattern-name {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .pattern-count {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .pattern-description {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .pattern-suites {
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
+
+        .recommendations-section {
+            margin-bottom: 25px;
+        }
+
+        .recommendation-item {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .recommendation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-type {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .recommendation-priority {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .recommendation-priority.high {
+            background: #e53e3e;
+        }
+
+        .recommendation-text {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .fixes-list {
+            margin-bottom: 25px;
+        }
+
+        .fix-item {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #48bb78;
+        }
+
+        .fix-item.failed {
+            border-left-color: #e53e3e;
+            background: #fff5f5;
+        }
+
+        .fix-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .fix-pattern {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .fix-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .fix-status.success {
+            background: #c6f6d5;
+            color: #2d7d32;
+        }
+
+        .fix-status.failed {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .fix-changes {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .fix-changes ul {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+
+        .comparison-section {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .before-after {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .before-after h4 {
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: #718096;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .improvement-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .improvement-indicator.positive {
+            background: #c6f6d5;
+            color: #2d7d32;
+        }
+
+        .improvement-indicator.negative {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .improvement-indicator.neutral {
+            background: #e2e8f0;
+            color: #718096;
+        }
+
+        .logs-section {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logs-container {
+            background: #1a202c;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-entry.error {
+            color: #fc8181;
+        }
+
+        .log-entry.warning {
+            color: #f6e05e;
+        }
+
+        .log-entry.success {
+            color: #68d391;
+        }
+
+        .log-entry.info {
+            color: #63b3ed;
+        }
+
+        .progress-section {
+            margin-bottom: 25px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: #718096;
+            text-align: center;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .analysis-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Test Results Analyzer</h1>
+            <p>Analyze test failures, identify patterns, implement fixes, and validate improvements</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="analysis-panel">
+                <h2 class="section-title">Analysis & Patterns</h2>
+                
+                <div class="control-buttons">
+                    <button id="load-results-btn" class="btn btn-primary">
+                        📊 Load Test Results
+                    </button>
+                    <button id="analyze-btn" class="btn btn-secondary" disabled>
+                        🔍 Analyze Results
+                    </button>
+                </div>
+
+                <div id="analysis-summary" class="analysis-summary" style="display: none;">
+                    <div class="summary-card">
+                        <div id="overall-rate" class="summary-number">0%</div>
+                        <div class="summary-label">Success Rate</div>
+                    </div>
+                    <div class="summary-card">
+                        <div id="patterns-count" class="summary-number">0</div>
+                        <div class="summary-label">Patterns Found</div>
+                    </div>
+                    <div class="summary-card">
+                        <div id="criticality-level" class="summary-number">-</div>
+                        <div class="summary-label">Criticality</div>
+                    </div>
+                </div>
+
+                <div id="patterns-section" class="patterns-section" style="display: none;">
+                    <h3>Failure Patterns</h3>
+                    <div id="patterns-list">
+                        <!-- Patterns will be populated here -->
+                    </div>
+                </div>
+
+                <div id="recommendations-section" class="recommendations-section" style="display: none;">
+                    <h3>Recommendations</h3>
+                    <div id="recommendations-list">
+                        <!-- Recommendations will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="fixes-panel">
+                <h2 class="section-title">Fixes & Validation</h2>
+                
+                <div class="control-buttons">
+                    <button id="implement-fixes-btn" class="btn btn-success" disabled>
+                        🔧 Implement Fixes
+                    </button>
+                    <button id="rerun-tests-btn" class="btn btn-secondary" disabled>
+                        🔄 Re-run Tests
+                    </button>
+                </div>
+
+                <div id="progress-section" class="progress-section" style="display: none;">
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div id="progress-text" class="progress-text">Ready</div>
+                </div>
+
+                <div id="fixes-section" class="fixes-list" style="display: none;">
+                    <h3>Implemented Fixes</h3>
+                    <div id="fixes-list">
+                        <!-- Fixes will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="comparison-section" class="comparison-section" style="display: none;">
+            <h2 class="section-title">Before vs After Comparison</h2>
+            
+            <div class="comparison-grid">
+                <div class="before-after">
+                    <h4>📊 Before Fixes</h4>
+                    <div id="before-metrics">
+                        <!-- Before metrics will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="before-after">
+                    <h4>📈 After Fixes</h4>
+                    <div id="after-metrics">
+                        <!-- After metrics will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <div id="overall-improvement" class="improvement-indicator neutral">
+                    <span>📊</span>
+                    <span>No improvement data</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="logs-section">
+            <h2 class="section-title">Analysis Logs</h2>
+            <div id="logs-container" class="logs-container">
+                <div class="log-entry info">[00:00:00] Test Results Analyzer initialized and ready</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load dependencies -->
+    <script src="comprehensive-test-execution-suite.js"></script>
+    <script src="test-results-analyzer.js"></script>
+
+    <script>
+        class TestResultsAnalyzerRunner {
+            constructor() {
+                this.analyzer = null;
+                this.currentResults = null;
+                this.analysisReport = null;
+                this.implementedFixes = [];
+                this.retestResults = null;
+                
+                this.initializeUI();
+                this.setupEventListeners();
+                this.initializeAnalyzer();
+            }
+
+            async initializeAnalyzer() {
+                try {
+                    this.log('Initializing Test Results Analyzer...', 'info');
+                    
+                    this.analyzer = new TestResultsAnalyzer();
+                    
+                    this.log('✅ Test Results Analyzer ready', 'success');
+                    
+                } catch (error) {
+                    this.log(`❌ Failed to initialize analyzer: ${error.message}`, 'error');
+                }
+            }
+
+            initializeUI() {
+                this.elements = {
+                    loadResultsBtn: document.getElementById('load-results-btn'),
+                    analyzeBtn: document.getElementById('analyze-btn'),
+                    implementFixesBtn: document.getElementById('implement-fixes-btn'),
+                    rerunTestsBtn: document.getElementById('rerun-tests-btn'),
+                    analysisSummary: document.getElementById('analysis-summary'),
+                    overallRate: document.getElementById('overall-rate'),
+                    patternsCount: document.getElementById('patterns-count'),
+                    criticalityLevel: document.getElementById('criticality-level'),
+                    patternsSection: document.getElementById('patterns-section'),
+                    patternsList: document.getElementById('patterns-list'),
+                    recommendationsSection: document.getElementById('recommendations-section'),
+                    recommendationsList: document.getElementById('recommendations-list'),
+                    progressSection: document.getElementById('progress-section'),
+                    progressFill: document.getElementById('progress-fill'),
+                    progressText: document.getElementById('progress-text'),
+                    fixesSection: document.getElementById('fixes-section'),
+                    fixesList: document.getElementById('fixes-list'),
+                    comparisonSection: document.getElementById('comparison-section'),
+                    beforeMetrics: document.getElementById('before-metrics'),
+                    afterMetrics: document.getElementById('after-metrics'),
+                    overallImprovement: document.getElementById('overall-improvement'),
+                    logsContainer: document.getElementById('logs-container')
+                };
+            }
+
+            setupEventListeners() {
+                this.elements.loadResultsBtn.addEventListener('click', () => this.loadTestResults());
+                this.elements.analyzeBtn.addEventListener('click', () => this.analyzeResults());
+                this.elements.implementFixesBtn.addEventListener('click', () => this.implementFixes());
+                this.elements.rerunTestsBtn.addEventListener('click', () => this.rerunTests());
+            }
+
+            async loadTestResults() {
+                try {
+                    this.log('📊 Loading test results...', 'info');
+                    
+                    // Try to load from localStorage first
+                    const storedResults = localStorage.getItem('latest_comprehensive_test_results');
+                    
+                    if (storedResults) {
+                        this.currentResults = JSON.parse(storedResults);
+                        this.log('✅ Loaded test results from storage', 'success');
+                        
+                        this.elements.analyzeBtn.disabled = false;
+                        this.displayResultsSummary();
+                    } else {
+                        // If no stored results, run new tests
+                        this.log('No stored results found. Running new test execution...', 'info');
+                        await this.runNewTests();
+                    }
+                    
+                } catch (error) {
+                    this.log(`❌ Failed to load test results: ${error.message}`, 'error');
+                }
+            }
+
+            async runNewTests() {
+                try {
+                    if (!window.ComprehensiveTestExecutionSuite) {
+                        throw new Error('Comprehensive Test Execution Suite not available');
+                    }
+                    
+                    this.showProgress(0, 'Initializing test execution...');
+                    
+                    const testSuite = new ComprehensiveTestExecutionSuite();
+                    
+                    // Set up progress callback
+                    testSuite.setProgressCallback((progress) => {
+                        this.showProgress(progress.percentage, progress.message);
+                    });
+                    
+                    // Execute tests
+                    this.currentResults = await testSuite.executeAllTests();
+                    
+                    this.hideProgress();
+                    this.log('✅ New test execution completed', 'success');
+                    
+                    this.elements.analyzeBtn.disabled = false;
+                    this.displayResultsSummary();
+                    
+                } catch (error) {
+                    this.hideProgress();
+                    this.log(`❌ Failed to run new tests: ${error.message}`, 'error');
+                }
+            }
+
+            displayResultsSummary() {
+                if (!this.currentResults) return;
+                
+                const summary = this.currentResults.summary;
+                
+                this.elements.overallRate.textContent = `${summary.successRate.toFixed(1)}%`;
+                this.elements.overallRate.parentElement.className = `summary-card ${this.getCriticalityClass(summary.successRate)}`;
+                
+                this.elements.analysisSummary.style.display = 'grid';
+                
+                this.log(`📊 Test results loaded: ${summary.successRate.toFixed(1)}% success rate`, 'info');
+            }
+
+            async analyzeResults() {
+                if (!this.currentResults || !this.analyzer) return;
+                
+                try {
+                    this.log('🔍 Starting test results analysis...', 'info');
+                    this.elements.analyzeBtn.disabled = true;
+                    
+                    this.analysisReport = await this.analyzer.analyzeTestResults(this.currentResults);
+                    
+                    this.displayAnalysisResults();
+                    this.elements.implementFixesBtn.disabled = false;
+                    
+                    this.log('✅ Analysis completed', 'success');
+                    
+                } catch (error) {
+                    this.log(`❌ Analysis failed: ${error.message}`, 'error');
+                } finally {
+                    this.elements.analyzeBtn.disabled = false;
+                }
+            }
+
+            displayAnalysisResults() {
+                if (!this.analysisReport) return;
+                
+                // Update summary
+                this.elements.patternsCount.textContent = this.analysisReport.patterns.length;
+                this.elements.criticalityLevel.textContent = this.analysisReport.overall.criticalityAssessment.level;
+                this.elements.criticalityLevel.parentElement.className = `summary-card ${this.getCriticalityClass(this.analysisReport.overall.overallSuccessRate)}`;
+                
+                // Display patterns
+                this.displayPatterns(this.analysisReport.patterns);
+                
+                // Display recommendations
+                this.displayRecommendations(this.analysisReport.recommendations);
+                
+                this.elements.patternsSection.style.display = 'block';
+                this.elements.recommendationsSection.style.display = 'block';
+            }
+
+            displayPatterns(patterns) {
+                this.elements.patternsList.innerHTML = '';
+                
+                patterns.forEach(pattern => {
+                    const patternItem = document.createElement('div');
+                    patternItem.className = `pattern-item ${pattern.occurrences >= 5 ? 'critical' : 'warning'}`;
+                    
+                    patternItem.innerHTML = `
+                        <div class="pattern-header">
+                            <div class="pattern-name">${pattern.pattern.replace('_', ' ').toUpperCase()}</div>
+                            <div class="pattern-count">${pattern.occurrences} occurrences</div>
+                        </div>
+                        <div class="pattern-description">
+                            ${pattern.knownPattern?.description || 'Unknown pattern detected'}
+                        </div>
+                        <div class="pattern-suites">
+                            Affected suites: ${pattern.affectedSuites.join(', ')}
+                        </div>
+                    `;
+                    
+                    this.elements.patternsList.appendChild(patternItem);
+                });
+            }
+
+            displayRecommendations(recommendations) {
+                this.elements.recommendationsList.innerHTML = '';
+                
+                recommendations.forEach(rec => {
+                    const recItem = document.createElement('div');
+                    recItem.className = 'recommendation-item';
+                    
+                    recItem.innerHTML = `
+                        <div class="recommendation-header">
+                            <div class="recommendation-type">${rec.category}</div>
+                            <div class="recommendation-priority ${rec.priority === 1 ? 'high' : ''}">${rec.type}</div>
+                        </div>
+                        <div class="recommendation-text">
+                            <strong>Issue:</strong> ${rec.issue}<br>
+                            <strong>Recommendation:</strong> ${rec.recommendation}
+                        </div>
+                    `;
+                    
+                    this.elements.recommendationsList.appendChild(recItem);
+                });
+            }
+
+            async implementFixes() {
+                if (!this.analysisReport || !this.analyzer) return;
+                
+                try {
+                    this.log('🔧 Implementing automated fixes...', 'info');
+                    this.elements.implementFixesBtn.disabled = true;
+                    
+                    this.showProgress(0, 'Analyzing patterns for fixes...');
+                    
+                    this.implementedFixes = await this.analyzer.implementAutomatedFixes(this.analysisReport);
+                    
+                    this.hideProgress();
+                    this.displayImplementedFixes();
+                    this.elements.rerunTestsBtn.disabled = false;
+                    
+                    this.log(`✅ Implemented ${this.implementedFixes.length} fixes`, 'success');
+                    
+                } catch (error) {
+                    this.hideProgress();
+                    this.log(`❌ Failed to implement fixes: ${error.message}`, 'error');
+                } finally {
+                    this.elements.implementFixesBtn.disabled = false;
+                }
+            }
+
+            displayImplementedFixes() {
+                this.elements.fixesList.innerHTML = '';
+                
+                this.implementedFixes.forEach(fix => {
+                    const fixItem = document.createElement('div');
+                    fixItem.className = `fix-item ${fix.success ? '' : 'failed'}`;
+                    
+                    const changesHtml = fix.changes ? 
+                        `<ul>${fix.changes.map(change => `<li>${change}</li>`).join('')}</ul>` : 
+                        '';
+                    
+                    fixItem.innerHTML = `
+                        <div class="fix-header">
+                            <div class="fix-pattern">${fix.pattern.replace('_', ' ').toUpperCase()}</div>
+                            <div class="fix-status ${fix.success ? 'success' : 'failed'}">
+                                ${fix.success ? 'APPLIED' : 'FAILED'}
+                            </div>
+                        </div>
+                        <div class="fix-changes">
+                            ${fix.description}
+                            ${changesHtml}
+                        </div>
+                    `;
+                    
+                    this.elements.fixesList.appendChild(fixItem);
+                });
+                
+                this.elements.fixesSection.style.display = 'block';
+            }
+
+            async rerunTests() {
+                if (!this.analyzer || !this.currentResults || this.implementedFixes.length === 0) return;
+                
+                try {
+                    this.log('🔄 Re-running tests to validate fixes...', 'info');
+                    this.elements.rerunTestsBtn.disabled = true;
+                    
+                    this.retestResults = await this.analyzer.rerunTestsToValidateFixes(
+                        this.currentResults, 
+                        this.implementedFixes
+                    );
+                    
+                    this.displayComparison();
+                    
+                    this.log('✅ Test validation completed', 'success');
+                    
+                } catch (error) {
+                    this.log(`❌ Failed to re-run tests: ${error.message}`, 'error');
+                } finally {
+                    this.elements.rerunTestsBtn.disabled = false;
+                }
+            }
+
+            displayComparison() {
+                if (!this.retestResults) return;
+                
+                const { comparison, improvement } = this.retestResults;
+                
+                // Display before metrics
+                this.elements.beforeMetrics.innerHTML = `
+                    <div class="metric-row">
+                        <div class="metric-label">Success Rate</div>
+                        <div class="metric-value">${this.currentResults.summary.successRate.toFixed(1)}%</div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="metric-label">Execution Time</div>
+                        <div class="metric-value">${this.currentResults.summary.totalDuration}ms</div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="metric-label">Failed Suites</div>
+                        <div class="metric-value">${this.currentResults.summary.failedSuites}</div>
+                    </div>
+                `;
+                
+                // Display after metrics
+                this.elements.afterMetrics.innerHTML = `
+                    <div class="metric-row">
+                        <div class="metric-label">Success Rate</div>
+                        <div class="metric-value">${this.retestResults.retestReport.summary.successRate.toFixed(1)}%</div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="metric-label">Execution Time</div>
+                        <div class="metric-value">${this.retestResults.retestReport.summary.totalDuration}ms</div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="metric-label">Failed Suites</div>
+                        <div class="metric-value">${this.retestResults.retestReport.summary.failedSuites}</div>
+                    </div>
+                `;
+                
+                // Display overall improvement
+                const improvementClass = improvement.overallImprovement > 0 ? 'positive' : 
+                                       improvement.overallImprovement < 0 ? 'negative' : 'neutral';
+                
+                const improvementIcon = improvement.overallImprovement > 0 ? '📈' : 
+                                      improvement.overallImprovement < 0 ? '📉' : '📊';
+                
+                this.elements.overallImprovement.className = `improvement-indicator ${improvementClass}`;
+                this.elements.overallImprovement.innerHTML = `
+                    <span>${improvementIcon}</span>
+                    <span>${improvement.overallImprovement > 0 ? '+' : ''}${improvement.overallImprovement.toFixed(1)}% improvement</span>
+                `;
+                
+                this.elements.comparisonSection.style.display = 'block';
+            }
+
+            showProgress(percentage, message) {
+                this.elements.progressSection.style.display = 'block';
+                this.elements.progressFill.style.width = `${percentage}%`;
+                this.elements.progressText.textContent = message;
+            }
+
+            hideProgress() {
+                this.elements.progressSection.style.display = 'none';
+            }
+
+            getCriticalityClass(successRate) {
+                if (successRate >= 80) return 'success';
+                if (successRate >= 60) return 'warning';
+                return 'critical';
+            }
+
+            log(message, level = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${level}`;
+                logEntry.textContent = `[${timestamp}] ${message}`;
+                
+                this.elements.logsContainer.appendChild(logEntry);
+                this.elements.logsContainer.scrollTop = this.elements.logsContainer.scrollHeight;
+                
+                // Also log to console
+                console.log(`[TestResultsAnalyzerRunner] ${message}`);
+            }
+        }
+
+        // Initialize analyzer runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.analyzerRunner = new TestResultsAnalyzerRunner();
+        });
+    </script>
+</body>
+</html>

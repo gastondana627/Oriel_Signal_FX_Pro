@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Modal Interception Tests</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(131, 9, 213, 0.3);
+        }
+
+        .header h1 {
+            margin: 0 0 10px 0;
+            color: #8309D5;
+            font-size: 2.5rem;
+        }
+
+        .header p {
+            margin: 0;
+            color: #ccc;
+            font-size: 1.1rem;
+        }
+
+        .test-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #8309D5, #FF6B35);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(131, 9, 213, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .test-status {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #8309D5;
+            background: rgba(131, 9, 213, 0.1);
+        }
+
+        .test-results {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .test-results h3 {
+            margin-top: 0;
+            color: #8309D5;
+        }
+
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .test-item:last-child {
+            border-bottom: none;
+        }
+
+        .test-name {
+            font-weight: 500;
+        }
+
+        .test-status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-passed {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .status-failed {
+            background: #f44336;
+            color: white;
+        }
+
+        .status-running {
+            background: #FF9800;
+            color: white;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #8309D5;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .log-output {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .error-details {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .error-details h4 {
+            color: #f44336;
+            margin-top: 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #8309D5, #FF6B35);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Mock download buttons for testing */
+        .mock-download-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mock-download-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mock-download-btn {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .mock-download-btn:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Download Modal Interception Tests</h1>
+            <p>Comprehensive testing suite for download button interception and modal functionality</p>
+        </div>
+
+        <div class="test-controls">
+            <button id="run-all-tests" class="btn btn-primary">
+                <span>🚀</span>
+                Run All Tests
+            </button>
+            <button id="run-interception-test" class="btn btn-secondary">
+                <span>🎯</span>
+                Test Interception
+            </button>
+            <button id="run-modal-test" class="btn btn-secondary">
+                <span>🖼️</span>
+                Test Modal Display
+            </button>
+            <button id="run-format-test" class="btn btn-secondary">
+                <span>📋</span>
+                Test Format Options
+            </button>
+            <button id="clear-results" class="btn btn-secondary">
+                <span>🗑️</span>
+                Clear Results
+            </button>
+        </div>
+
+        <div class="mock-download-section">
+            <h3>Mock Download Buttons (for testing)</h3>
+            <div class="mock-download-buttons">
+                <button id="download-button" class="mock-download-btn">Download</button>
+                <button id="download-mp3-button" class="mock-download-btn">Download MP3</button>
+                <button id="download-gif-button" class="mock-download-btn">Download GIF</button>
+                <button id="download-mp4-button" class="mock-download-btn">Download MP4</button>
+            </div>
+        </div>
+
+        <div id="test-status" class="test-status" style="display: none;">
+            <div id="status-text">Ready to run tests...</div>
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+        </div>
+
+        <div id="summary-section" style="display: none;">
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <div id="total-tests" class="stat-value">0</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat-card">
+                    <div id="passed-tests" class="stat-value">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat-card">
+                    <div id="failed-tests" class="stat-value">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-card">
+                    <div id="success-rate" class="stat-value">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="test-results" class="test-results" style="display: none;">
+            <h3>Test Results</h3>
+            <div id="results-list"></div>
+        </div>
+
+        <div id="log-output" class="log-output" style="display: none;"></div>
+    </div>
+
+    <!-- Include required dependencies -->
+    <script src="download-modal.js"></script>
+    <script src="download-modal-interception-tests.js"></script>
+
+    <script>
+        class TestRunner {
+            constructor() {
+                this.tester = null;
+                this.isRunning = false;
+                this.currentTest = 0;
+                this.totalTests = 0;
+                this.results = [];
+                
+                this.initializeUI();
+                this.setupEventListeners();
+                this.setupMockEnvironment();
+            }
+
+            initializeUI() {
+                // Initialize UI elements
+                this.statusSection = document.getElementById('test-status');
+                this.statusText = document.getElementById('status-text');
+                this.progressFill = document.getElementById('progress-fill');
+                this.summarySection = document.getElementById('summary-section');
+                this.resultsSection = document.getElementById('test-results');
+                this.resultsList = document.getElementById('results-list');
+                this.logOutput = document.getElementById('log-output');
+                
+                // Capture console logs
+                this.setupConsoleCapture();
+            }
+
+            setupEventListeners() {
+                document.getElementById('run-all-tests').addEventListener('click', () => this.runAllTests());
+                document.getElementById('run-interception-test').addEventListener('click', () => this.runSingleTest('interception'));
+                document.getElementById('run-modal-test').addEventListener('click', () => this.runSingleTest('modal'));
+                document.getElementById('run-format-test').addEventListener('click', () => this.runSingleTest('format'));
+                document.getElementById('clear-results').addEventListener('click', () => this.clearResults());
+            }
+
+            setupMockEnvironment() {
+                // Mock download function for testing
+                window.downloadAudioFile = async () => {
+                    console.log('Mock download function called');
+                    return Promise.resolve();
+                };
+
+                // Ensure notification system exists
+                if (!window.notifications) {
+                    window.notifications = {
+                        showError: (msg) => console.log('Error:', msg),
+                        showInfo: (msg) => console.log('Info:', msg),
+                        showSuccess: (msg) => console.log('Success:', msg)
+                    };
+                }
+            }
+
+            setupConsoleCapture() {
+                const originalLog = console.log;
+                const originalError = console.error;
+                
+                console.log = (...args) => {
+                    originalLog.apply(console, args);
+                    this.addToLog('LOG', args.join(' '));
+                };
+                
+                console.error = (...args) => {
+                    originalError.apply(console, args);
+                    this.addToLog('ERROR', args.join(' '));
+                };
+            }
+
+            addToLog(level, message) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${level}: ${message}\n`;
+                
+                if (this.logOutput.style.display !== 'none') {
+                    this.logOutput.textContent += logEntry;
+                    this.logOutput.scrollTop = this.logOutput.scrollHeight;
+                }
+            }
+
+            async runAllTests() {
+                if (this.isRunning) return;
+                
+                try {
+                    this.isRunning = true;
+                    this.updateRunButton(true);
+                    this.showStatus('Initializing tests...');
+                    this.showLog();
+                    
+                    // Initialize tester
+                    this.tester = new DownloadModalInterceptionTester();
+                    await this.tester.init();
+                    
+                    // Run all tests
+                    this.showStatus('Running download modal interception tests...');
+                    const report = await this.tester.runAllTests();
+                    
+                    // Display results
+                    this.displayResults(report);
+                    this.showStatus('Tests completed!');
+                    
+                } catch (error) {
+                    console.error('Test execution failed:', error);
+                    this.showStatus(`Test execution failed: ${error.message}`);
+                    this.showErrorDetails(error);
+                } finally {
+                    this.isRunning = false;
+                    this.updateRunButton(false);
+                }
+            }
+
+            async runSingleTest(testType) {
+                if (this.isRunning) return;
+                
+                try {
+                    this.isRunning = true;
+                    this.updateRunButton(true);
+                    this.showLog();
+                    
+                    this.tester = new DownloadModalInterceptionTester();
+                    await this.tester.init();
+                    
+                    switch (testType) {
+                        case 'interception':
+                            this.showStatus('Testing download button interception...');
+                            await this.tester.testDownloadButtonInterception();
+                            break;
+                        case 'modal':
+                            this.showStatus('Testing modal display validation...');
+                            await this.tester.testModalDisplayValidation();
+                            break;
+                        case 'format':
+                            this.showStatus('Testing format option verification...');
+                            await this.tester.testFormatOptionVerification();
+                            break;
+                    }
+                    
+                    const report = this.tester.generateTestReport();
+                    this.displayResults(report);
+                    this.showStatus(`${testType} test completed!`);
+                    
+                } catch (error) {
+                    console.error(`${testType} test failed:`, error);
+                    this.showStatus(`${testType} test failed: ${error.message}`);
+                    this.showErrorDetails(error);
+                } finally {
+                    this.isRunning = false;
+                    this.updateRunButton(false);
+                }
+            }
+
+            showStatus(message) {
+                this.statusText.textContent = message;
+                this.statusSection.style.display = 'block';
+            }
+
+            showLog() {
+                this.logOutput.style.display = 'block';
+                this.logOutput.textContent = '';
+            }
+
+            updateRunButton(isRunning) {
+                const runButton = document.getElementById('run-all-tests');
+                runButton.disabled = isRunning;
+                runButton.innerHTML = isRunning ? 
+                    '<span>⏳</span> Running Tests...' : 
+                    '<span>🚀</span> Run All Tests';
+            }
+
+            displayResults(report) {
+                // Update summary stats
+                document.getElementById('total-tests').textContent = report.summary.total;
+                document.getElementById('passed-tests').textContent = report.summary.passed;
+                document.getElementById('failed-tests').textContent = report.summary.failed;
+                document.getElementById('success-rate').textContent = report.summary.successRate + '%';
+                
+                // Show summary section
+                this.summarySection.style.display = 'block';
+                
+                // Display individual test results
+                this.resultsList.innerHTML = '';
+                
+                report.results.forEach(result => {
+                    const testItem = document.createElement('div');
+                    testItem.className = 'test-item';
+                    
+                    const statusClass = result.status === 'PASSED' ? 'status-passed' : 'status-failed';
+                    
+                    testItem.innerHTML = `
+                        <div class="test-name">${result.test}</div>
+                        <div class="test-status-badge ${statusClass}">${result.status}</div>
+                    `;
+                    
+                    if (result.status === 'FAILED' && result.message) {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-details';
+                        errorDiv.innerHTML = `
+                            <h4>Error Details</h4>
+                            <p>${result.message}</p>
+                        `;
+                        testItem.appendChild(errorDiv);
+                    }
+                    
+                    this.resultsList.appendChild(testItem);
+                });
+                
+                this.resultsSection.style.display = 'block';
+            }
+
+            showErrorDetails(error) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-details';
+                errorDiv.innerHTML = `
+                    <h4>Execution Error</h4>
+                    <p><strong>Message:</strong> ${error.message}</p>
+                    <p><strong>Stack:</strong></p>
+                    <pre>${error.stack}</pre>
+                `;
+                
+                this.resultsSection.appendChild(errorDiv);
+                this.resultsSection.style.display = 'block';
+            }
+
+            clearResults() {
+                this.summarySection.style.display = 'none';
+                this.resultsSection.style.display = 'none';
+                this.statusSection.style.display = 'none';
+                this.logOutput.style.display = 'none';
+                this.logOutput.textContent = '';
+                this.resultsList.innerHTML = '';
+            }
+        }
+
+        // Initialize test runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const testRunner = new TestRunner();
+            console.log('✅ Download Modal Interception Test Runner initialized');
+        });
+    </script>
+</body>
+</html>

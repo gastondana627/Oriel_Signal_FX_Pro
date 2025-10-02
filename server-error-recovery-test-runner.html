@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Error Recovery Testing - Oriel Signal FX Pro</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .test-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .test-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        
+        .test-body {
+            padding: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-pending {
+            background: #95a5a6;
+        }
+        
+        .status-running {
+            background: #f39c12;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-success {
+            background: #27ae60;
+        }
+        
+        .status-error {
+            background: #e74c3c;
+        }
+        
+        .status-warning {
+            background: #f39c12;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .log-output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            white-space: pre-wrap;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .metric-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f8f9fa;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        
+        .metric-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #e74c3c;
+            transition: width 0.3s ease;
+        }
+        
+        .test-results {
+            margin-top: 20px;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+        
+        .result-item.success {
+            background: #d4edda;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .result-item.error {
+            background: #f8d7da;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .result-item.warning {
+            background: #fff3cd;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .warning-box h4 {
+            margin: 0 0 10px 0;
+            color: #856404;
+        }
+        
+        .error-simulation {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .error-simulation h4 {
+            margin: 0 0 10px 0;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ Server Error Recovery Testing</h1>
+            <p>Comprehensive testing for server failure simulation, recovery, and performance monitoring</p>
+        </div>
+        
+        <div class="content">
+            <!-- Server Failure Simulation -->
+            <div class="test-section">
+                <div class="test-header">
+                    <div class="test-title">
+                        <span class="status-indicator status-pending" id="failure-status"></span>
+                        Server Failure Simulation & Recovery
+                    </div>
+                    <button class="btn btn-danger" onclick="runFailureSimulation()">Simulate Failures</button>
+                </div>
+                <div class="test-body">
+                    <div class="warning-box">
+                        <h4>⚠️ Warning</h4>
+                        <p>This test simulates various server failure scenarios to test recovery mechanisms. 
+                        Some tests may temporarily affect server availability.</p>
+                    </div>
+                    <p>Tests server failure scenarios and automatic recovery mechanisms including timeout handling, 
+                    connection failures, and service degradation.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="failure-progress" style="width: 0%"></div>
+                    </div>
+                    <div class="test-results" id="failure-results"></div>
+                    <div class="log-output" id="failure-log" style="display: none;"></div>
+                </div>
+            </div>
+            
+            <!-- Network Connectivity Testing -->
+            <div class="test-section">
+                <div class="test-header">
+                    <div class="test-title">
+                        <span class="status-indicator status-pending" id="network-status"></span>
+                        Network Connectivity & Error Handling
+                    </div>
+                    <button class="btn btn-primary" onclick="runNetworkTest()">Test Network Handling</button>
+                </div>
+                <div class="test-body">
+                    <p>Tests network connectivity scenarios including timeouts, connection drops, and error recovery mechanisms.</p>
+                    <div class="error-simulation">
+                        <h4>🌐 Network Scenarios Tested</h4>
+                        <ul>
+                            <li>Connection timeouts (various durations)</li>
+                            <li>Network interruption simulation</li>
+                            <li>Slow response handling</li>
+                            <li>DNS resolution failures</li>
+                            <li>Retry mechanism validation</li>
+                        </ul>
+                    </div>
+                    <div class="test-results" id="network-results"></div>
+                    <div class="log-output" id="network-log" style="display: none;"></div>
+                </div>
+            </div>
+            
+            <!-- Performance Monitoring -->
+            <div class="test-section">
+                <div class="test-header">
+                    <div class="test-title">
+                        <span class="status-indicator status-pending" id="performance-status"></span>
+                        Performance Monitoring & Resource Tracking
+                    </div>
+                    <button class="btn btn-primary" onclick="runPerformanceTest()">Monitor Performance</button>
+                </div>
+                <div class="test-body">
+                    <p>Monitors system performance metrics and resource usage during normal and stress conditions.</p>
+                    <div class="metrics-grid" id="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value" id="response-time">--</div>
+                            <div class="metric-label">Avg Response Time (ms)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="success-rate">--</div>
+                            <div class="metric-label">Success Rate (%)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="error-rate">--</div>
+                            <div class="metric-label">Error Rate (%)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="concurrent-users">--</div>
+                            <div class="metric-label">Concurrent Requests</div>
+                        </div>
+                    </div>
+                    <div class="log-output" id="performance-log" style="display: none;"></div>
+                </div>
+            </div>
+            
+            <!-- Complete Error Recovery Test Suite -->
+            <div class="test-section">
+                <div class="test-header">
+                    <div class="test-title">
+                        <span class="status-indicator status-pending" id="complete-recovery-status"></span>
+                        Complete Error Recovery Test Suite
+                    </div>
+                    <button class="btn btn-success" onclick="runCompleteRecoveryTest()">Run All Recovery Tests</button>
+                </div>
+                <div class="test-body">
+                    <p>Executes the complete error recovery test suite including failure simulation, network testing, and performance monitoring.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="complete-recovery-progress" style="width: 0%"></div>
+                    </div>
+                    <div class="test-results" id="complete-recovery-results"></div>
+                    <div class="log-output" id="complete-recovery-log" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="server-error-recovery-tests.js"></script>
+</body>
+</html>

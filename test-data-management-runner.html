@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Data Management - Oriel Signal FX Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .control-group h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+            min-width: 120px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn.success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+        }
+
+        .btn.warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: #212529;
+        }
+
+        .status-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .status-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-item.success {
+            border-left-color: #28a745;
+        }
+
+        .status-item.error {
+            border-left-color: #dc3545;
+        }
+
+        .status-item.warning {
+            border-left-color: #ffc107;
+        }
+
+        .status-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            font-size: 1.1em;
+            color: #212529;
+        }
+
+        .log-container {
+            background: #212529;
+            color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-entry.success {
+            color: #28a745;
+        }
+
+        .log-entry.error {
+            color: #dc3545;
+        }
+
+        .log-entry.warning {
+            color: #ffc107;
+        }
+
+        .log-entry.info {
+            color: #17a2b8;
+        }
+
+        .sessions-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .session-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .session-info {
+            flex: 1;
+        }
+
+        .session-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fixture-viewer {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .fixture-category {
+            margin-bottom: 20px;
+        }
+
+        .fixture-category h4 {
+            color: #495057;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .fixture-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗄️ Test Data Management</h1>
+            <p>Database state management, fixtures, and cleanup for comprehensive testing</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <h3>🚀 Initialization</h3>
+                <button class="btn" onclick="initializeManagers()">Initialize Managers</button>
+                <button class="btn" onclick="validateEnvironment()">Validate Environment</button>
+                <button class="btn" onclick="resetToBaseline()">Reset to Baseline</button>
+            </div>
+
+            <div class="control-group">
+                <h3>👤 Test Users</h3>
+                <button class="btn success" onclick="createTestUser('validUser')">Create Valid User</button>
+                <button class="btn success" onclick="createTestUser('adminUser')">Create Admin User</button>
+                <button class="btn success" onclick="createTestUser('premiumUser')">Create Premium User</button>
+            </div>
+
+            <div class="control-group">
+                <h3>🔐 Test Sessions</h3>
+                <button class="btn" onclick="startTestSession()">Start Test Session</button>
+                <button class="btn" onclick="createAuthSession()">Create Auth Session</button>
+                <button class="btn danger" onclick="endAllSessions()">End All Sessions</button>
+            </div>
+
+            <div class="control-group">
+                <h3>🧹 Cleanup</h3>
+                <button class="btn warning" onclick="cleanupCurrentSession()">Cleanup Current</button>
+                <button class="btn danger" onclick="cleanupAllData()">Cleanup All Data</button>
+                <button class="btn" onclick="showFixtures()">Show Fixtures</button>
+            </div>
+        </div>
+
+        <div class="status-panel">
+            <h3>📊 System Status</h3>
+            <div class="status-grid">
+                <div class="status-item" id="managerStatus">
+                    <div class="status-label">Manager Status</div>
+                    <div class="status-value">Not Initialized</div>
+                </div>
+                <div class="status-item" id="dbStatus">
+                    <div class="status-label">Database Status</div>
+                    <div class="status-value">Unknown</div>
+                </div>
+                <div class="status-item" id="sessionCount">
+                    <div class="status-label">Active Sessions</div>
+                    <div class="status-value">0</div>
+                </div>
+                <div class="status-item" id="entityCount">
+                    <div class="status-label">Created Entities</div>
+                    <div class="status-value">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sessions-panel">
+            <h3>🔄 Active Test Sessions</h3>
+            <div id="sessionsList">
+                <p>No active sessions</p>
+            </div>
+        </div>
+
+        <div class="fixture-viewer hidden" id="fixtureViewer">
+            <h3>📦 Test Fixtures</h3>
+            <div id="fixtureContent"></div>
+        </div>
+
+        <div class="log-container">
+            <div id="logOutput">
+                <div class="log-entry info">🔧 Test Data Management System Ready</div>
+                <div class="log-entry">Click "Initialize Managers" to begin</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include required modules -->
+    <script src="test-fixtures.js"></script>
+    <script src="test-data-manager.js"></script>
+    <script src="test-database-manager.js"></script>
+
+    <script>
+        // Global state
+        let testDataManager = null;
+        let testDatabaseManager = null;
+        let currentSessionId = null;
+        let isInitialized = false;
+
+        // Logging functions
+        function log(message, type = 'info') {
+            const logOutput = document.getElementById('logOutput');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+            logOutput.appendChild(entry);
+            logOutput.scrollTop = logOutput.scrollHeight;
+            
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function logSuccess(message) {
+            log(`✅ ${message}`, 'success');
+        }
+
+        function logError(message) {
+            log(`❌ ${message}`, 'error');
+        }
+
+        function logWarning(message) {
+            log(`⚠️ ${message}`, 'warning');
+        }
+
+        // Status update functions
+        function updateStatus(elementId, value, type = '') {
+            const element = document.getElementById(elementId);
+            if (element) {
+                const valueElement = element.querySelector('.status-value');
+                if (valueElement) {
+                    valueElement.textContent = value;
+                }
+                
+                // Update status styling
+                element.className = `status-item ${type}`;
+            }
+        }
+
+        // Initialize managers
+        async function initializeManagers() {
+            log('🔧 Initializing Test Data Management System...');
+            
+            try {
+                // Initialize Test Data Manager
+                testDataManager = new TestDataManager({
+                    apiBaseUrl: 'http://localhost:8000',
+                    cleanupTimeout: 30000
+                });
+                
+                await testDataManager.initialize();
+                logSuccess('Test Data Manager initialized');
+                
+                // Initialize Test Database Manager
+                testDatabaseManager = new TestDatabaseManager({
+                    apiBaseUrl: 'http://localhost:8000',
+                    isolationLevel: 'session',
+                    autoCleanup: true
+                });
+                
+                await testDatabaseManager.initialize();
+                logSuccess('Test Database Manager initialized');
+                
+                isInitialized = true;
+                updateStatus('managerStatus', 'Initialized', 'success');
+                
+                // Update session count
+                updateSessionsList();
+                
+                logSuccess('All managers initialized successfully');
+                
+            } catch (error) {
+                logError(`Initialization failed: ${error.message}`);
+                updateStatus('managerStatus', 'Failed', 'error');
+            }
+        }
+
+        // Validate test environment
+        async function validateEnvironment() {
+            if (!isInitialized) {
+                logError('Managers not initialized');
+                return;
+            }
+            
+            log('🔍 Validating test environment...');
+            
+            try {
+                const isValid = await testDataManager.validateTestEnvironment();
+                
+                if (isValid) {
+                    logSuccess('Test environment validation passed');
+                    updateStatus('dbStatus', 'Connected', 'success');
+                } else {
+                    logError('Test environment validation failed');
+                    updateStatus('dbStatus', 'Failed', 'error');
+                }
+                
+            } catch (error) {
+                logError(`Environment validation error: ${error.message}`);
+                updateStatus('dbStatus', 'Error', 'error');
+            }
+        }
+
+        // Create test user
+        async function createTestUser(userType) {
+            if (!isInitialized) {
+                logError('Managers not initialized');
+                return;
+            }
+            
+            if (!currentSessionId) {
+                logWarning('No active session, starting new session');
+                await startTestSession();
+            }
+            
+            log(`👤 Creating test user: ${userType}`);
+            
+            try {
+                const userData = testDataManager.getFixture('users', userType);
+                const result = await testDatabaseManager.createTestUser(currentSessionId, userData);
+                
+                logSuccess(`Test user created: ${result.user.email}`);
+                updateEntityCount();
+                
+            } catch (error) {
+                logError(`Failed to create test user: ${error.message}`);
+            }
+        }
+
+        // Start test session
+        async function startTestSession() {
+            if (!isInitialized) {
+                logError('Managers not initialized');
+                return;
+            }
+            
+            const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            
+            log(`🚀 Starting test session: ${sessionId}`);
+            
+            try {
+                await testDatabaseManager.startTestSession(sessionId, {
+                    isolationLevel: 'session',
+                    useTransaction: false
+                });
+                
+                currentSessionId = sessionId;
+                logSuccess(`Test session started: ${sessionId}`);
+                
+                updateSessionsList();
+                
+            } catch (error) {
+                logError(`Failed to start test session: ${error.message}`);
+            }
+        }
+
+        // Create auth session
+        async function createAuthSession() {
+            if (!isInitialized) {
+                logError('Managers not initialized');
+                return;
+            }
+            
+            if (!currentSessionId) {
+                logWarning('No active session, starting new session');
+                await startTestSession();
+            }
+            
+            log('🔐 Creating authentication session...');
+            
+            try {
+                const credentials = testDataManager.getFixture('auth', 'validCredentials');
+                const result = await testDatabaseManager.createTestAuthSession(currentSessionId, credentials);
+                
+                logSuccess('Authentication session created');
+                updateEntityCount();
+                
+            } catch (error) {
+                logError(`Failed to create auth session: ${error.message}`);
+            }
+        }
+
+        // End all sessions
+        async function endAllSessions() {
+            if (!isInitialized) {
+                logError('Managers not initialized');
+                return;
+            }
+            
+            log('🏁 Ending all test sessions...');
+            
+            try {
+                const activeSessions = testDatabaseManager.getActiveSessions();
+                
+                for (const session of activeSessions) {
+                    await testDatabaseManager.endTestSession(session.sessionId);
+                    logSuccess(`Ended session: ${session.sessionId}`);
+                }
+                
+                currentSessionId = null;
+                updateSessionsList();
+                
+                logSuccess('All sessions ended');
+                
+            } catch (error) {
+                logError(`Failed to end sessions: ${error.message}`);
+            }
+        }
+
+        // Cleanup current session
+        async function cleanupCurrentSession() {
+            if (!isInitialized || !currentSessionId) {
+                logError('No active session to cleanup');
+                return;
+            }
+            
+            log(`🧹 Cleaning up current session: ${currentSessionId}`);
+            
+            try {
+                await testDatabaseManager.endTestSession(currentSessionId);
+                currentSessionId = null;
+                
+                logSuccess('Current session cleaned up');
+                updateSessionsList();
+                
+            } catch (error) {
+                logError(`Failed to cleanup session: ${error.message}`);
+            }
+        }
+
+        // Cleanup all data
+        async function cleanupAllData() {
+            if (!isInitialized) {
+                logError('Managers not initialized');
+                return;
+            }
+            
+            log('🧹 Cleaning up all test data...');
+            
+            try {
+                await testDatabaseManager.cleanupAll();
+                await testDataManager.cleanupAllTestData();
+                
+                currentSessionId = null;
+                updateSessionsList();
+                
+                logSuccess('All test data cleaned up');
+                
+            } catch (error) {
+                logError(`Failed to cleanup all data: ${error.message}`);
+            }
+        }
+
+        // Reset to baseline
+        async function resetToBaseline() {
+            if (!isInitialized) {
+                logError('Managers not initialized');
+                return;
+            }
+            
+            log('🔄 Resetting database to baseline...');
+            
+            try {
+                await testDatabaseManager.resetToBaseline();
+                currentSessionId = null;
+                
+                logSuccess('Database reset to baseline');
+                updateSessionsList();
+                
+            } catch (error) {
+                logError(`Failed to reset to baseline: ${error.message}`);
+            }
+        }
+
+        // Show fixtures
+        function showFixtures() {
+            const fixtureViewer = document.getElementById('fixtureViewer');
+            const fixtureContent = document.getElementById('fixtureContent');
+            
+            if (fixtureViewer.classList.contains('hidden')) {
+                // Show fixtures
+                fixtureContent.innerHTML = '';
+                
+                const categories = ['users', 'auth', 'downloads', 'server'];
+                
+                categories.forEach(category => {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'fixture-category';
+                    
+                    const title = document.createElement('h4');
+                    title.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)} Fixtures`;
+                    categoryDiv.appendChild(title);
+                    
+                    try {
+                        const fixtures = testDataManager ? testDataManager.getFixture(category) : TestFixtures[category];
+                        
+                        Object.keys(fixtures).forEach(key => {
+                            const item = document.createElement('div');
+                            item.className = 'fixture-item';
+                            item.textContent = `${key}: ${JSON.stringify(fixtures[key], null, 2)}`;
+                            categoryDiv.appendChild(item);
+                        });
+                        
+                    } catch (error) {
+                        const errorItem = document.createElement('div');
+                        errorItem.className = 'fixture-item';
+                        errorItem.textContent = `Error loading fixtures: ${error.message}`;
+                        categoryDiv.appendChild(errorItem);
+                    }
+                    
+                    fixtureContent.appendChild(categoryDiv);
+                });
+                
+                fixtureViewer.classList.remove('hidden');
+                log('📦 Fixtures displayed');
+                
+            } else {
+                // Hide fixtures
+                fixtureViewer.classList.add('hidden');
+                log('📦 Fixtures hidden');
+            }
+        }
+
+        // Update sessions list
+        function updateSessionsList() {
+            const sessionsList = document.getElementById('sessionsList');
+            
+            if (!isInitialized || !testDatabaseManager) {
+                sessionsList.innerHTML = '<p>Managers not initialized</p>';
+                updateStatus('sessionCount', '0');
+                updateStatus('entityCount', '0');
+                return;
+            }
+            
+            const activeSessions = testDatabaseManager.getActiveSessions();
+            
+            if (activeSessions.length === 0) {
+                sessionsList.innerHTML = '<p>No active sessions</p>';
+                updateStatus('sessionCount', '0');
+                updateStatus('entityCount', '0');
+                return;
+            }
+            
+            sessionsList.innerHTML = '';
+            let totalEntities = 0;
+            
+            activeSessions.forEach(session => {
+                const sessionDiv = document.createElement('div');
+                sessionDiv.className = 'session-item';
+                
+                const info = document.createElement('div');
+                info.className = 'session-info';
+                info.innerHTML = `
+                    <strong>${session.sessionId}</strong><br>
+                    <small>Started: ${new Date(session.startTime).toLocaleTimeString()}</small><br>
+                    <small>Entities: ${session.createdEntities}, Modified: ${session.modifiedEntities}</small>
+                `;
+                
+                const actions = document.createElement('div');
+                actions.className = 'session-actions';
+                
+                const endButton = document.createElement('button');
+                endButton.className = 'btn danger';
+                endButton.textContent = 'End Session';
+                endButton.onclick = () => endSession(session.sessionId);
+                
+                actions.appendChild(endButton);
+                sessionDiv.appendChild(info);
+                sessionDiv.appendChild(actions);
+                sessionsList.appendChild(sessionDiv);
+                
+                totalEntities += session.createdEntities;
+            });
+            
+            updateStatus('sessionCount', activeSessions.length.toString());
+            updateStatus('entityCount', totalEntities.toString());
+        }
+
+        // End specific session
+        async function endSession(sessionId) {
+            if (!isInitialized) {
+                logError('Managers not initialized');
+                return;
+            }
+            
+            log(`🏁 Ending session: ${sessionId}`);
+            
+            try {
+                await testDatabaseManager.endTestSession(sessionId);
+                
+                if (currentSessionId === sessionId) {
+                    currentSessionId = null;
+                }
+                
+                logSuccess(`Session ended: ${sessionId}`);
+                updateSessionsList();
+                
+            } catch (error) {
+                logError(`Failed to end session: ${error.message}`);
+            }
+        }
+
+        // Update entity count
+        function updateEntityCount() {
+            if (isInitialized && testDatabaseManager) {
+                const activeSessions = testDatabaseManager.getActiveSessions();
+                const totalEntities = activeSessions.reduce((sum, session) => sum + session.createdEntities, 0);
+                updateStatus('entityCount', totalEntities.toString());
+            }
+        }
+
+        // Auto-refresh sessions list
+        setInterval(() => {
+            if (isInitialized) {
+                updateSessionsList();
+            }
+        }, 5000);
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🔧 Test Data Management System Ready');
+            log('Click "Initialize Managers" to begin');
+        });
+    </script>
+</body>
+</html>

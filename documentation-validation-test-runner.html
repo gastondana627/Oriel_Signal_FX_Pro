@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation Validation Test Runner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .test-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #495057;
+            border: 2px solid #dee2e6;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .current-test {
+            text-align: center;
+            font-style: italic;
+            color: #6c757d;
+            margin-top: 10px;
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-summary {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .summary-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .success-rate {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .results-details {
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+            overflow: hidden;
+        }
+
+        .results-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 5px 12px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .test-result {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f1f3f4;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .test-result:last-child {
+            border-bottom: none;
+        }
+
+        .result-status {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .status-passed {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-failed {
+            background: #dc3545;
+            color: white;
+        }
+
+        .result-info {
+            flex: 1;
+        }
+
+        .result-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #212529;
+        }
+
+        .result-message {
+            color: #6c757d;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .result-timestamp {
+            font-size: 0.8em;
+            color: #adb5bd;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+
+        .export-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .test-controls {
+                flex-direction: column;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+
+            .summary-stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .results-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .filter-buttons {
+                justify-content: center;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Documentation Validation Tests</h1>
+            <p>Validate documentation accuracy and test example code snippets</p>
+        </div>
+
+        <div class="content">
+            <div class="test-controls">
+                <button id="runAllBtn" class="btn btn-primary">
+                    <span>▶️</span> Run All Tests
+                </button>
+                <button id="runDocAccuracyBtn" class="btn btn-secondary">
+                    <span>📋</span> Documentation Accuracy
+                </button>
+                <button id="runExampleCodeBtn" class="btn btn-secondary">
+                    <span>💻</span> Example Code Tests
+                </button>
+                <button id="runStructureBtn" class="btn btn-secondary">
+                    <span>🏗️</span> Structure Tests
+                </button>
+                <button id="stopBtn" class="btn btn-danger" disabled>
+                    <span>⏹️</span> Stop Tests
+                </button>
+                <button id="clearBtn" class="btn btn-secondary">
+                    <span>🗑️</span> Clear Results
+                </button>
+            </div>
+
+            <div id="progressContainer" class="progress-container">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div id="progressText" class="progress-text">Initializing tests...</div>
+                <div id="currentTest" class="current-test"></div>
+            </div>
+
+            <div id="resultsContainer" class="results-container">
+                <div class="results-summary">
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <div id="totalTests" class="stat-number" style="color: #6c757d;">0</div>
+                            <div class="stat-label">Total Tests</div>
+                        </div>
+                        <div class="stat-item">
+                            <div id="passedTests" class="stat-number" style="color: #28a745;">0</div>
+                            <div class="stat-label">Passed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div id="failedTests" class="stat-number" style="color: #dc3545;">0</div>
+                            <div class="stat-label">Failed</div>
+                        </div>
+                    </div>
+                    <div id="successRate" class="success-rate">Success Rate: 0%</div>
+                </div>
+
+                <div class="results-details">
+                    <div class="results-header">
+                        <span>Test Results</span>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="passed">Passed</button>
+                            <button class="filter-btn" data-filter="failed">Failed</button>
+                        </div>
+                    </div>
+                    <div id="testResults"></div>
+                </div>
+
+                <div class="export-section">
+                    <button id="exportBtn" class="btn btn-success">
+                        <span>💾</span> Export Results as JSON
+                    </button>
+                </div>
+            </div>
+
+            <div id="consoleOutput" class="console-output" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script src="documentation-validation-tests.js"></script>
+    <script>
+        class DocumentationTestRunner {
+            constructor() {
+                this.tester = null;
+                this.isRunning = false;
+                this.currentFilter = 'all';
+                this.consoleOutput = [];
+                
+                this.initializeElements();
+                this.attachEventListeners();
+                this.captureConsoleOutput();
+            }
+
+            initializeElements() {
+                this.elements = {
+                    runAllBtn: document.getElementById('runAllBtn'),
+                    runDocAccuracyBtn: document.getElementById('runDocAccuracyBtn'),
+                    runExampleCodeBtn: document.getElementById('runExampleCodeBtn'),
+                    runStructureBtn: document.getElementById('runStructureBtn'),
+                    stopBtn: document.getElementById('stopBtn'),
+                    clearBtn: document.getElementById('clearBtn'),
+                    progressContainer: document.getElementById('progressContainer'),
+                    progressFill: document.getElementById('progressFill'),
+                    progressText: document.getElementById('progressText'),
+                    currentTest: document.getElementById('currentTest'),
+                    resultsContainer: document.getElementById('resultsContainer'),
+                    totalTests: document.getElementById('totalTests'),
+                    passedTests: document.getElementById('passedTests'),
+                    failedTests: document.getElementById('failedTests'),
+                    successRate: document.getElementById('successRate'),
+                    testResults: document.getElementById('testResults'),
+                    exportBtn: document.getElementById('exportBtn'),
+                    consoleOutput: document.getElementById('consoleOutput')
+                };
+            }
+
+            attachEventListeners() {
+                this.elements.runAllBtn.addEventListener('click', () => this.runAllTests());
+                this.elements.runDocAccuracyBtn.addEventListener('click', () => this.runDocumentationAccuracyTests());
+                this.elements.runExampleCodeBtn.addEventListener('click', () => this.runExampleCodeTests());
+                this.elements.runStructureBtn.addEventListener('click', () => this.runStructureTests());
+                this.elements.stopBtn.addEventListener('click', () => this.stopTests());
+                this.elements.clearBtn.addEventListener('click', () => this.clearResults());
+                this.elements.exportBtn.addEventListener('click', () => this.exportResults());
+
+                // Filter buttons
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentFilter = e.target.dataset.filter;
+                        this.filterResults();
+                    });
+                });
+            }
+
+            captureConsoleOutput() {
+                const originalLog = console.log;
+                const originalError = console.error;
+                const originalWarn = console.warn;
+
+                console.log = (...args) => {
+                    this.addConsoleOutput('LOG', args.join(' '));
+                    originalLog.apply(console, args);
+                };
+
+                console.error = (...args) => {
+                    this.addConsoleOutput('ERROR', args.join(' '));
+                    originalError.apply(console, args);
+                };
+
+                console.warn = (...args) => {
+                    this.addConsoleOutput('WARN', args.join(' '));
+                    originalWarn.apply(console, args);
+                };
+            }
+
+            addConsoleOutput(level, message) {
+                const timestamp = new Date().toLocaleTimeString();
+                this.consoleOutput.push(`[${timestamp}] ${level}: ${message}`);
+                
+                if (this.elements.consoleOutput.style.display !== 'none') {
+                    this.elements.consoleOutput.textContent = this.consoleOutput.slice(-100).join('\n');
+                    this.elements.consoleOutput.scrollTop = this.elements.consoleOutput.scrollHeight;
+                }
+            }
+
+            async runAllTests() {
+                if (this.isRunning) return;
+                
+                this.startTestExecution();
+                
+                try {
+                    this.tester = new DocumentationValidationTests();
+                    const results = await this.tester.runAllTests();
+                    this.displayResults(results);
+                } catch (error) {
+                    console.error('Test execution failed:', error);
+                    this.showError('Test execution failed: ' + error.message);
+                } finally {
+                    this.stopTestExecution();
+                }
+            }
+
+            async runDocumentationAccuracyTests() {
+                if (this.isRunning) return;
+                
+                this.startTestExecution();
+                
+                try {
+                    this.tester = new DocumentationValidationTests();
+                    
+                    // Run only documentation accuracy tests
+                    await this.tester.testAuthenticationDocumentationAccuracy();
+                    await this.tester.testDownloadUtilitiesDocumentationAccuracy();
+                    await this.tester.testErrorHandlingDocumentationAccuracy();
+                    await this.tester.testTroubleshootingGuideAccuracy();
+                    await this.tester.testProceduresDocumentationAccuracy();
+                    
+                    const results = {
+                        total: this.tester.testCount,
+                        passed: this.tester.passCount,
+                        failed: this.tester.failCount,
+                        successRate: this.tester.testCount > 0 ? (this.tester.passCount / this.tester.testCount * 100).toFixed(1) : 0,
+                        results: this.tester.results
+                    };
+                    
+                    this.displayResults(results);
+                } catch (error) {
+                    console.error('Documentation accuracy tests failed:', error);
+                    this.showError('Documentation accuracy tests failed: ' + error.message);
+                } finally {
+                    this.stopTestExecution();
+                }
+            }
+
+            async runExampleCodeTests() {
+                if (this.isRunning) return;
+                
+                this.startTestExecution();
+                
+                try {
+                    this.tester = new DocumentationValidationTests();
+                    
+                    // Run only example code tests
+                    await this.tester.testAuthenticationExampleCode();
+                    await this.tester.testDownloadUtilitiesExampleCode();
+                    await this.tester.testErrorHandlingExampleCode();
+                    await this.tester.testTroubleshootingExampleCode();
+                    await this.tester.testPerformanceMonitoringExampleCode();
+                    
+                    const results = {
+                        total: this.tester.testCount,
+                        passed: this.tester.passCount,
+                        failed: this.tester.failCount,
+                        successRate: this.tester.testCount > 0 ? (this.tester.passCount / this.tester.testCount * 100).toFixed(1) : 0,
+                        results: this.tester.results
+                    };
+                    
+                    this.displayResults(results);
+                } catch (error) {
+                    console.error('Example code tests failed:', error);
+                    this.showError('Example code tests failed: ' + error.message);
+                } finally {
+                    this.stopTestExecution();
+                }
+            }
+
+            async runStructureTests() {
+                if (this.isRunning) return;
+                
+                this.startTestExecution();
+                
+                try {
+                    this.tester = new DocumentationValidationTests();
+                    
+                    // Run only structure tests
+                    await this.tester.testDocumentationStructure();
+                    await this.tester.testCodeBlockSyntax();
+                    await this.tester.testRequirementsCoverage();
+                    await this.tester.testExampleDataValidity();
+                    await this.tester.testAPIEndpointDocumentation();
+                    
+                    const results = {
+                        total: this.tester.testCount,
+                        passed: this.tester.passCount,
+                        failed: this.tester.failCount,
+                        successRate: this.tester.testCount > 0 ? (this.tester.passCount / this.tester.testCount * 100).toFixed(1) : 0,
+                        results: this.tester.results
+                    };
+                    
+                    this.displayResults(results);
+                } catch (error) {
+                    console.error('Structure tests failed:', error);
+                    this.showError('Structure tests failed: ' + error.message);
+                } finally {
+                    this.stopTestExecution();
+                }
+            }
+
+            startTestExecution() {
+                this.isRunning = true;
+                this.elements.runAllBtn.disabled = true;
+                this.elements.runDocAccuracyBtn.disabled = true;
+                this.elements.runExampleCodeBtn.disabled = true;
+                this.elements.runStructureBtn.disabled = true;
+                this.elements.stopBtn.disabled = false;
+                this.elements.progressContainer.style.display = 'block';
+                this.elements.resultsContainer.style.display = 'none';
+                this.elements.consoleOutput.style.display = 'block';
+                
+                // Simulate progress
+                this.simulateProgress();
+            }
+
+            stopTestExecution() {
+                this.isRunning = false;
+                this.elements.runAllBtn.disabled = false;
+                this.elements.runDocAccuracyBtn.disabled = false;
+                this.elements.runExampleCodeBtn.disabled = false;
+                this.elements.runStructureBtn.disabled = false;
+                this.elements.stopBtn.disabled = true;
+                this.elements.progressContainer.style.display = 'none';
+            }
+
+            simulateProgress() {
+                let progress = 0;
+                const interval = setInterval(() => {
+                    if (!this.isRunning) {
+                        clearInterval(interval);
+                        return;
+                    }
+                    
+                    progress += Math.random() * 10;
+                    if (progress > 95) progress = 95;
+                    
+                    this.elements.progressFill.style.width = progress + '%';
+                    this.elements.progressText.textContent = `Running tests... ${Math.round(progress)}%`;
+                    
+                    if (progress >= 95) {
+                        clearInterval(interval);
+                    }
+                }, 200);
+            }
+
+            stopTests() {
+                this.isRunning = false;
+                this.stopTestExecution();
+            }
+
+            clearResults() {
+                this.elements.resultsContainer.style.display = 'none';
+                this.elements.consoleOutput.style.display = 'none';
+                this.consoleOutput = [];
+                this.elements.consoleOutput.textContent = '';
+            }
+
+            displayResults(results) {
+                this.elements.progressFill.style.width = '100%';
+                this.elements.progressText.textContent = 'Tests completed!';
+                
+                setTimeout(() => {
+                    this.elements.progressContainer.style.display = 'none';
+                    this.elements.resultsContainer.style.display = 'block';
+                    
+                    // Update summary
+                    this.elements.totalTests.textContent = results.total;
+                    this.elements.passedTests.textContent = results.passed;
+                    this.elements.failedTests.textContent = results.failed;
+                    this.elements.successRate.textContent = `Success Rate: ${results.successRate}%`;
+                    
+                    // Update success rate color
+                    const rate = parseFloat(results.successRate);
+                    if (rate >= 90) {
+                        this.elements.successRate.style.color = '#28a745';
+                    } else if (rate >= 70) {
+                        this.elements.successRate.style.color = '#ffc107';
+                    } else {
+                        this.elements.successRate.style.color = '#dc3545';
+                    }
+                    
+                    // Display test results
+                    this.renderTestResults(results.results);
+                }, 1000);
+            }
+
+            renderTestResults(results) {
+                this.elements.testResults.innerHTML = '';
+                
+                results.forEach(result => {
+                    const resultElement = document.createElement('div');
+                    resultElement.className = `test-result ${result.status.toLowerCase()}`;
+                    
+                    const statusIcon = result.status === 'PASSED' ? '✓' : '✗';
+                    const statusClass = result.status === 'PASSED' ? 'status-passed' : 'status-failed';
+                    
+                    const timestamp = new Date(result.timestamp).toLocaleTimeString();
+                    
+                    resultElement.innerHTML = `
+                        <div class="result-status ${statusClass}">${statusIcon}</div>
+                        <div class="result-info">
+                            <div class="result-name">${result.test}</div>
+                            <div class="result-message">${result.message}</div>
+                        </div>
+                        <div class="result-timestamp">${timestamp}</div>
+                    `;
+                    
+                    this.elements.testResults.appendChild(resultElement);
+                });
+                
+                this.filterResults();
+            }
+
+            filterResults() {
+                const results = this.elements.testResults.querySelectorAll('.test-result');
+                
+                results.forEach(result => {
+                    const shouldShow = this.currentFilter === 'all' || 
+                                    result.classList.contains(this.currentFilter);
+                    result.style.display = shouldShow ? 'flex' : 'none';
+                });
+            }
+
+            exportResults() {
+                if (!this.tester || !this.tester.results) {
+                    alert('No results to export');
+                    return;
+                }
+                
+                const exportData = {
+                    timestamp: new Date().toISOString(),
+                    summary: {
+                        total: this.tester.testCount,
+                        passed: this.tester.passCount,
+                        failed: this.tester.failCount,
+                        successRate: this.tester.testCount > 0 ? (this.tester.passCount / this.tester.testCount * 100).toFixed(1) : 0
+                    },
+                    results: this.tester.results,
+                    consoleOutput: this.consoleOutput
+                };
+                
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `documentation-validation-results-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            showError(message) {
+                this.elements.progressText.textContent = 'Error: ' + message;
+                this.elements.progressText.style.color = '#dc3545';
+            }
+        }
+
+        // Initialize the test runner when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new DocumentationTestRunner();
+        });
+    </script>
+</body>
+</html>

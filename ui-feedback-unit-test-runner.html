@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Feedback Unit Tests</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .test-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .status-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .status-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .status-label {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .pass { color: #28a745; }
+        .fail { color: #dc3545; }
+        .total { color: #007bff; }
+        .rate { color: #17a2b8; }
+
+        .test-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .test-output:empty::before {
+            content: "Test output will appear here...";
+            color: #666;
+            font-style: italic;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .test-list {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .test-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .test-item:last-child {
+            border-bottom: none;
+        }
+
+        .test-name {
+            font-weight: 500;
+        }
+
+        .test-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .test-status.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .test-status.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .test-status.error {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .test-controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .status-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 UI Feedback Unit Tests</h1>
+            <p>Testing progress indicator functionality and notification system</p>
+        </div>
+
+        <div class="content">
+            <div class="alert alert-info">
+                <strong>Requirements Coverage:</strong> 8.1 (Progress indicators), 8.2 (Notification system)
+            </div>
+
+            <div class="test-controls">
+                <button id="runAllTests" class="btn btn-primary">
+                    <span id="runAllText">🚀 Run All Tests</span>
+                    <span id="runAllLoading" class="loading hidden"></span>
+                </button>
+                <button id="clearOutput" class="btn btn-secondary">🗑️ Clear Output</button>
+                <button id="exportResults" class="btn btn-success">📊 Export Results</button>
+            </div>
+
+            <div class="status-panel">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div id="totalTests" class="status-value total">0</div>
+                        <div class="status-label">Total Tests</div>
+                    </div>
+                    <div class="status-item">
+                        <div id="passedTests" class="status-value pass">0</div>
+                        <div class="status-label">Passed</div>
+                    </div>
+                    <div class="status-item">
+                        <div id="failedTests" class="status-value fail">0</div>
+                        <div class="status-label">Failed</div>
+                    </div>
+                    <div class="status-item">
+                        <div id="successRate" class="status-value rate">0%</div>
+                        <div class="status-label">Success Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="testOutput" class="test-output"></div>
+
+            <div id="testResults" class="test-list hidden">
+                <div style="padding: 15px; background: #f8f9fa; border-bottom: 1px solid #dee2e6; font-weight: bold;">
+                    Test Results
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load dependencies -->
+    <script src="notification-manager.js"></script>
+    <script src="enhanced-user-feedback.js"></script>
+    <script src="ui-feedback-unit-tests.js"></script>
+
+    <script>
+        class UIFeedbackTestRunner {
+            constructor() {
+                this.testSuite = null;
+                this.isRunning = false;
+                this.results = [];
+                
+                this.initializeElements();
+                this.setupEventListeners();
+            }
+
+            initializeElements() {
+                this.elements = {
+                    runAllBtn: document.getElementById('runAllTests'),
+                    runAllText: document.getElementById('runAllText'),
+                    runAllLoading: document.getElementById('runAllLoading'),
+                    clearBtn: document.getElementById('clearOutput'),
+                    exportBtn: document.getElementById('exportResults'),
+                    output: document.getElementById('testOutput'),
+                    progressFill: document.getElementById('progressFill'),
+                    totalTests: document.getElementById('totalTests'),
+                    passedTests: document.getElementById('passedTests'),
+                    failedTests: document.getElementById('failedTests'),
+                    successRate: document.getElementById('successRate'),
+                    testResults: document.getElementById('testResults')
+                };
+            }
+
+            setupEventListeners() {
+                this.elements.runAllBtn.addEventListener('click', () => this.runAllTests());
+                this.elements.clearBtn.addEventListener('click', () => this.clearOutput());
+                this.elements.exportBtn.addEventListener('click', () => this.exportResults());
+            }
+
+            async runAllTests() {
+                if (this.isRunning) return;
+
+                this.isRunning = true;
+                this.updateRunButton(true);
+                this.clearOutput();
+                this.clearResults();
+
+                try {
+                    this.log('🎨 Starting UI Feedback Unit Tests...', 'info');
+                    this.log('📋 Testing progress indicators and notification system', 'info');
+                    this.log('=' .repeat(60), 'info');
+
+                    // Check if required classes are available
+                    if (typeof NotificationManager === 'undefined') {
+                        throw new Error('NotificationManager class not found. Please ensure notification-manager.js is loaded.');
+                    }
+
+                    if (typeof UIFeedbackUnitTests === 'undefined') {
+                        throw new Error('UIFeedbackUnitTests class not found. Please ensure ui-feedback-unit-tests.js is loaded.');
+                    }
+
+                    // Create test suite
+                    this.testSuite = new UIFeedbackUnitTests();
+
+                    // Override console methods to capture output
+                    this.setupConsoleCapture();
+
+                    // Run tests
+                    this.results = await this.testSuite.runAllTests();
+
+                    // Restore console methods
+                    this.restoreConsole();
+
+                    // Update UI
+                    this.updateTestStats();
+                    this.displayTestResults();
+
+                    this.log('✅ All tests completed!', 'success');
+
+                } catch (error) {
+                    this.log(`❌ Test execution failed: ${error.message}`, 'error');
+                    console.error('Test execution error:', error);
+                } finally {
+                    this.isRunning = false;
+                    this.updateRunButton(false);
+                }
+            }
+
+            setupConsoleCapture() {
+                this.originalConsole = {
+                    log: console.log,
+                    error: console.error,
+                    warn: console.warn,
+                    info: console.info
+                };
+
+                console.log = (...args) => {
+                    this.log(args.join(' '), 'log');
+                    this.originalConsole.log(...args);
+                };
+
+                console.error = (...args) => {
+                    this.log(args.join(' '), 'error');
+                    this.originalConsole.error(...args);
+                };
+
+                console.warn = (...args) => {
+                    this.log(args.join(' '), 'warn');
+                    this.originalConsole.warn(...args);
+                };
+
+                console.info = (...args) => {
+                    this.log(args.join(' '), 'info');
+                    this.originalConsole.info(...args);
+                };
+            }
+
+            restoreConsole() {
+                if (this.originalConsole) {
+                    console.log = this.originalConsole.log;
+                    console.error = this.originalConsole.error;
+                    console.warn = this.originalConsole.warn;
+                    console.info = this.originalConsole.info;
+                }
+            }
+
+            updateRunButton(isRunning) {
+                if (isRunning) {
+                    this.elements.runAllText.classList.add('hidden');
+                    this.elements.runAllLoading.classList.remove('hidden');
+                    this.elements.runAllBtn.disabled = true;
+                } else {
+                    this.elements.runAllText.classList.remove('hidden');
+                    this.elements.runAllLoading.classList.add('hidden');
+                    this.elements.runAllBtn.disabled = false;
+                }
+            }
+
+            updateTestStats() {
+                if (!this.testSuite) return;
+
+                const total = this.testSuite.testCount;
+                const passed = this.testSuite.passCount;
+                const failed = this.testSuite.failCount;
+                const rate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
+
+                this.elements.totalTests.textContent = total;
+                this.elements.passedTests.textContent = passed;
+                this.elements.failedTests.textContent = failed;
+                this.elements.successRate.textContent = `${rate}%`;
+
+                // Update progress bar
+                this.elements.progressFill.style.width = `${rate}%`;
+            }
+
+            displayTestResults() {
+                if (!this.results || this.results.length === 0) return;
+
+                this.elements.testResults.classList.remove('hidden');
+                
+                // Clear existing results
+                const existingItems = this.elements.testResults.querySelectorAll('.test-item');
+                existingItems.forEach(item => item.remove());
+
+                // Add new results
+                this.results.forEach(result => {
+                    const item = document.createElement('div');
+                    item.className = 'test-item';
+                    
+                    const name = document.createElement('div');
+                    name.className = 'test-name';
+                    name.textContent = result.test;
+                    
+                    const status = document.createElement('div');
+                    status.className = `test-status ${result.status.toLowerCase()}`;
+                    status.textContent = result.status;
+                    
+                    item.appendChild(name);
+                    item.appendChild(status);
+                    this.elements.testResults.appendChild(item);
+                });
+            }
+
+            clearOutput() {
+                this.elements.output.innerHTML = '';
+            }
+
+            clearResults() {
+                this.elements.testResults.classList.add('hidden');
+                this.elements.totalTests.textContent = '0';
+                this.elements.passedTests.textContent = '0';
+                this.elements.failedTests.textContent = '0';
+                this.elements.successRate.textContent = '0%';
+                this.elements.progressFill.style.width = '0%';
+            }
+
+            log(message, type = 'log') {
+                const output = this.elements.output;
+                const line = document.createElement('div');
+                
+                const timestamp = new Date().toLocaleTimeString();
+                const prefix = `[${timestamp}] `;
+                
+                line.textContent = prefix + message;
+                
+                // Apply styling based on type
+                switch (type) {
+                    case 'error':
+                        line.style.color = '#ff6b6b';
+                        break;
+                    case 'warn':
+                        line.style.color = '#feca57';
+                        break;
+                    case 'success':
+                        line.style.color = '#48dbfb';
+                        break;
+                    case 'info':
+                        line.style.color = '#0abde3';
+                        break;
+                    default:
+                        line.style.color = '#d4d4d4';
+                }
+                
+                output.appendChild(line);
+                output.scrollTop = output.scrollHeight;
+            }
+
+            exportResults() {
+                if (!this.results || this.results.length === 0) {
+                    alert('No test results to export. Please run tests first.');
+                    return;
+                }
+
+                const data = {
+                    timestamp: new Date().toISOString(),
+                    testSuite: 'UI Feedback Unit Tests',
+                    requirements: ['8.1', '8.2'],
+                    summary: {
+                        total: this.testSuite.testCount,
+                        passed: this.testSuite.passCount,
+                        failed: this.testSuite.failCount,
+                        successRate: ((this.testSuite.passCount / this.testSuite.testCount) * 100).toFixed(1) + '%'
+                    },
+                    results: this.results
+                };
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ui-feedback-unit-tests-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                this.log('📊 Test results exported successfully', 'success');
+            }
+        }
+
+        // Initialize test runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.testRunner = new UIFeedbackTestRunner();
+            console.log('🎨 UI Feedback Unit Test Runner initialized');
+        });
+
+        // Handle script loading errors
+        window.addEventListener('error', (event) => {
+            if (event.filename && (event.filename.includes('notification-manager.js') || 
+                                  event.filename.includes('enhanced-user-feedback.js') || 
+                                  event.filename.includes('ui-feedback-unit-tests.js'))) {
+                console.error('Failed to load required script:', event.filename);
+                alert('Failed to load required test dependencies. Please ensure all script files are available.');
+            }
+        });
+    </script>
+</body>
+</html>

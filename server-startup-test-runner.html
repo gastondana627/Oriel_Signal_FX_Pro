@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Startup Testing - Oriel Signal FX Pro</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .test-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .test-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        
+        .test-body {
+            padding: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-pending {
+            background: #95a5a6;
+        }
+        
+        .status-running {
+            background: #f39c12;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-success {
+            background: #27ae60;
+        }
+        
+        .status-error {
+            background: #e74c3c;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .log-output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            white-space: pre-wrap;
+        }
+        
+        .server-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .server-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .server-card h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+        }
+        
+        .health-check {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .health-check:last-child {
+            border-bottom: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #3498db;
+            transition: width 0.3s ease;
+        }
+        
+        .test-results {
+            margin-top: 20px;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+        
+        .result-item.success {
+            background: #d4edda;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .result-item.error {
+            background: #f8d7da;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .result-item.warning {
+            background: #fff3cd;
+            border-left: 4px solid #f39c12;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Server Startup Testing</h1>
+            <p>Automated testing for server startup, health checks, and connectivity validation</p>
+        </div>
+        
+        <div class="content">
+            <!-- Server Restart Testing -->
+            <div class="test-section">
+                <div class="test-header">
+                    <div class="test-title">
+                        <span class="status-indicator status-pending" id="restart-status"></span>
+                        Server Restart Testing
+                    </div>
+                    <button class="btn btn-primary" onclick="runRestartTest()">Run Restart Test</button>
+                </div>
+                <div class="test-body">
+                    <p>Tests automated server restart using the restart script with proper cleanup and startup validation.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="restart-progress" style="width: 0%"></div>
+                    </div>
+                    <div class="log-output" id="restart-log" style="display: none;"></div>
+                </div>
+            </div>
+            
+            <!-- Health Endpoint Testing -->
+            <div class="test-section">
+                <div class="test-header">
+                    <div class="test-title">
+                        <span class="status-indicator status-pending" id="health-status"></span>
+                        Health Endpoint Validation
+                    </div>
+                    <button class="btn btn-primary" onclick="runHealthTest()">Test Health Endpoints</button>
+                </div>
+                <div class="test-body">
+                    <p>Validates health endpoints for both frontend and backend servers with comprehensive checks.</p>
+                    <div class="server-info">
+                        <div class="server-card">
+                            <h3>🌐 Frontend Server</h3>
+                            <div class="health-check">
+                                <span>Port 3000 Accessibility</span>
+                                <span class="status-indicator status-pending" id="frontend-port-status"></span>
+                            </div>
+                            <div class="health-check">
+                                <span>Index Page Load</span>
+                                <span class="status-indicator status-pending" id="frontend-page-status"></span>
+                            </div>
+                            <div class="health-check">
+                                <span>Static Assets</span>
+                                <span class="status-indicator status-pending" id="frontend-assets-status"></span>
+                            </div>
+                        </div>
+                        <div class="server-card">
+                            <h3>🔧 Backend Server</h3>
+                            <div class="health-check">
+                                <span>Port 8000 Accessibility</span>
+                                <span class="status-indicator status-pending" id="backend-port-status"></span>
+                            </div>
+                            <div class="health-check">
+                                <span>Health Endpoint</span>
+                                <span class="status-indicator status-pending" id="backend-health-status"></span>
+                            </div>
+                            <div class="health-check">
+                                <span>Database Connection</span>
+                                <span class="status-indicator status-pending" id="backend-db-status"></span>
+                            </div>
+                            <div class="health-check">
+                                <span>API Endpoints</span>
+                                <span class="status-indicator status-pending" id="backend-api-status"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="log-output" id="health-log" style="display: none;"></div>
+                </div>
+            </div>
+            
+            <!-- Connectivity Testing -->
+            <div class="test-section">
+                <div class="test-header">
+                    <div class="test-title">
+                        <span class="status-indicator status-pending" id="connectivity-status"></span>
+                        Connectivity & URL Verification
+                    </div>
+                    <button class="btn btn-primary" onclick="runConnectivityTest()">Test Connectivity</button>
+                </div>
+                <div class="test-body">
+                    <p>Comprehensive connectivity testing and URL verification for all server endpoints.</p>
+                    <div class="test-results" id="connectivity-results"></div>
+                    <div class="log-output" id="connectivity-log" style="display: none;"></div>
+                </div>
+            </div>
+            
+            <!-- Complete Test Suite -->
+            <div class="test-section">
+                <div class="test-header">
+                    <div class="test-title">
+                        <span class="status-indicator status-pending" id="complete-status"></span>
+                        Complete Server Startup Test Suite
+                    </div>
+                    <button class="btn btn-success" onclick="runCompleteTest()">Run All Tests</button>
+                </div>
+                <div class="test-body">
+                    <p>Runs the complete server startup test suite including restart, health checks, and connectivity validation.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="complete-progress" style="width: 0%"></div>
+                    </div>
+                    <div class="test-results" id="complete-results"></div>
+                    <div class="log-output" id="complete-log" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="server-startup-tests.js"></script>
+</body>
+</html>

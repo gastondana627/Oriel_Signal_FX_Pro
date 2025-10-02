@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid;
+        }
+        .test-pass {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .test-fail {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .dashboard-link {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .dashboard-link:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Dashboard Functionality Test</h1>
+        <p>This page validates that the User Testing Dashboard has been created correctly.</p>
+        
+        <div id="testResults"></div>
+        
+        <a href="user-testing-dashboard.html" class="dashboard-link" target="_blank">
+            🚀 Open User Testing Dashboard
+        </a>
+        
+        <h3>Expected Dashboard Features:</h3>
+        <ul>
+            <li>✅ Test suite selection (Authentication, Downloads, Server, Logging, UI Feedback, All)</li>
+            <li>✅ Execution controls (Run, Pause, Stop)</li>
+            <li>✅ Real-time progress tracking with progress bar</li>
+            <li>✅ Results visualization with pass/fail indicators</li>
+            <li>✅ Test execution logs with timestamps</li>
+            <li>✅ Current test display</li>
+            <li>✅ Summary statistics (Total, Passed, Failed, Skipped)</li>
+            <li>✅ Responsive design for different screen sizes</li>
+        </ul>
+        
+        <h3>How to Test:</h3>
+        <ol>
+            <li>Click the "Open User Testing Dashboard" link above</li>
+            <li>Select a test suite by clicking on one of the cards</li>
+            <li>Click "Run Tests" to start execution</li>
+            <li>Observe real-time progress updates and results</li>
+            <li>Check the logs section for detailed execution information</li>
+            <li>Try pausing and stopping tests during execution</li>
+        </ol>
+    </div>
+
+    <script>
+        // Validate that dashboard files exist and are accessible
+        function runValidationTests() {
+            const results = [];
+            
+            // Test 1: Check if HTML file exists
+            fetch('user-testing-dashboard.html')
+                .then(response => {
+                    if (response.ok) {
+                        results.push({
+                            name: 'Dashboard HTML file accessibility',
+                            status: 'pass',
+                            message: 'user-testing-dashboard.html is accessible'
+                        });
+                    } else {
+                        results.push({
+                            name: 'Dashboard HTML file accessibility',
+                            status: 'fail',
+                            message: 'user-testing-dashboard.html is not accessible'
+                        });
+                    }
+                    displayResults(results);
+                })
+                .catch(error => {
+                    results.push({
+                        name: 'Dashboard HTML file accessibility',
+                        status: 'fail',
+                        message: `Error accessing dashboard: ${error.message}`
+                    });
+                    displayResults(results);
+                });
+            
+            // Test 2: Check if JS file exists
+            fetch('user-testing-dashboard.js')
+                .then(response => {
+                    if (response.ok) {
+                        results.push({
+                            name: 'Dashboard JavaScript file accessibility',
+                            status: 'pass',
+                            message: 'user-testing-dashboard.js is accessible'
+                        });
+                    } else {
+                        results.push({
+                            name: 'Dashboard JavaScript file accessibility',
+                            status: 'fail',
+                            message: 'user-testing-dashboard.js is not accessible'
+                        });
+                    }
+                    displayResults(results);
+                })
+                .catch(error => {
+                    results.push({
+                        name: 'Dashboard JavaScript file accessibility',
+                        status: 'fail',
+                        message: `Error accessing JavaScript: ${error.message}`
+                    });
+                    displayResults(results);
+                });
+        }
+        
+        function displayResults(results) {
+            const container = document.getElementById('testResults');
+            container.innerHTML = '';
+            
+            results.forEach(result => {
+                const div = document.createElement('div');
+                div.className = `test-result test-${result.status}`;
+                div.innerHTML = `
+                    <strong>${result.name}:</strong> ${result.message}
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        // Run tests when page loads
+        document.addEventListener('DOMContentLoaded', runValidationTests);
+    </script>
+</body>
+</html>

@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regression Test Suite - Oriel Signal FX Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #4a5568;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .test-categories {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .category-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            background: #f7fafc;
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .category-name {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .category-count {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .category-description {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #cbd5e0;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-warning:hover:not(:disabled) {
+            background: #dd6b20;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .test-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+
+        .summary-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .summary-card.total .summary-number {
+            color: #667eea;
+        }
+
+        .summary-card.passed .summary-number {
+            color: #38a169;
+        }
+
+        .summary-card.failed .summary-number {
+            color: #e53e3e;
+        }
+
+        .summary-card.rate .summary-number {
+            color: #d69e2e;
+        }
+
+        .test-results-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .test-result-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.2s ease;
+        }
+
+        .test-result-item:hover {
+            background: #f7fafc;
+        }
+
+        .test-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .status-icon.passed {
+            background: #38a169;
+        }
+
+        .status-icon.failed {
+            background: #e53e3e;
+        }
+
+        .status-icon.running {
+            background: #667eea;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .test-info {
+            flex: 1;
+        }
+
+        .test-name {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 3px;
+        }
+
+        .test-details {
+            font-size: 0.8rem;
+            color: #718096;
+        }
+
+        .test-category {
+            display: inline-block;
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-right: 5px;
+        }
+
+        .test-severity {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .test-severity.high {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .test-severity.medium {
+            background: #feebc8;
+            color: #c05621;
+        }
+
+        .test-severity.low {
+            background: #c6f6d5;
+            color: #2d7d32;
+        }
+
+        .recommendations-section {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .recommendation-item {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .recommendation-item.critical {
+            border-left-color: #e53e3e;
+            background: #fff5f5;
+        }
+
+        .recommendation-item.warning {
+            border-left-color: #ed8936;
+            background: #fffaf0;
+        }
+
+        .recommendation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-type {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .recommendation-priority {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .recommendation-priority.critical {
+            background: #e53e3e;
+        }
+
+        .recommendation-priority.warning {
+            background: #ed8936;
+        }
+
+        .recommendation-text {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .affected-tests {
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
+
+        .logs-section {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logs-container {
+            background: #1a202c;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-entry.error {
+            color: #fc8181;
+        }
+
+        .log-entry.warning {
+            color: #f6e05e;
+        }
+
+        .log-entry.success {
+            color: #68d391;
+        }
+
+        .log-entry.info {
+            color: #63b3ed;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .test-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Regression Test Suite</h1>
+            <p>Prevent reintroduction of fixed bugs and validate edge case handling</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="control-panel">
+                <h2 class="section-title">Test Categories</h2>
+                
+                <div class="test-categories">
+                    <div class="category-card">
+                        <div class="category-header">
+                            <div class="category-name">🐛 Fixed Issue Regression</div>
+                            <div id="fixed-issues-count" class="category-count">6</div>
+                        </div>
+                        <div class="category-description">
+                            Tests to ensure previously fixed bugs don't reappear
+                        </div>
+                    </div>
+                    
+                    <div class="category-card">
+                        <div class="category-header">
+                            <div class="category-name">⚡ Edge Case Validation</div>
+                            <div id="edge-cases-count" class="category-count">5</div>
+                        </div>
+                        <div class="category-description">
+                            Tests for edge cases discovered during testing
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="section-title">Execution Controls</h3>
+                
+                <div class="control-buttons">
+                    <button id="run-all-btn" class="btn btn-primary">
+                        ▶️ Run All Tests
+                    </button>
+                    <button id="run-regression-btn" class="btn btn-secondary">
+                        🐛 Fixed Issues Only
+                    </button>
+                    <button id="run-edge-cases-btn" class="btn btn-secondary">
+                        ⚡ Edge Cases Only
+                    </button>
+                    <button id="clear-results-btn" class="btn btn-warning">
+                        🗑️ Clear Results
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-panel">
+                <h2 class="section-title">Test Results</h2>
+                
+                <div class="test-summary">
+                    <div class="summary-card total">
+                        <div id="total-tests" class="summary-number">0</div>
+                        <div class="summary-label">Total Tests</div>
+                    </div>
+                    <div class="summary-card passed">
+                        <div id="passed-tests" class="summary-number">0</div>
+                        <div class="summary-label">Passed</div>
+                    </div>
+                    <div class="summary-card failed">
+                        <div id="failed-tests" class="summary-number">0</div>
+                        <div class="summary-label">Failed</div>
+                    </div>
+                    <div class="summary-card rate">
+                        <div id="success-rate" class="summary-number">0%</div>
+                        <div class="summary-label">Success Rate</div>
+                    </div>
+                </div>
+
+                <div id="test-results-list" class="test-results-list">
+                    <div class="test-result-item">
+                        <div class="status-icon" style="background: #e2e8f0; color: #718096;">?</div>
+                        <div class="test-info">
+                            <div class="test-name">No tests executed yet</div>
+                            <div class="test-details">Click "Run All Tests" to begin regression testing</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="recommendations-section" class="recommendations-section" style="display: none;">
+            <h2 class="section-title">Recommendations</h2>
+            <div id="recommendations-list">
+                <!-- Recommendations will be populated here -->
+            </div>
+        </div>
+
+        <div class="logs-section">
+            <h2 class="section-title">Test Execution Logs</h2>
+            <div id="logs-container" class="logs-container">
+                <div class="log-entry info">[00:00:00] Regression Test Suite initialized and ready</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load dependencies -->
+    <script src="app-config.js"></script>
+    <script src="api-client.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="auth-manager.js"></script>
+    <script src="auth-ui.js"></script>
+    <script src="download-modal.js"></script>
+    <script src="regression-test-suite.js"></script>
+
+    <script>
+        class RegressionTestRunner {
+            constructor() {
+                this.testSuite = null;
+                this.isRunning = false;
+                this.currentReport = null;
+                
+                this.initializeUI();
+                this.setupEventListeners();
+                this.initializeTestSuite();
+            }
+
+            async initializeTestSuite() {
+                try {
+                    this.log('Initializing Regression Test Suite...', 'info');
+                    
+                    this.testSuite = new RegressionTestSuite();
+                    
+                    this.log('✅ Regression Test Suite ready', 'success');
+                    
+                } catch (error) {
+                    this.log(`❌ Failed to initialize test suite: ${error.message}`, 'error');
+                }
+            }
+
+            initializeUI() {
+                this.elements = {
+                    runAllBtn: document.getElementById('run-all-btn'),
+                    runRegressionBtn: document.getElementById('run-regression-btn'),
+                    runEdgeCasesBtn: document.getElementById('run-edge-cases-btn'),
+                    clearResultsBtn: document.getElementById('clear-results-btn'),
+                    fixedIssuesCount: document.getElementById('fixed-issues-count'),
+                    edgeCasesCount: document.getElementById('edge-cases-count'),
+                    totalTests: document.getElementById('total-tests'),
+                    passedTests: document.getElementById('passed-tests'),
+                    failedTests: document.getElementById('failed-tests'),
+                    successRate: document.getElementById('success-rate'),
+                    testResultsList: document.getElementById('test-results-list'),
+                    recommendationsSection: document.getElementById('recommendations-section'),
+                    recommendationsList: document.getElementById('recommendations-list'),
+                    logsContainer: document.getElementById('logs-container')
+                };
+            }
+
+            setupEventListeners() {
+                this.elements.runAllBtn.addEventListener('click', () => this.runAllTests());
+                this.elements.runRegressionBtn.addEventListener('click', () => this.runRegressionTests());
+                this.elements.runEdgeCasesBtn.addEventListener('click', () => this.runEdgeCaseTests());
+                this.elements.clearResultsBtn.addEventListener('click', () => this.clearResults());
+            }
+
+            async runAllTests() {
+                if (this.isRunning || !this.testSuite) return;
+                
+                try {
+                    this.isRunning = true;
+                    this.setButtonsDisabled(true);
+                    
+                    this.log('🚀 Starting comprehensive regression test suite...', 'info');
+                    
+                    this.currentReport = await this.testSuite.runAllRegressionTests();
+                    
+                    this.displayResults(this.currentReport);
+                    this.displayRecommendations(this.currentReport.recommendations);
+                    
+                    const status = this.currentReport.summary.successRate >= 90 ? 'success' : 'warning';
+                    this.log(`🎉 Regression testing completed with ${this.currentReport.summary.successRate.toFixed(1)}% success rate`, status);
+                    
+                } catch (error) {
+                    this.log(`❌ Regression test execution failed: ${error.message}`, 'error');
+                } finally {
+                    this.isRunning = false;
+                    this.setButtonsDisabled(false);
+                }
+            }
+
+            async runRegressionTests() {
+                if (this.isRunning || !this.testSuite) return;
+                
+                try {
+                    this.isRunning = true;
+                    this.setButtonsDisabled(true);
+                    
+                    this.log('🐛 Running fixed issue regression tests...', 'info');
+                    
+                    // Run only fixed issue tests
+                    await this.testSuite.runFixedIssueTests();
+                    
+                    const report = this.testSuite.generateRegressionReport();
+                    this.displayResults(report);
+                    
+                    this.log('✅ Fixed issue regression tests completed', 'success');
+                    
+                } catch (error) {
+                    this.log(`❌ Fixed issue tests failed: ${error.message}`, 'error');
+                } finally {
+                    this.isRunning = false;
+                    this.setButtonsDisabled(false);
+                }
+            }
+
+            async runEdgeCaseTests() {
+                if (this.isRunning || !this.testSuite) return;
+                
+                try {
+                    this.isRunning = true;
+                    this.setButtonsDisabled(true);
+                    
+                    this.log('⚡ Running edge case tests...', 'info');
+                    
+                    // Run only edge case tests
+                    await this.testSuite.runEdgeCaseTests();
+                    
+                    const report = this.testSuite.generateRegressionReport();
+                    this.displayResults(report);
+                    
+                    this.log('✅ Edge case tests completed', 'success');
+                    
+                } catch (error) {
+                    this.log(`❌ Edge case tests failed: ${error.message}`, 'error');
+                } finally {
+                    this.isRunning = false;
+                    this.setButtonsDisabled(false);
+                }
+            }
+
+            displayResults(report) {
+                // Update summary statistics
+                this.elements.totalTests.textContent = report.summary.total;
+                this.elements.passedTests.textContent = report.summary.passed;
+                this.elements.failedTests.textContent = report.summary.failed;
+                this.elements.successRate.textContent = `${report.summary.successRate.toFixed(1)}%`;
+                
+                // Display individual test results
+                this.elements.testResultsList.innerHTML = '';
+                
+                report.results.forEach(result => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'test-result-item';
+                    
+                    const statusClass = result.status === 'PASSED' ? 'passed' : 'failed';
+                    const statusIcon = result.status === 'PASSED' ? '✓' : '✗';
+                    
+                    resultItem.innerHTML = `
+                        <div class="status-icon ${statusClass}">${statusIcon}</div>
+                        <div class="test-info">
+                            <div class="test-name">${result.test}</div>
+                            <div class="test-details">
+                                <span class="test-category">${result.category}</span>
+                                <span class="test-severity ${result.severity}">${result.severity.toUpperCase()}</span>
+                                Duration: ${result.duration}ms
+                                ${result.error ? `| Error: ${result.error}` : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    this.elements.testResultsList.appendChild(resultItem);
+                });
+            }
+
+            displayRecommendations(recommendations) {
+                if (!recommendations || recommendations.length === 0) {
+                    this.elements.recommendationsSection.style.display = 'none';
+                    return;
+                }
+                
+                this.elements.recommendationsList.innerHTML = '';
+                
+                recommendations.forEach(rec => {
+                    const recItem = document.createElement('div');
+                    recItem.className = `recommendation-item ${rec.type.toLowerCase()}`;
+                    
+                    const priorityClass = rec.priority === 1 ? 'critical' : 'warning';
+                    
+                    recItem.innerHTML = `
+                        <div class="recommendation-header">
+                            <div class="recommendation-type">${rec.category}</div>
+                            <div class="recommendation-priority ${priorityClass}">${rec.type}</div>
+                        </div>
+                        <div class="recommendation-text">
+                            <strong>Issue:</strong> ${rec.issue}<br>
+                            <strong>Recommendation:</strong> ${rec.recommendation}
+                        </div>
+                        ${rec.affectedTests ? `
+                            <div class="affected-tests">
+                                Affected tests: ${rec.affectedTests.join(', ')}
+                            </div>
+                        ` : ''}
+                    `;
+                    
+                    this.elements.recommendationsList.appendChild(recItem);
+                });
+                
+                this.elements.recommendationsSection.style.display = 'block';
+            }
+
+            clearResults() {
+                this.elements.totalTests.textContent = '0';
+                this.elements.passedTests.textContent = '0';
+                this.elements.failedTests.textContent = '0';
+                this.elements.successRate.textContent = '0%';
+                
+                this.elements.testResultsList.innerHTML = `
+                    <div class="test-result-item">
+                        <div class="status-icon" style="background: #e2e8f0; color: #718096;">?</div>
+                        <div class="test-info">
+                            <div class="test-name">No tests executed yet</div>
+                            <div class="test-details">Click "Run All Tests" to begin regression testing</div>
+                        </div>
+                    </div>
+                `;
+                
+                this.elements.recommendationsSection.style.display = 'none';
+                
+                this.log('🗑️ Results cleared', 'info');
+            }
+
+            setButtonsDisabled(disabled) {
+                this.elements.runAllBtn.disabled = disabled;
+                this.elements.runRegressionBtn.disabled = disabled;
+                this.elements.runEdgeCasesBtn.disabled = disabled;
+                
+                if (disabled) {
+                    this.elements.runAllBtn.innerHTML = '<span>⏳</span> Running Tests...';
+                } else {
+                    this.elements.runAllBtn.innerHTML = '<span>▶️</span> Run All Tests';
+                }
+            }
+
+            log(message, level = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${level}`;
+                logEntry.textContent = `[${timestamp}] ${message}`;
+                
+                this.elements.logsContainer.appendChild(logEntry);
+                this.elements.logsContainer.scrollTop = this.elements.logsContainer.scrollHeight;
+                
+                // Also log to console
+                console.log(`[RegressionTestRunner] ${message}`);
+            }
+        }
+
+        // Initialize test runner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.regressionTestRunner = new RegressionTestRunner();
+        });
+    </script>
+</body>
+</html>

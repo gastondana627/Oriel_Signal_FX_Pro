@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Framework Unit Tests Runner</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            flex: 1;
+            text-align: right;
+            font-weight: 500;
+        }
+        
+        .status.running {
+            color: #ffc107;
+        }
+        
+        .status.success {
+            color: #28a745;
+        }
+        
+        .status.error {
+            color: #dc3545;
+        }
+        
+        .progress-container {
+            padding: 0 20px 20px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .test-results {
+            margin-top: 20px;
+        }
+        
+        .summary-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .stat-value.success {
+            color: #28a745;
+        }
+        
+        .stat-value.error {
+            color: #dc3545;
+        }
+        
+        .stat-value.info {
+            color: #17a2b8;
+        }
+        
+        .test-list {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .test-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        
+        .test-name {
+            font-weight: 500;
+            flex: 1;
+        }
+        
+        .test-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .test-status.passed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .test-status.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .test-status.running {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .test-error {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #721c24;
+        }
+        
+        .logs-container {
+            margin-top: 20px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .logs-header {
+            padding: 15px 20px;
+            background: #e9ecef;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 500;
+        }
+        
+        .logs-content {
+            padding: 15px 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        
+        .log-entry.error {
+            color: #dc3545;
+        }
+        
+        .log-entry.warn {
+            color: #ffc107;
+        }
+        
+        .log-entry.success {
+            color: #28a745;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+            
+            .status {
+                text-align: center;
+                margin-top: 10px;
+            }
+            
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Test Framework Unit Tests</h1>
+            <p>Comprehensive testing of test runner functionality and result aggregation logic</p>
+        </div>
+        
+        <div class="controls">
+            <button type="button" id="runTestsBtn" class="btn btn-primary">
+                <span>▶️</span> Run All Tests
+            </button>
+            <button type="button" id="clearLogsBtn" class="btn btn-secondary">
+                <span>🗑️</span> Clear Logs
+            </button>
+            <div class="status" id="statusDisplay">Ready to run tests</div>
+        </div>
+        
+        <div class="progress-container hidden" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Initializing tests...</div>
+        </div>
+        
+        <div class="content">
+            <div class="test-results hidden" id="testResults">
+                <div class="summary-card">
+                    <h3>📊 Test Summary</h3>
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <div class="stat-value info" id="totalTests">0</div>
+                            <div class="stat-label">Total Tests</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value success" id="passedTests">0</div>
+                            <div class="stat-label">Passed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value error" id="failedTests">0</div>
+                            <div class="stat-label">Failed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value info" id="successRate">0%</div>
+                            <div class="stat-label">Success Rate</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="test-list" id="testList">
+                    <!-- Test items will be populated here -->
+                </div>
+            </div>
+            
+            <div class="logs-container">
+                <div class="logs-header">
+                    📋 Test Execution Logs
+                </div>
+                <div class="logs-content" id="logsContent">
+                    <div class="log-entry">Ready to execute test framework unit tests...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load required dependencies -->
+    <script src="comprehensive-test-execution-suite.js"></script>
+    <script src="test-results-analyzer.js"></script>
+    <script src="test-data-manager.js"></script>
+    <script src="test-framework-unit-tests.js"></script>
+
+    <script>
+        class TestFrameworkUnitTestRunner {
+            constructor() {
+                this.isRunning = false;
+                this.testFramework = null;
+                this.currentTestIndex = 0;
+                this.totalTests = 0;
+                
+                this.initializeElements();
+                this.setupEventListeners();
+            }
+            
+            initializeElements() {
+                this.elements = {
+                    runTestsBtn: document.getElementById('runTestsBtn'),
+                    clearLogsBtn: document.getElementById('clearLogsBtn'),
+                    statusDisplay: document.getElementById('statusDisplay'),
+                    progressContainer: document.getElementById('progressContainer'),
+                    progressFill: document.getElementById('progressFill'),
+                    progressText: document.getElementById('progressText'),
+                    testResults: document.getElementById('testResults'),
+                    totalTests: document.getElementById('totalTests'),
+                    passedTests: document.getElementById('passedTests'),
+                    failedTests: document.getElementById('failedTests'),
+                    successRate: document.getElementById('successRate'),
+                    testList: document.getElementById('testList'),
+                    logsContent: document.getElementById('logsContent')
+                };
+            }
+            
+            setupEventListeners() {
+                this.elements.runTestsBtn.addEventListener('click', () => this.runTests());
+                this.elements.clearLogsBtn.addEventListener('click', () => this.clearLogs());
+            }
+            
+            async runTests() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.updateUI('running');
+                
+                try {
+                    this.log('🚀 Starting Test Framework Unit Tests...', 'info');
+                    
+                    // Initialize test framework
+                    this.testFramework = new TestFrameworkUnitTests();
+                    
+                    // Show progress
+                    this.elements.progressContainer.classList.remove('hidden');
+                    this.updateProgress(0, 'Initializing test framework...');
+                    
+                    // Run all tests
+                    const results = await this.testFramework.runAllTests();
+                    
+                    // Update UI with results
+                    this.displayResults(results);
+                    this.updateProgress(100, 'Tests completed');
+                    
+                    const status = results.successRate >= 80 ? 'success' : 'error';
+                    this.updateUI(status);
+                    
+                    this.log(`✅ Test Framework Unit Tests completed with ${results.successRate.toFixed(1)}% success rate`, status === 'success' ? 'success' : 'error');
+                    
+                } catch (error) {
+                    this.log(`❌ Test execution failed: ${error.message}`, 'error');
+                    this.updateUI('error');
+                } finally {
+                    this.isRunning = false;
+                }
+            }
+            
+            displayResults(results) {
+                // Update summary statistics
+                this.elements.totalTests.textContent = results.total;
+                this.elements.passedTests.textContent = results.passed;
+                this.elements.failedTests.textContent = results.failed;
+                this.elements.successRate.textContent = `${results.successRate.toFixed(1)}%`;
+                
+                // Clear and populate test list
+                this.elements.testList.innerHTML = '';
+                
+                results.results.forEach(test => {
+                    const testItem = document.createElement('div');
+                    testItem.className = 'test-item';
+                    
+                    const testName = document.createElement('div');
+                    testName.className = 'test-name';
+                    testName.textContent = test.name;
+                    
+                    const testStatus = document.createElement('div');
+                    testStatus.className = `test-status ${test.status.toLowerCase()}`;
+                    testStatus.textContent = test.status;
+                    
+                    testItem.appendChild(testName);
+                    testItem.appendChild(testStatus);
+                    
+                    // Add error details if test failed
+                    if (test.status === 'FAILED' && test.error) {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'test-error';
+                        errorDiv.textContent = test.error;
+                        testItem.appendChild(errorDiv);
+                    }
+                    
+                    this.elements.testList.appendChild(testItem);
+                });
+                
+                // Show results section
+                this.elements.testResults.classList.remove('hidden');
+            }
+            
+            updateProgress(percentage, message) {
+                this.elements.progressFill.style.width = `${percentage}%`;
+                this.elements.progressText.textContent = message;
+            }
+            
+            updateUI(status) {
+                // Update status display
+                this.elements.statusDisplay.className = `status ${status}`;
+                
+                switch (status) {
+                    case 'running':
+                        this.elements.statusDisplay.textContent = 'Running tests...';
+                        this.elements.runTestsBtn.disabled = true;
+                        break;
+                    case 'success':
+                        this.elements.statusDisplay.textContent = 'Tests completed successfully';
+                        this.elements.runTestsBtn.disabled = false;
+                        break;
+                    case 'error':
+                        this.elements.statusDisplay.textContent = 'Tests completed with failures';
+                        this.elements.runTestsBtn.disabled = false;
+                        break;
+                    default:
+                        this.elements.statusDisplay.textContent = 'Ready to run tests';
+                        this.elements.runTestsBtn.disabled = false;
+                }
+            }
+            
+            log(message, level = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${level}`;
+                logEntry.textContent = `[${timestamp}] ${message}`;
+                
+                this.elements.logsContent.appendChild(logEntry);
+                this.elements.logsContent.scrollTop = this.elements.logsContent.scrollHeight;
+            }
+            
+            clearLogs() {
+                this.elements.logsContent.innerHTML = '<div class="log-entry">Logs cleared. Ready to execute tests...</div>';
+                this.elements.testResults.classList.add('hidden');
+                this.elements.progressContainer.classList.add('hidden');
+                this.updateUI('ready');
+            }
+        }
+        
+        // Initialize the test runner when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.testRunner = new TestFrameworkUnitTestRunner();
+            console.log('✅ Test Framework Unit Test Runner initialized');
+        });
+    </script>
+</body>
+</html>
