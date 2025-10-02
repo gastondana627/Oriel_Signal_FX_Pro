@@ -573,6 +573,10 @@ def verify_session():
 @jwt_required()
 def track_download():
     """Track a download and update usage"""
+    # Handle OPTIONS request for CORS
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+        
     try:
         current_user_id = get_jwt_identity()
         user = User.query.get(current_user_id)
@@ -613,6 +617,10 @@ def track_download():
 @jwt_required()
 def user_preferences():
     """Get or update user preferences"""
+    # Handle OPTIONS request for CORS
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+        
     try:
         current_user_id = get_jwt_identity()
         user = User.query.get(current_user_id)
@@ -659,6 +667,10 @@ def user_preferences():
 @jwt_required()
 def download_history():
     """Get user's download history"""
+    # Handle OPTIONS request for CORS
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+        
     try:
         current_user_id = get_jwt_identity()
         user = User.query.get(current_user_id)

@@ -52,6 +52,10 @@ def create_app(config_name='default'):
     from logging_config import setup_logging
     setup_logging(app)
     
+    # Initialize request/response logging middleware
+    from app.logging.middleware import init_request_logging
+    init_request_logging(app)
+    
     # Initialize error handlers
     from app.errors import init_error_handlers
     init_error_handlers(app)
@@ -138,6 +142,10 @@ def create_app(config_name='default'):
     # Register API documentation
     from app.api_docs import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
+    
+    # Register logging endpoints
+    from app.logging.routes import logging_bp
+    app.register_blueprint(logging_bp)
     
     # Initialize Flask-Admin
     from app.admin.views import init_admin

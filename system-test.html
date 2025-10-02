@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Test - Oriel Signal FX Pro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-button {
+            background: #8309D5;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #9a1ae6;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .success { background: rgba(34, 197, 94, 0.2); }
+        .error { background: rgba(239, 68, 68, 0.2); }
+        .info { background: rgba(59, 130, 246, 0.2); }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online { background: #22c55e; }
+        .status-offline { background: #ef4444; }
+        .status-warning { background: #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Oriel Signal FX Pro - System Test</h1>
+        
+        <div class="test-section">
+            <h2>🔍 System Status</h2>
+            <div id="system-status">
+                <div>
+                    <span class="status-indicator status-offline" id="backend-indicator"></span>
+                    <strong>Backend:</strong> <span id="backend-status">Checking...</span>
+                </div>
+                <div>
+                    <span class="status-indicator status-offline" id="frontend-indicator"></span>
+                    <strong>Frontend:</strong> <span id="frontend-status">Checking...</span>
+                </div>
+                <div>
+                    <span class="status-indicator status-offline" id="api-indicator"></span>
+                    <strong>API Client:</strong> <span id="api-status">Checking...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🚀 Quick Tests</h2>
+            <button class="test-button" onclick="testBackendHealth()">Test Backend Health</button>
+            <button class="test-button" onclick="testApiClient()">Test API Client</button>
+            <button class="test-button" onclick="testDownloadModal()">Test Download Modal</button>
+            <button class="test-button" onclick="testNotifications()">Test Notifications</button>
+            <button class="test-button" onclick="runAllTests()">Run All Tests</button>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Test Results</h2>
+            <div id="test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 Quick Actions</h2>
+            <button class="test-button" onclick="clearResults()">Clear Results</button>
+            <button class="test-button" onclick="openMainApp()">Open Main App</button>
+            <button class="test-button" onclick="showSystemInfo()">Show System Info</button>
+        </div>
+    </div>
+
+    <!-- Load required scripts -->
+    <script src="app-config.js"></script>
+    <script src="api-client.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="download-modal.js"></script>
+
+    <script>
+        let testResults = [];
+
+        function addResult(test, message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const result = `[${timestamp}] ${test}: ${message}`;
+            testResults.push({ test, message, type, timestamp });
+            
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.textContent = result;
+            resultsDiv.appendChild(resultDiv);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+            testResults = [];
+        }
+
+        function updateStatus(component, status, type = 'offline') {
+            const indicator = document.getElementById(`${component}-indicator`);
+            const statusText = document.getElementById(`${component}-status`);
+            
+            indicator.className = `status-indicator status-${type}`;
+            statusText.textContent = status;
+        }
+
+        async function testBackendHealth() {
+            addResult('Backend Health', 'Testing backend connection...');
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('Backend Health', `✅ Backend is healthy: ${data.status}`, 'success');
+                    updateStatus('backend', 'Online', 'online');
+                } else {
+                    addResult('Backend Health', `❌ Backend error: ${response.status}`, 'error');
+                    updateStatus('backend', 'Error', 'warning');
+                }
+            } catch (error) {
+                addResult('Backend Health', `❌ Backend unreachable: ${error.message}`, 'error');
+                updateStatus('backend', 'Offline', 'offline');
+            }
+        }
+
+        async function testApiClient() {
+            addResult('API Client', 'Testing API client initialization...');
+            
+            try {
+                if (window.appConfig && window.ApiClient) {
+                    const apiClient = new window.ApiClient(window.appConfig.getApiBaseUrl());
+                    addResult('API Client', `✅ API Client created with base URL: ${apiClient.baseUrl}`, 'success');
+                    updateStatus('api', 'Ready', 'online');
+                } else {
+                    addResult('API Client', '❌ API Client or AppConfig not available', 'error');
+                    updateStatus('api', 'Error', 'warning');
+                }
+            } catch (error) {
+                addResult('API Client', `❌ API Client error: ${error.message}`, 'error');
+                updateStatus('api', 'Error', 'warning');
+            }
+        }
+
+        async function testDownloadModal() {
+            addResult('Download Modal', 'Testing download modal...');
+            
+            try {
+                if (window.downloadModal) {
+                    window.downloadModal.show();
+                    addResult('Download Modal', '✅ Download modal opened successfully', 'success');
+                    
+                    // Close it after 3 seconds
+                    setTimeout(() => {
+                        window.downloadModal.close();
+                        addResult('Download Modal', '✅ Download modal closed automatically', 'success');
+                    }, 3000);
+                } else {
+                    addResult('Download Modal', '❌ Download modal not available', 'error');
+                }
+            } catch (error) {
+                addResult('Download Modal', `❌ Download modal error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testNotifications() {
+            addResult('Notifications', 'Testing notification system...');
+            
+            try {
+                if (window.notifications) {
+                    window.notifications.success('✅ Test notification - Success!');
+                    window.notifications.info('ℹ️ Test notification - Info!');
+                    window.notifications.warning('⚠️ Test notification - Warning!');
+                    addResult('Notifications', '✅ Notifications working correctly', 'success');
+                } else {
+                    addResult('Notifications', '❌ Notification system not available', 'error');
+                }
+            } catch (error) {
+                addResult('Notifications', `❌ Notification error: ${error.message}`, 'error');
+            }
+        }
+
+        async function runAllTests() {
+            clearResults();
+            addResult('System Test', '🚀 Running comprehensive system test...', 'info');
+            
+            await testBackendHealth();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testApiClient();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testDownloadModal();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testNotifications();
+            
+            addResult('System Test', '🎉 All tests completed!', 'success');
+        }
+
+        function openMainApp() {
+            window.open('http://127.0.0.1:3000', '_blank');
+        }
+
+        function showSystemInfo() {
+            const info = {
+                userAgent: navigator.userAgent,
+                url: window.location.href,
+                timestamp: new Date().toISOString(),
+                appConfig: window.appConfig ? 'Available' : 'Not Available',
+                apiClient: window.ApiClient ? 'Available' : 'Not Available',
+                notifications: window.notifications ? 'Available' : 'Not Available',
+                downloadModal: window.downloadModal ? 'Available' : 'Not Available'
+            };
+            
+            addResult('System Info', JSON.stringify(info, null, 2), 'info');
+        }
+
+        // Auto-run basic checks on load
+        window.addEventListener('load', async () => {
+            addResult('System', '🔄 Initializing system test...', 'info');
+            updateStatus('frontend', 'Online', 'online');
+            
+            // Wait a bit for scripts to load
+            setTimeout(async () => {
+                await testBackendHealth();
+                await testApiClient();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

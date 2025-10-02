@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Logging Integration Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #4fc3f7;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .status {
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .status.success {
+            border-color: #4caf50;
+            background-color: #1b5e20;
+        }
+        
+        .status.error {
+            border-color: #f44336;
+            background-color: #b71c1c;
+        }
+        
+        .status.warning {
+            border-color: #ff9800;
+            background-color: #e65100;
+        }
+        
+        .console-output {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.45;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        button {
+            background-color: #238636;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            margin: 0 5px;
+        }
+        
+        button:hover {
+            background-color: #2ea043;
+        }
+        
+        button.secondary {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+        }
+        
+        button.secondary:hover {
+            background-color: #30363d;
+        }
+        
+        .info {
+            background-color: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .info h3 {
+            margin-top: 0;
+            color: #58a6ff;
+        }
+        
+        .info ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .info li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Enhanced Logging Integration Test</h1>
+        
+        <div class="info">
+            <h3>Test Overview</h3>
+            <p>This test validates the enhanced logging system implementation including:</p>
+            <ul>
+                <li>Frontend logging with structured output</li>
+                <li>User action tracking with context</li>
+                <li>API request/response logging</li>
+                <li>Performance metrics logging</li>
+                <li>Error handling and logging</li>
+                <li>Log formatting utilities</li>
+                <li>Backend server integration</li>
+            </ul>
+        </div>
+        
+        <div class="controls">
+            <button onclick="runTests()">🧪 Run All Tests</button>
+            <button onclick="runSingleTest()" class="secondary">🔍 Run Single Test</button>
+            <button onclick="clearConsole()" class="secondary">🗑️ Clear Console</button>
+            <button onclick="showStats()" class="secondary">📊 Show Stats</button>
+        </div>
+        
+        <div id="status" class="status">
+            Ready to run enhanced logging tests...
+        </div>
+        
+        <div class="console-output" id="console-output">
+            Console output will appear here...
+        </div>
+    </div>
+
+    <!-- Load dependencies -->
+    <script src="app-config.js"></script>
+    <script src="enhanced-logger.js"></script>
+    <script src="log-formatter.js"></script>
+    <script src="test-logging-integration.js"></script>
+
+    <script>
+        let originalConsole = {};
+        let testRunner = null;
+
+        // Capture console output
+        function setupConsoleCapture() {
+            const output = document.getElementById('console-output');
+            
+            // Store original console methods
+            originalConsole.log = console.log;
+            originalConsole.error = console.error;
+            originalConsole.warn = console.warn;
+            originalConsole.info = console.info;
+
+            function addToOutput(message, type = 'log') {
+                const timestamp = new Date().toLocaleTimeString();
+                const line = `[${timestamp}] ${message}\n`;
+                output.textContent += line;
+                output.scrollTop = output.scrollHeight;
+            }
+
+            // Override console methods
+            console.log = function(...args) {
+                originalConsole.log.apply(console, args);
+                addToOutput(args.join(' '), 'log');
+            };
+
+            console.error = function(...args) {
+                originalConsole.error.apply(console, args);
+                addToOutput('ERROR: ' + args.join(' '), 'error');
+            };
+
+            console.warn = function(...args) {
+                originalConsole.warn.apply(console, args);
+                addToOutput('WARN: ' + args.join(' '), 'warn');
+            };
+
+            console.info = function(...args) {
+                originalConsole.info.apply(console, args);
+                addToOutput('INFO: ' + args.join(' '), 'info');
+            };
+        }
+
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        async function runTests() {
+            updateStatus('Running enhanced logging integration tests...', 'info');
+            
+            try {
+                if (window.LoggingIntegrationTest) {
+                    testRunner = new LoggingIntegrationTest();
+                    await testRunner.runAllTests();
+                    updateStatus('All tests completed! Check console output for results.', 'success');
+                } else {
+                    throw new Error('Test runner not available');
+                }
+            } catch (error) {
+                updateStatus(`Test execution failed: ${error.message}`, 'error');
+                console.error('Test execution error:', error);
+            }
+        }
+
+        async function runSingleTest() {
+            updateStatus('Running single logging test...', 'info');
+            
+            try {
+                // Run a simple test
+                window.enhancedLogger.info('Single test execution', {
+                    testType: 'manual',
+                    timestamp: Date.now()
+                });
+                
+                window.enhancedLogger.logUserAction('manual_test', {
+                    action: 'single_test_run'
+                });
+                
+                updateStatus('Single test completed successfully!', 'success');
+            } catch (error) {
+                updateStatus(`Single test failed: ${error.message}`, 'error');
+            }
+        }
+
+        function clearConsole() {
+            document.getElementById('console-output').textContent = 'Console cleared...\n';
+            updateStatus('Console output cleared', 'info');
+        }
+
+        function showStats() {
+            if (window.enhancedLogger) {
+                const stats = window.enhancedLogger.getStats();
+                console.log('📊 Enhanced Logger Statistics:');
+                console.log('Session ID:', stats.sessionId);
+                console.log('Buffer Size:', stats.bufferSize);
+                console.log('Request Counter:', stats.requestCounter);
+                console.log('Log Level:', stats.config.level);
+                console.log('Environment:', stats.config.environment);
+                console.log('User Context:', stats.userContext);
+                
+                updateStatus('Statistics logged to console', 'success');
+            } else {
+                updateStatus('Enhanced logger not available', 'error');
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setupConsoleCapture();
+            
+            // Check if logging system is available
+            setTimeout(() => {
+                if (window.enhancedLogger && window.logFormatter) {
+                    updateStatus('Enhanced logging system ready for testing', 'success');
+                    console.log('✅ Enhanced logging system initialized and ready');
+                } else {
+                    updateStatus('Enhanced logging system not available', 'error');
+                    console.error('❌ Enhanced logging system failed to initialize');
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

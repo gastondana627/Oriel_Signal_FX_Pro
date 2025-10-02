@@ -7,7 +7,7 @@ class ErrorMonitor {
         this.apiClient = apiClient;
         this.appConfig = appConfig;
         this.analyticsManager = analyticsManager;
-        this.isEnabled = appConfig.isFeatureEnabled('errorReporting');
+        this.isEnabled = false; // Temporarily disable to prevent error cascade
         this.errorQueue = [];
         this.maxQueueSize = 50;
         this.flushInterval = 60000; // 1 minute

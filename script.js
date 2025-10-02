@@ -454,8 +454,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             link.click();
             document.body.removeChild(link);
             
-            // Track the successful download
-            await trackDownload('mp3', downloadMetadata);
+            // Track the successful download (non-blocking)
+            try {
+                await trackDownload('mp3', downloadMetadata);
+            } catch (error) {
+                console.warn('Download tracking failed, but download succeeded:', error);
+                // Don't fail the download if tracking fails
+            }
             
             // Update UI to reflect new usage
             updateDownloadCounter();

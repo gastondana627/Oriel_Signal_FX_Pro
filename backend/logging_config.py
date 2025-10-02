@@ -204,6 +204,36 @@ def setup_logging(app):
                 'level': 'WARNING',
                 'handlers': ['console', 'file'],
                 'propagate': False
+            },
+            'app.frontend': {
+                'level': 'INFO',
+                'handlers': ['console', 'file'],
+                'propagate': False
+            },
+            'app.frontend_errors': {
+                'level': 'ERROR',
+                'handlers': ['console', 'error_file'],
+                'propagate': False
+            },
+            'app.api': {
+                'level': 'INFO',
+                'handlers': ['console', 'file'],
+                'propagate': False
+            },
+            'app.user_actions': {
+                'level': 'INFO',
+                'handlers': ['console', 'file'],
+                'propagate': False
+            },
+            'app.logging': {
+                'level': 'INFO',
+                'handlers': ['console', 'file'],
+                'propagate': False
+            },
+            'app.test': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+                'propagate': False
             }
         },
         'root': {

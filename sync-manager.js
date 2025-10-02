@@ -57,7 +57,7 @@ class SyncManager {
      */
     async pingBackend() {
         try {
-            const response = await fetch(`${this.apiClient.baseURL}/api/health`, {
+            const response = await fetch(`${this.apiClient.baseUrl}/api/health`, {
                 method: 'GET',
                 timeout: 5000
             });

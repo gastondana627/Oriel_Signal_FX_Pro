@@ -30,7 +30,13 @@ class SaaSInitializer {
             console.log('🚀 Initializing SaaS components...');
 
             // 1. Initialize API Client
-            this.components.apiClient = new window.ApiClient(window.appConfig.getApiBaseUrl());
+            console.log('🔍 Debug - window.appConfig:', window.appConfig);
+            console.log('🔍 Debug - getApiBaseUrl():', window.appConfig ? window.appConfig.getApiBaseUrl() : 'undefined');
+            
+            const apiBaseUrl = window.appConfig ? window.appConfig.getApiBaseUrl() : 'http://localhost:8000';
+            console.log('🔍 Debug - Using API base URL:', apiBaseUrl);
+            
+            this.components.apiClient = new window.ApiClient(apiBaseUrl);
             window.apiClient = this.components.apiClient; // Make available globally for monitoring
             console.log('✅ API Client initialized');
 

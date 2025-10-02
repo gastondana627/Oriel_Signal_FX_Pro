@@ -93,7 +93,7 @@ class AppConfig {
                     register: '/api/auth/register',
                     refresh: '/api/auth/refresh',
                     logout: '/api/auth/logout',
-                    resetPassword: '/api/auth/reset-password',
+                    resetPassword: '/api/auth/request-password-reset',
                     verifyEmail: '/api/auth/verify-email'
                 },
                 // User management endpoints

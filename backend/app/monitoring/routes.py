@@ -11,6 +11,10 @@ logger = logging.getLogger(__name__)
 @auth_rate_limit()
 def log_error():
     """Log frontend errors"""
+    # Handle OPTIONS request for CORS
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+        
     try:
         data = request.get_json() or {}
         
@@ -45,6 +49,10 @@ def log_error():
 @auth_rate_limit()
 def log_performance():
     """Log performance metrics"""
+    # Handle OPTIONS request for CORS
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+        
     try:
         data = request.get_json() or {}
         
@@ -76,6 +84,10 @@ def log_performance():
 @auth_rate_limit()
 def log_analytics():
     """Log analytics events"""
+    # Handle OPTIONS request for CORS
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+        
     try:
         data = request.get_json() or {}
         

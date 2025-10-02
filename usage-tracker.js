@@ -234,12 +234,17 @@ class UsageTracker {
             }
         };
         
+        // Always track locally first for immediate response
+        this.trackDownloadLocally(downloadData);
+        
+        // Also try to track on backend if authenticated (non-blocking)
         if (this.authManager && this.authManager.isAuthenticated) {
-            // Track download on backend for authenticated users
-            await this.trackDownloadOnBackend(downloadData);
-        } else {
-            // Track download locally for anonymous users
-            this.trackDownloadLocally(downloadData);
+            try {
+                await this.trackDownloadOnBackend(downloadData);
+            } catch (error) {
+                console.warn('Backend tracking failed, continuing with local tracking:', error);
+                // Don't throw error - local tracking is sufficient
+            }
         }
         
         // Update local usage counters

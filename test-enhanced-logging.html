@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Logging System Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+        
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .log-output {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 15px;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .clear-logs {
+            float: right;
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .clear-logs:hover {
+            background-color: #545b62;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Enhanced Logging System Test</h1>
+        
+        <div id="status" class="status info">
+            Initializing enhanced logging system...
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Logging Statistics</h3>
+            <div class="stats" id="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="session-id">-</div>
+                    <div class="stat-label">Session ID</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="buffer-size">0</div>
+                    <div class="stat-label">Buffer Size</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="request-count">0</div>
+                    <div class="stat-label">Request Count</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="log-level">INFO</div>
+                    <div class="stat-label">Log Level</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🧪 Basic Logging Tests</h3>
+            <div class="button-group">
+                <button class="btn-primary" onclick="testBasicLogging()">Test All Levels</button>
+                <button class="btn-success" onclick="testDebugLog()">Debug Log</button>
+                <button class="btn-primary" onclick="testInfoLog()">Info Log</button>
+                <button class="btn-warning" onclick="testWarnLog()">Warning Log</button>
+                <button class="btn-danger" onclick="testErrorLog()">Error Log</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>👤 User Action Logging</h3>
+            <div class="button-group">
+                <button class="btn-primary" onclick="testUserLogin()">Simulate Login</button>
+                <button class="btn-primary" onclick="testUserLogout()">Simulate Logout</button>
+                <button class="btn-primary" onclick="testUserDownload()">Simulate Download</button>
+                <button class="btn-primary" onclick="testUserPreferences()">Update Preferences</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🌐 API Request Logging</h3>
+            <div class="button-group">
+                <button class="btn-primary" onclick="testApiRequest()">Test API Call</button>
+                <button class="btn-success" onclick="testSuccessfulApi()">Successful API</button>
+                <button class="btn-warning" onclick="testClientErrorApi()">Client Error API</button>
+                <button class="btn-danger" onclick="testServerErrorApi()">Server Error API</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📈 Performance Logging</h3>
+            <div class="button-group">
+                <button class="btn-primary" onclick="testPerformanceMetrics()">Log Performance</button>
+                <button class="btn-primary" onclick="testSlowOperation()">Simulate Slow Op</button>
+                <button class="btn-primary" onclick="testMemoryUsage()">Memory Usage</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔧 System Tests</h3>
+            <div class="button-group">
+                <button class="btn-primary" onclick="testServerLogging()">Test Server Logging</button>
+                <button class="btn-primary" onclick="testLogFormatting()">Test Formatting</button>
+                <button class="btn-success" onclick="testBufferFlush()">Flush Buffer</button>
+                <button class="btn-warning" onclick="updateStats()">Update Stats</button>
+                <button class="btn-danger clear-logs" onclick="clearLogs()">Clear Logs</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📝 Log Output</h3>
+            <div id="log-output" class="log-output">
+                Logs will appear here...
+            </div>
+        </div>
+    </div>
+
+    <!-- Load dependencies -->
+    <script src="app-config.js"></script>
+    <script src="enhanced-logger.js"></script>
+    <script src="log-formatter.js"></script>
+
+    <script>
+        // Test implementation
+        let testResults = [];
+        let logCount = 0;
+
+        // Initialize logging system
+        function initializeLogging() {
+            try {
+                // Set up user context for testing
+                window.enhancedLogger.setUserContext({
+                    userId: 'test_user_123',
+                    email: 'test@example.com',
+                    role: 'tester'
+                });
+
+                updateStatus('Enhanced logging system initialized successfully!', 'success');
+                updateStats();
+                
+                // Log initialization
+                window.enhancedLogger.info('Logging test suite initialized', {
+                    testSuite: 'enhanced-logging',
+                    version: '1.0.0'
+                });
+                
+            } catch (error) {
+                updateStatus(`Failed to initialize logging: ${error.message}`, 'error');
+                console.error('Logging initialization failed:', error);
+            }
+        }
+
+        // Basic logging tests
+        function testBasicLogging() {
+            window.enhancedLogger.debug('This is a debug message', { testType: 'basic' });
+            window.enhancedLogger.info('This is an info message', { testType: 'basic' });
+            window.enhancedLogger.warn('This is a warning message', { testType: 'basic' });
+            window.enhancedLogger.error('This is an error message', { testType: 'basic' });
+            window.enhancedLogger.critical('This is a critical message', { testType: 'basic' });
+            
+            updateStatus('Basic logging test completed', 'success');
+            updateStats();
+        }
+
+        function testDebugLog() {
+            window.enhancedLogger.debug('Debug: Testing debug level logging', {
+                debugInfo: {
+                    variable: 'testValue',
+                    state: 'active',
+                    timestamp: Date.now()
+                }
+            });
+        }
+
+        function testInfoLog() {
+            window.enhancedLogger.info('Info: Application state updated', {
+                component: 'test-suite',
+                action: 'info-test',
+                data: { key: 'value' }
+            });
+        }
+
+        function testWarnLog() {
+            window.enhancedLogger.warn('Warning: Potential issue detected', {
+                issue: 'test-warning',
+                severity: 'medium',
+                recommendation: 'Monitor closely'
+            });
+        }
+
+        function testErrorLog() {
+            const testError = new Error('Test error for logging demonstration');
+            window.enhancedLogger.error('Error: Test error occurred', {
+                errorCode: 'TEST_ERROR',
+                component: 'logging-test'
+            }, testError);
+        }
+
+        // User action tests
+        function testUserLogin() {
+            window.enhancedLogger.logUserAction('user_login', {
+                userId: 'test_user_123',
+                loginMethod: 'email',
+                timestamp: Date.now(),
+                ipAddress: '192.168.1.1'
+            });
+        }
+
+        function testUserLogout() {
+            window.enhancedLogger.logUserAction('user_logout', {
+                userId: 'test_user_123',
+                sessionDuration: 1800000, // 30 minutes
+                timestamp: Date.now()
+            });
+        }
+
+        function testUserDownload() {
+            window.enhancedLogger.logUserAction('file_download', {
+                userId: 'test_user_123',
+                fileType: 'mp4',
+                fileSize: 15728640, // 15MB
+                quality: 'high',
+                timestamp: Date.now()
+            });
+        }
+
+        function testUserPreferences() {
+            window.enhancedLogger.logUserAction('preferences_updated', {
+                userId: 'test_user_123',
+                changes: {
+                    theme: 'dark',
+                    notifications: true,
+                    autoSave: false
+                },
+                timestamp: Date.now()
+            });
+        }
+
+        // API request tests
+        async function testApiRequest() {
+            try {
+                const response = await fetch('/api/test', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                updateStatus('API request test completed', 'success');
+            } catch (error) {
+                updateStatus('API request test failed (expected for demo)', 'info');
+            }
+        }
+
+        async function testSuccessfulApi() {
+            // Simulate successful API call
+            const requestId = window.enhancedLogger.logApiRequest('GET', '/api/users/profile');
+            
+            setTimeout(() => {
+                window.enhancedLogger.logApiResponse(requestId, 200, { 
+                    user: { id: 123, name: 'Test User' } 
+                }, 150);
+            }, 150);
+        }
+
+        async function testClientErrorApi() {
+            const requestId = window.enhancedLogger.logApiRequest('POST', '/api/invalid-endpoint');
+            
+            setTimeout(() => {
+                window.enhancedLogger.logApiResponse(requestId, 404, { 
+                    error: 'Endpoint not found' 
+                }, 75);
+            }, 75);
+        }
+
+        async function testServerErrorApi() {
+            const requestId = window.enhancedLogger.logApiRequest('PUT', '/api/users/update');
+            
+            setTimeout(() => {
+                window.enhancedLogger.logApiResponse(requestId, 500, { 
+                    error: 'Internal server error' 
+                }, 2500);
+            }, 2500);
+        }
+
+        // Performance tests
+        function testPerformanceMetrics() {
+            window.enhancedLogger.logPerformance('page_load_time', 1250, {
+                page: 'test-suite',
+                cached: false
+            });
+            
+            window.enhancedLogger.logPerformance('api_response_time', 340, {
+                endpoint: '/api/test',
+                method: 'GET'
+            });
+            
+            window.enhancedLogger.logPerformance('render_time', 16.7, {
+                component: 'test-interface',
+                frames: 60
+            });
+        }
+
+        function testSlowOperation() {
+            const start = performance.now();
+            
+            // Simulate slow operation
+            setTimeout(() => {
+                const duration = performance.now() - start;
+                window.enhancedLogger.logPerformance('slow_operation', duration, {
+                    operation: 'file_processing',
+                    threshold: 1000,
+                    warning: duration > 1000
+                });
+            }, 1200);
+        }
+
+        function testMemoryUsage() {
+            if (performance.memory) {
+                window.enhancedLogger.logPerformance('memory_usage', performance.memory.usedJSHeapSize, {
+                    total: performance.memory.totalJSHeapSize,
+                    limit: performance.memory.jsHeapSizeLimit,
+                    unit: 'bytes'
+                });
+            } else {
+                window.enhancedLogger.warn('Memory API not available in this browser');
+            }
+        }
+
+        // System tests
+        async function testServerLogging() {
+            try {
+                const response = await fetch('/api/logs/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: 'Test message from frontend',
+                        level: 'INFO'
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    updateStatus('Server logging test successful', 'success');
+                    window.enhancedLogger.info('Server logging test completed', { result });
+                } else {
+                    throw new Error(`Server responded with ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus(`Server logging test failed: ${error.message}`, 'error');
+                window.enhancedLogger.error('Server logging test failed', {}, error);
+            }
+        }
+
+        function testLogFormatting() {
+            const testLog = {
+                timestamp: new Date().toISOString(),
+                level: 'INFO',
+                message: 'Test formatted log message',
+                requestId: 'req_test_123',
+                sessionId: 'sess_test_456',
+                context: {
+                    actionType: 'user_action',
+                    action: 'test_formatting',
+                    details: { key: 'value', number: 42, boolean: true }
+                }
+            };
+            
+            const formatted = window.logFormatter.format(testLog);
+            console.log('Formatted log output:');
+            console.log(formatted);
+            
+            updateStatus('Log formatting test completed - check console', 'success');
+        }
+
+        async function testBufferFlush() {
+            await window.enhancedLogger.flushBuffer();
+            updateStatus('Log buffer flushed to server', 'success');
+            updateStats();
+        }
+
+        // Utility functions
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        function updateStats() {
+            const stats = window.enhancedLogger.getStats();
+            
+            document.getElementById('session-id').textContent = stats.sessionId.slice(-8);
+            document.getElementById('buffer-size').textContent = stats.bufferSize;
+            document.getElementById('request-count').textContent = stats.requestCounter;
+            document.getElementById('log-level').textContent = stats.config.level;
+        }
+
+        function clearLogs() {
+            const logOutput = document.getElementById('log-output');
+            logOutput.textContent = 'Logs cleared...';
+            updateStatus('Log output cleared', 'info');
+        }
+
+        // Override console methods to capture logs for display
+        function setupLogCapture() {
+            const logOutput = document.getElementById('log-output');
+            const originalLog = console.log;
+            const originalError = console.error;
+            const originalWarn = console.warn;
+
+            function addToLogOutput(message, type = 'log') {
+                const timestamp = new Date().toLocaleTimeString();
+                const logLine = `[${timestamp}] ${message}\n`;
+                logOutput.textContent += logLine;
+                logOutput.scrollTop = logOutput.scrollHeight;
+            }
+
+            console.log = function(...args) {
+                originalLog.apply(console, args);
+                addToLogOutput(args.join(' '), 'log');
+            };
+
+            console.error = function(...args) {
+                originalError.apply(console, args);
+                addToLogOutput('ERROR: ' + args.join(' '), 'error');
+            };
+
+            console.warn = function(...args) {
+                originalWarn.apply(console, args);
+                addToLogOutput('WARN: ' + args.join(' '), 'warn');
+            };
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setupLogCapture();
+            initializeLogging();
+            
+            // Auto-update stats every 5 seconds
+            setInterval(updateStats, 5000);
+        });
+    </script>
+</body>
+</html>

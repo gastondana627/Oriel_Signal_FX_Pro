@@ -312,6 +312,10 @@ def stripe_webhook():
 @jwt_required()
 def payment_history():
     """Get user's payment history"""
+    # Handle OPTIONS request for CORS
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+        
     try:
         current_user_id = get_jwt_identity()
         user = User.query.get(current_user_id)
