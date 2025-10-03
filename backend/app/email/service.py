@@ -8,10 +8,11 @@ from datetime import datetime
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Email, To, Content
 from flask import current_app
+from .interface import EmailServiceInterface
 
 logger = logging.getLogger(__name__)
 
-class EmailService:
+class EmailService(EmailServiceInterface):
     """Email service using SendGrid for delivery."""
     
     def __init__(self, api_key: str = None, from_email: str = None):
@@ -76,7 +77,8 @@ class EmailService:
                 'job_id': job_id,
                 'email': user_email,
                 'status_code': response.status_code,
-                'sent_at': datetime.utcnow().isoformat()
+                'sent_at': datetime.utcnow().isoformat(),
+                'mode': 'sendgrid'
             }
             
         except Exception as e:
@@ -118,7 +120,8 @@ class EmailService:
                 'success': True,
                 'email': user_email,
                 'status_code': response.status_code,
-                'sent_at': datetime.utcnow().isoformat()
+                'sent_at': datetime.utcnow().isoformat(),
+                'mode': 'sendgrid'
             }
             
         except Exception as e:
@@ -163,7 +166,8 @@ class EmailService:
                 'success': True,
                 'email': user_email,
                 'status_code': response.status_code,
-                'sent_at': datetime.utcnow().isoformat()
+                'sent_at': datetime.utcnow().isoformat(),
+                'mode': 'sendgrid'
             }
             
         except Exception as e:
@@ -372,6 +376,51 @@ If you didn't request this password reset, please ignore this email. Your passwo
 
 Oriel FX Security Team
         """
+    
+    def send_licensing_email(self, user_email: str, subject: str, html_content: str, 
+                           text_content: str, purchase_id: str) -> Dict[str, Any]:
+        """
+        Send licensing email with purchase details and license terms.
+        
+        Args:
+            user_email: Recipient email address
+            subject: Email subject line
+            html_content: HTML email content
+            text_content: Plain text email content
+            purchase_id: Purchase ID for reference
+            
+        Returns:
+            dict: Email sending result
+        """
+        try:
+            logger.info(f"Sending licensing email for purchase {purchase_id} to {user_email}")
+            
+            # Create mail object
+            mail = Mail(
+                from_email=Email(self.from_email, "Oriel FX"),
+                to_emails=To(user_email),
+                subject=subject,
+                html_content=Content("text/html", html_content),
+                plain_text_content=Content("text/plain", text_content)
+            )
+            
+            # Send email
+            response = self.client.send(mail)
+            
+            logger.info(f"Licensing email sent successfully for purchase {purchase_id}. Status: {response.status_code}")
+            
+            return {
+                'success': True,
+                'email': user_email,
+                'status_code': response.status_code,
+                'sent_at': datetime.utcnow().isoformat(),
+                'mode': 'sendgrid',
+                'purchase_id': purchase_id
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to send licensing email for purchase {purchase_id}: {e}")
+            raise
 
 def get_email_service() -> EmailService:
     """

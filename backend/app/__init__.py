@@ -147,6 +147,18 @@ def create_app(config_name='default'):
     from app.logging.routes import logging_bp
     app.register_blueprint(logging_bp)
     
+    # Register downloads endpoints
+    from app.downloads.routes import downloads_bp
+    app.register_blueprint(downloads_bp)
+    
+    # Register purchases endpoints
+    from app.purchases.routes import purchases_bp
+    app.register_blueprint(purchases_bp)
+    
+    # Register support endpoints
+    from app.support.routes import support_bp
+    app.register_blueprint(support_bp)
+    
     # Initialize Flask-Admin
     from app.admin.views import init_admin
     init_admin(app)

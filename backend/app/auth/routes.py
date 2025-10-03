@@ -313,9 +313,25 @@ def request_password_reset():
             db.session.add(token_record)
             db.session.commit()
             
-            # TODO: Send email with reset link (will be implemented in email task)
-            # For now, we'll log the token for development
-            current_app.logger.info(f"Password reset token for {email}: {reset_token}")
+            # Send password reset email
+            try:
+                from app.email.console_service import ConsoleEmailService
+                email_service = ConsoleEmailService()
+                
+                # Send email (console service will log it for development)
+                email_result = email_service.send_password_reset_email(
+                    user_email=email,
+                    reset_token=reset_token
+                )
+                
+                if email_result.get('success'):
+                    current_app.logger.info(f"Password reset email sent successfully to {email}")
+                else:
+                    current_app.logger.error(f"Failed to send password reset email: {email_result.get('error')}")
+                    
+            except Exception as email_error:
+                current_app.logger.error(f"Password reset email error: {str(email_error)}")
+                # Continue anyway - don't fail the request if email fails
         
         return jsonify({
             'message': 'If an account with that email exists, a password reset link has been sent.'

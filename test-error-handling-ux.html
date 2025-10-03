@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Handling & UX Test - Purchase System</title>
+    <link rel="stylesheet" href="purchase-modal.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e1e5e9;
+            border-radius: 6px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .test-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .test-btn.primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .test-btn.primary:hover {
+            background: #0056b3;
+        }
+        
+        .test-btn.secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .test-btn.secondary:hover {
+            background: #545b62;
+        }
+        
+        .test-btn.danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .test-btn.danger:hover {
+            background: #c82333;
+        }
+        
+        .status-display {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .mock-purchase-form {
+            display: grid;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Error Handling & UX Test Suite</h1>
+        <p>This page tests the enhanced error handling and user experience improvements for the purchase system.</p>
+        
+        <!-- Error Message Tests -->
+        <div class="test-section">
+            <h3>🚨 Error Message Tests</h3>
+            <p>Test different types of error messages and recovery options.</p>
+            
+            <div class="test-buttons">
+                <button class="test-btn danger" onclick="testNetworkError()">Network Error</button>
+                <button class="test-btn danger" onclick="testValidationError()">Validation Error</button>
+                <button class="test-btn danger" onclick="testServerError()">Server Error</button>
+                <button class="test-btn danger" onclick="testPaymentError()">Payment Error</button>
+                <button class="test-btn danger" onclick="testAuthError()">Auth Error</button>
+                <button class="test-btn danger" onclick="testRateLimitError()">Rate Limit Error</button>
+            </div>
+        </div>
+        
+        <!-- Loading States Tests -->
+        <div class="test-section">
+            <h3>⏳ Loading States Tests</h3>
+            <p>Test loading states and progress indicators.</p>
+            
+            <div class="test-buttons">
+                <button class="test-btn primary" onclick="testLoadingState()">Show Loading</button>
+                <button class="test-btn primary" onclick="testRetryLoading()">Retry Loading</button>
+                <button class="test-btn primary" onclick="testCheckoutLoading()">Checkout Loading</button>
+                <button class="test-btn secondary" onclick="clearAllNotifications()">Clear All</button>
+            </div>
+        </div>
+        
+        <!-- Success Messages Tests -->
+        <div class="test-section">
+            <h3>✅ Success Messages Tests</h3>
+            <p>Test success notifications and confirmations.</p>
+            
+            <div class="test-buttons">
+                <button class="test-btn primary" onclick="testSuccessMessage()">Purchase Success</button>
+                <button class="test-btn primary" onclick="testSupportTicketSuccess()">Support Ticket Created</button>
+                <button class="test-btn primary" onclick="testNetworkRestore()">Network Restored</button>
+            </div>
+        </div>
+        
+        <!-- Support System Tests -->
+        <div class="test-section">
+            <h3>🎧 Support System Tests</h3>
+            <p>Test customer support integration and ticket creation.</p>
+            
+            <div class="test-buttons">
+                <button class="test-btn primary" onclick="testSupportModal()">Show Support Modal</button>
+                <button class="test-btn primary" onclick="testCreateSupportTicket()">Create Support Ticket</button>
+                <button class="test-btn primary" onclick="testPurchaseIssueTicket()">Purchase Issue Ticket</button>
+            </div>
+        </div>
+        
+        <!-- Purchase Flow Tests -->
+        <div class="test-section">
+            <h3>💳 Purchase Flow Tests</h3>
+            <p>Test the complete purchase flow with error handling.</p>
+            
+            <div class="mock-purchase-form">
+                <div class="form-group">
+                    <label for="test-email">Email Address</label>
+                    <input type="email" id="test-email" placeholder="test@example.com" value="test@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="test-tier">Pricing Tier</label>
+                    <select id="test-tier">
+                        <option value="personal">Personal ($2.99)</option>
+                        <option value="commercial" selected>Commercial ($9.99)</option>
+                        <option value="premium">Premium ($19.99)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="test-scenario">Test Scenario</label>
+                    <select id="test-scenario">
+                        <option value="success">Successful Purchase</option>
+                        <option value="network_error">Network Error</option>
+                        <option value="payment_failed">Payment Failed</option>
+                        <option value="validation_error">Validation Error</option>
+                        <option value="server_error">Server Error</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="test-buttons">
+                <button class="test-btn primary" onclick="testPurchaseFlow()">Start Purchase Flow</button>
+                <button class="test-btn secondary" onclick="testFormValidation()">Test Form Validation</button>
+            </div>
+            
+            <div class="status-display" id="purchase-status">
+                Ready to test purchase flow...
+            </div>
+        </div>
+        
+        <!-- Network Simulation Tests -->
+        <div class="test-section">
+            <h3>🌐 Network Simulation Tests</h3>
+            <p>Simulate network conditions and test recovery.</p>
+            
+            <div class="test-buttons">
+                <button class="test-btn secondary" onclick="simulateOffline()">Go Offline</button>
+                <button class="test-btn primary" onclick="simulateOnline()">Go Online</button>
+                <button class="test-btn danger" onclick="simulateSlowNetwork()">Slow Network</button>
+                <button class="test-btn primary" onclick="testRetryMechanism()">Test Retry Logic</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the error recovery system -->
+    <script src="error-recovery-system.js"></script>
+    
+    <!-- Include purchase modal for testing -->
+    <script src="purchase-modal.js"></script>
+    
+    <script>
+        // Test functions for error handling and UX
+        
+        function testNetworkError() {
+            const error = new Error('Network connection failed');
+            error.type = 'network';
+            errorRecoverySystem.handleApiError(error, {
+                endpoint: '/api/test',
+                retryFunction: () => {
+                    updateStatus('Retrying network request...');
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            updateStatus('Network request succeeded after retry');
+                            resolve({ success: true });
+                        }, 2000);
+                    });
+                }
+            });
+        }
+        
+        function testValidationError() {
+            const error = { status: 400, response: JSON.stringify({
+                error: {
+                    message: 'Please enter a valid email address',
+                    code: 'VALIDATION_ERROR',
+                    recoverable: false
+                }
+            })};
+            errorRecoverySystem.handleApiError(error, { endpoint: '/api/validate' });
+        }
+        
+        function testServerError() {
+            const error = { status: 500, response: JSON.stringify({
+                error: {
+                    message: 'Internal server error occurred',
+                    code: 'SERVER_ERROR',
+                    recoverable: true
+                }
+            })};
+            errorRecoverySystem.handleApiError(error, {
+                endpoint: '/api/server-test',
+                retryFunction: () => {
+                    updateStatus('Retrying server request...');
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            updateStatus('Server request succeeded after retry');
+                            resolve({ success: true });
+                        }, 3000);
+                    });
+                }
+            });
+        }
+        
+        function testPaymentError() {
+            const error = { status: 402, response: JSON.stringify({
+                error: {
+                    message: 'Payment was declined by your bank',
+                    code: 'PAYMENT_DECLINED',
+                    recoverable: true
+                }
+            })};
+            errorRecoverySystem.handleApiError(error, { endpoint: '/api/payment' });
+        }
+        
+        function testAuthError() {
+            const error = { status: 401, response: JSON.stringify({
+                error: {
+                    message: 'Your session has expired. Please log in again.',
+                    code: 'TOKEN_EXPIRED',
+                    recoverable: false
+                }
+            })};
+            errorRecoverySystem.handleApiError(error, { endpoint: '/api/auth' });
+        }
+        
+        function testRateLimitError() {
+            const error = { status: 429, response: JSON.stringify({
+                error: {
+                    message: 'Too many requests. Please wait 60 seconds.',
+                    code: 'RATE_LIMIT_EXCEEDED',
+                    recoverable: true
+                }
+            })};
+            errorRecoverySystem.handleApiError(error, {
+                endpoint: '/api/rate-limited',
+                retryFunction: () => {
+                    updateStatus('Waiting for rate limit to reset...');
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            updateStatus('Rate limit reset, request succeeded');
+                            resolve({ success: true });
+                        }, 5000);
+                    });
+                }
+            });
+        }
+        
+        function testLoadingState() {
+            updateStatus('Testing loading state...');
+            errorRecoverySystem.showRetryNotification(1);
+            
+            setTimeout(() => {
+                errorRecoverySystem.hideRetryNotification();
+                updateStatus('Loading state test completed');
+            }, 3000);
+        }
+        
+        function testRetryLoading() {
+            updateStatus('Testing retry loading states...');
+            
+            let attempt = 1;
+            const maxAttempts = 3;
+            
+            const retry = () => {
+                errorRecoverySystem.showRetryNotification(attempt);
+                
+                setTimeout(() => {
+                    if (attempt < maxAttempts) {
+                        attempt++;
+                        retry();
+                    } else {
+                        errorRecoverySystem.hideRetryNotification();
+                        updateStatus('Retry loading test completed');
+                    }
+                }, 2000);
+            };
+            
+            retry();
+        }
+        
+        function testCheckoutLoading() {
+            updateStatus('Testing checkout loading state...');
+            
+            // Simulate checkout button loading
+            const mockBtn = document.createElement('button');
+            mockBtn.id = 'proceed-to-checkout';
+            mockBtn.textContent = 'Proceed to Secure Checkout';
+            document.body.appendChild(mockBtn);
+            
+            // Test loading state
+            purchaseModal.setCheckoutLoading(true);
+            
+            setTimeout(() => {
+                purchaseModal.showCheckoutSuccess();
+                updateStatus('Checkout loading test completed');
+                
+                setTimeout(() => {
+                    purchaseModal.setCheckoutLoading(false);
+                    mockBtn.remove();
+                }, 2000);
+            }, 3000);
+        }
+        
+        function testSuccessMessage() {
+            errorRecoverySystem.showSuccessMessage('Purchase completed successfully! Check your email for licensing information and download link.');
+            updateStatus('Success message displayed');
+        }
+        
+        function testSupportTicketSuccess() {
+            errorRecoverySystem.showSuccessMessage('Support ticket #12345678 created successfully. You will receive a confirmation email shortly.');
+            updateStatus('Support ticket success message displayed');
+        }
+        
+        function testNetworkRestore() {
+            errorRecoverySystem.handleNetworkRestore();
+            updateStatus('Network restore notification displayed');
+        }
+        
+        function testSupportModal() {
+            purchaseModal.fileId = 'test-file-123';
+            purchaseModal.selectedTier = 'commercial';
+            purchaseModal.showSupportModal();
+            updateStatus('Support modal displayed');
+        }
+        
+        async function testCreateSupportTicket() {
+            updateStatus('Testing support ticket creation...');
+            
+            try {
+                // Mock the support ticket creation
+                const mockResponse = {
+                    success: true,
+                    ticket_id: '12345678',
+                    message: 'Support ticket created successfully. You will receive a confirmation email shortly.'
+                };
+                
+                errorRecoverySystem.showSuccessMessage(mockResponse.message);
+                updateStatus('Support ticket creation test completed');
+                
+            } catch (error) {
+                updateStatus('Support ticket creation test failed: ' + error.message);
+            }
+        }
+        
+        async function testPurchaseIssueTicket() {
+            updateStatus('Testing purchase issue ticket creation...');
+            
+            const mockPurchaseId = 'purchase-123';
+            const mockEmail = 'test@example.com';
+            const mockIssueType = 'download_expired';
+            const mockDescription = 'My download link has expired and I need a new one.';
+            
+            // Simulate API call
+            setTimeout(() => {
+                errorRecoverySystem.showSuccessMessage('Purchase issue ticket created successfully. Our support team will contact you within 24 hours.');
+                updateStatus('Purchase issue ticket test completed');
+            }, 1000);
+        }
+        
+        function testPurchaseFlow() {
+            const email = document.getElementById('test-email').value;
+            const tier = document.getElementById('test-tier').value;
+            const scenario = document.getElementById('test-scenario').value;
+            
+            updateStatus(`Starting purchase flow test: ${scenario}`);
+            
+            // Mock purchase modal
+            purchaseModal.fileId = 'test-file-' + Date.now();
+            purchaseModal.selectedTier = tier;
+            
+            // Set email in mock form
+            const mockEmailInput = document.createElement('input');
+            mockEmailInput.id = 'user-email';
+            mockEmailInput.value = email;
+            document.body.appendChild(mockEmailInput);
+            
+            // Create mock checkout button
+            const mockBtn = document.createElement('button');
+            mockBtn.id = 'proceed-to-checkout';
+            mockBtn.textContent = 'Proceed to Secure Checkout';
+            document.body.appendChild(mockBtn);
+            
+            // Simulate different scenarios
+            switch (scenario) {
+                case 'success':
+                    simulateSuccessfulPurchase();
+                    break;
+                case 'network_error':
+                    simulateNetworkErrorPurchase();
+                    break;
+                case 'payment_failed':
+                    simulatePaymentFailedPurchase();
+                    break;
+                case 'validation_error':
+                    simulateValidationErrorPurchase();
+                    break;
+                case 'server_error':
+                    simulateServerErrorPurchase();
+                    break;
+            }
+            
+            // Clean up after test
+            setTimeout(() => {
+                mockEmailInput.remove();
+                mockBtn.remove();
+            }, 10000);
+        }
+        
+        function simulateSuccessfulPurchase() {
+            purchaseModal.setCheckoutLoading(true);
+            updateStatus('Creating checkout session...');
+            
+            setTimeout(() => {
+                purchaseModal.showCheckoutSuccess();
+                updateStatus('Checkout session created successfully');
+                
+                setTimeout(() => {
+                    purchaseModal.setCheckoutLoading(false);
+                    errorRecoverySystem.showSuccessMessage('Purchase completed! Check your email for licensing information.');
+                    updateStatus('Purchase flow test completed successfully');
+                }, 2000);
+            }, 2000);
+        }
+        
+        function simulateNetworkErrorPurchase() {
+            purchaseModal.setCheckoutLoading(true);
+            updateStatus('Creating checkout session...');
+            
+            setTimeout(() => {
+                const error = new Error('Network connection failed');
+                error.type = 'network';
+                purchaseModal.handleCheckoutError(error);
+                updateStatus('Network error during purchase flow');
+            }, 2000);
+        }
+        
+        function simulatePaymentFailedPurchase() {
+            purchaseModal.setCheckoutLoading(true);
+            updateStatus('Creating checkout session...');
+            
+            setTimeout(() => {
+                const error = new Error('Payment was declined by your bank');
+                error.message = 'payment failed';
+                purchaseModal.handleCheckoutError(error);
+                updateStatus('Payment failed during purchase flow');
+            }, 2000);
+        }
+        
+        function simulateValidationErrorPurchase() {
+            const error = new Error('Please enter a valid email address');
+            purchaseModal.showError('Please enter a valid email address', 'email');
+            updateStatus('Validation error during purchase flow');
+        }
+        
+        function simulateServerErrorPurchase() {
+            purchaseModal.setCheckoutLoading(true);
+            updateStatus('Creating checkout session...');
+            
+            setTimeout(() => {
+                const error = new Error('Internal server error');
+                error.message = 'temporarily unavailable';
+                purchaseModal.handleCheckoutError(error);
+                updateStatus('Server error during purchase flow');
+            }, 2000);
+        }
+        
+        function testFormValidation() {
+            updateStatus('Testing form validation...');
+            
+            // Test empty email
+            document.getElementById('test-email').value = '';
+            const validation1 = purchaseModal.validateCheckoutForm();
+            if (!validation1.valid) {
+                purchaseModal.showError(validation1.message, validation1.field);
+            }
+            
+            setTimeout(() => {
+                // Test invalid email
+                document.getElementById('test-email').value = 'invalid-email';
+                const validation2 = purchaseModal.validateCheckoutForm();
+                if (!validation2.valid) {
+                    purchaseModal.showError(validation2.message, validation2.field);
+                }
+                
+                updateStatus('Form validation test completed');
+            }, 2000);
+        }
+        
+        function simulateOffline() {
+            updateStatus('Simulating offline state...');
+            errorRecoverySystem.handleNetworkLoss();
+        }
+        
+        function simulateOnline() {
+            updateStatus('Simulating online state...');
+            errorRecoverySystem.handleNetworkRestore();
+        }
+        
+        function simulateSlowNetwork() {
+            updateStatus('Simulating slow network...');
+            testRetryLoading();
+        }
+        
+        function testRetryMechanism() {
+            updateStatus('Testing retry mechanism...');
+            
+            const mockContext = {
+                endpoint: '/api/test-retry',
+                retryFunction: () => {
+                    return new Promise((resolve, reject) => {
+                        // Simulate random success/failure
+                        setTimeout(() => {
+                            if (Math.random() > 0.3) {
+                                resolve({ success: true });
+                            } else {
+                                reject(new Error('Simulated failure'));
+                            }
+                        }, 1000);
+                    });
+                }
+            };
+            
+            const error = new Error('Simulated network error');
+            error.type = 'network';
+            errorRecoverySystem.handleApiError(error, mockContext);
+        }
+        
+        function clearAllNotifications() {
+            errorRecoverySystem.clearErrorMessages();
+            errorRecoverySystem.hideRetryNotification();
+            
+            // Remove success notifications
+            document.querySelectorAll('.success-notification').forEach(el => el.remove());
+            
+            updateStatus('All notifications cleared');
+        }
+        
+        function updateStatus(message) {
+            const statusEl = document.getElementById('purchase-status');
+            if (statusEl) {
+                const timestamp = new Date().toLocaleTimeString();
+                statusEl.textContent = `[${timestamp}] ${message}`;
+            }
+            console.log('Status:', message);
+        }
+        
+        // Initialize test environment
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus('Error handling and UX test suite ready');
+            
+            // Test error recovery system initialization
+            if (typeof errorRecoverySystem !== 'undefined') {
+                updateStatus('Error recovery system initialized successfully');
+            } else {
+                updateStatus('ERROR: Error recovery system not found');
+            }
+            
+            // Test purchase modal initialization
+            if (typeof purchaseModal !== 'undefined') {
+                updateStatus('Purchase modal initialized successfully');
+            } else {
+                updateStatus('ERROR: Purchase modal not found');
+            }
+        });
+    </script>
+</body>
+</html>

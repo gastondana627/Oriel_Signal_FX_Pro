@@ -58,7 +58,7 @@ def not_found_error(error):
     }, 404
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8000))
+    port = int(os.environ.get('PORT', 9999))
     debug = app.config.get('DEBUG', False)
     
     if config_name == 'production':

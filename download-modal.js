@@ -35,44 +35,44 @@ class DownloadModal {
                         <p class="download-description">Choose your preferred format:</p>
                         
                         <div class="download-format-grid">
-                            <div class="download-format-option" data-format="mp3">
-                                <div class="format-icon">🎵</div>
-                                <div class="format-info">
-                                    <h4>MP3 Audio</h4>
-                                    <p>High-quality audio file</p>
-                                    <span class="format-size">~2-5MB</span>
-                                </div>
-                                <div class="format-badge">Most Popular</div>
-                            </div>
-                            
-                            <div class="download-format-option" data-format="mp4">
-                                <div class="format-icon">🎬</div>
-                                <div class="format-info">
-                                    <h4>MP4 Video</h4>
-                                    <p>Audio with visualization</p>
-                                    <span class="format-size">~10-25MB</span>
-                                </div>
-                                <div class="format-badge premium">Premium</div>
-                            </div>
-                            
-                            <div class="download-format-option" data-format="mov">
-                                <div class="format-icon">🎥</div>
-                                <div class="format-info">
-                                    <h4>MOV Video</h4>
-                                    <p>High-quality video format</p>
-                                    <span class="format-size">~15-30MB</span>
-                                </div>
-                                <div class="format-badge premium">Premium</div>
-                            </div>
-                            
-                            <div class="download-format-option" data-format="gif">
+                            <div class="download-format-option free-option" data-format="gif">
                                 <div class="format-icon">🖼️</div>
                                 <div class="format-info">
                                     <h4>Animated GIF</h4>
-                                    <p>Looping visualization</p>
+                                    <p>Looping visualization with watermark</p>
                                     <span class="format-size">~5-15MB</span>
                                 </div>
-                                <div class="format-badge">Free</div>
+                                <div class="format-badge free">Free</div>
+                            </div>
+                            
+                            <div class="download-format-option premium-option" data-format="mp4" data-tier="personal">
+                                <div class="format-icon">🎬</div>
+                                <div class="format-info">
+                                    <h4>MP4 Video - Personal</h4>
+                                    <p>1080p HD, personal use license</p>
+                                    <span class="format-size">~10-25MB</span>
+                                </div>
+                                <div class="format-badge personal">$2.99</div>
+                            </div>
+                            
+                            <div class="download-format-option premium-option" data-format="mp4" data-tier="commercial">
+                                <div class="format-icon">🎬</div>
+                                <div class="format-info">
+                                    <h4>MP4 Video - Commercial</h4>
+                                    <p>1080p HD, commercial use license</p>
+                                    <span class="format-size">~10-25MB</span>
+                                </div>
+                                <div class="format-badge commercial">$9.99</div>
+                            </div>
+                            
+                            <div class="download-format-option premium-option" data-format="mp4" data-tier="premium">
+                                <div class="format-icon">🎥</div>
+                                <div class="format-info">
+                                    <h4>MP4 Video - Premium</h4>
+                                    <p>4K Ultra HD, extended commercial license</p>
+                                    <span class="format-size">~50-100MB</span>
+                                </div>
+                                <div class="format-badge premium">$19.99</div>
                             </div>
                         </div>
                         
@@ -432,17 +432,22 @@ class DownloadModal {
         option.classList.add('selected');
         
         const format = option.dataset.format;
+        const tier = option.dataset.tier;
         const confirmBtn = this.modal.querySelector('.download-confirm');
         const btnText = confirmBtn.querySelector('.download-btn-text');
         
-        // Update button text
-        btnText.textContent = `Download ${format.toUpperCase()}`;
-        confirmBtn.disabled = false;
-
-        // Check if premium format
-        const isPremium = ['mp4', 'mov'].includes(format);
-        if (isPremium) {
-            btnText.textContent += ' (Premium)';
+        // Store selected format and tier
+        this.selectedFormat = format;
+        this.selectedTier = tier;
+        
+        // Update button text based on format type
+        if (option.classList.contains('free-option')) {
+            btnText.textContent = `Download Free ${format.toUpperCase()}`;
+            confirmBtn.disabled = false;
+        } else if (option.classList.contains('premium-option')) {
+            const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+            btnText.textContent = `Purchase ${tierName} License`;
+            confirmBtn.disabled = false;
         }
     }
 
@@ -524,28 +529,41 @@ class DownloadModal {
         const selectedOption = this.modal.querySelector('.download-format-option.selected');
         if (!selectedOption) return;
 
-        const format = selectedOption.dataset.format;
+        const format = this.selectedFormat;
+        const tier = this.selectedTier;
         const quality = this.modal.querySelector('#quality-select').value;
 
         try {
             // Show loading state
             const confirmBtn = this.modal.querySelector('.download-confirm');
             const originalText = confirmBtn.querySelector('.download-btn-text').textContent;
-            confirmBtn.querySelector('.download-btn-text').textContent = 'Downloading...';
-            confirmBtn.disabled = true;
-
-            // Call the appropriate download function
-            await this.startDownload(format, quality);
-
-            // Close modal on success
-            this.close();
+            
+            if (selectedOption.classList.contains('free-option')) {
+                // Handle free download
+                confirmBtn.querySelector('.download-btn-text').textContent = 'Downloading...';
+                confirmBtn.disabled = true;
+                
+                await this.startFreeDownload(format, quality);
+                this.close();
+                
+            } else if (selectedOption.classList.contains('premium-option')) {
+                // Handle premium purchase
+                confirmBtn.querySelector('.download-btn-text').textContent = 'Opening purchase...';
+                confirmBtn.disabled = true;
+                
+                await this.startPurchaseFlow(tier, format, quality);
+                
+                // Reset button after purchase modal opens
+                confirmBtn.querySelector('.download-btn-text').textContent = originalText;
+                confirmBtn.disabled = false;
+            }
 
         } catch (error) {
-            console.error('Download failed:', error);
+            console.error('Download/Purchase failed:', error);
             
             // Show error notification
             if (window.notifications) {
-                window.notifications.showError('Download failed. Please try again.');
+                window.notifications.showError('Process failed. Please try again.');
             }
 
             // Reset button
@@ -556,23 +574,135 @@ class DownloadModal {
     }
 
     /**
-     * Start the actual download process
+     * Start free download process
      */
-    async startDownload(format, quality) {
-        console.log(`Starting download: ${format} (${quality})`);
+    async startFreeDownload(format, quality) {
+        console.log(`Starting free download: ${format} (${quality})`);
+        
+        // Check free download limits first
+        const limitsCheck = await this.checkFreeDownloadLimits();
+        if (!limitsCheck.allowed) {
+            throw new Error(limitsCheck.message || 'Free download limit exceeded');
+        }
 
         switch (format) {
-            case 'mp3':
-                // Use existing MP3 download function
-                if (window.downloadAudioFile) {
-                    await window.downloadAudioFile();
+            case 'gif':
+                // Use existing GIF download function with watermark
+                if (window.downloadGifFile) {
+                    await window.downloadGifFile(true); // true for watermark
+                } else {
+                    throw new Error('GIF download not available');
                 }
                 break;
                 
-            case 'mp4':
-            case 'mov':
-                // Premium video formats - would need video rendering
-                if (window.notifications) {
+            default:
+                throw new Error(`Free download not available for ${format} format`);
+        }
+    }
+    
+    /**
+     * Start purchase flow for premium downloads
+     */
+    async startPurchaseFlow(tier, format, quality) {
+        console.log(`Starting purchase flow: ${tier} ${format} (${quality})`);
+        
+        // Generate file ID for this download
+        const fileId = this.generateFileId(format, quality);
+        
+        // Close download modal
+        this.close();
+        
+        // Open purchase modal
+        if (window.purchaseModal) {
+            window.purchaseModal.show(fileId, (downloadToken) => {
+                // Handle successful purchase
+                this.handlePurchaseComplete(downloadToken, format, quality);
+            });
+        } else {
+            throw new Error('Purchase system not available');
+        }
+    }
+    
+    /**
+     * Check free download limits
+     */
+    async checkFreeDownloadLimits() {
+        try {
+            const response = await fetch('/api/downloads/check-limits');
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error checking download limits:', error);
+            return { allowed: false, message: 'Unable to verify download limits' };
+        }
+    }
+    
+    /**
+     * Generate unique file ID for download
+     */
+    generateFileId(format, quality) {
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2);
+        return `${format}_${quality}_${timestamp}_${random}`;
+    }
+    
+    /**
+     * Handle completed purchase
+     */
+    async handlePurchaseComplete(downloadToken, format, quality) {
+        try {
+            // Start premium download with token
+            await this.startPremiumDownload(downloadToken, format, quality);
+            
+            // Show success message
+            if (window.notifications) {
+                window.notifications.showSuccess('Purchase completed! Your download is starting.');
+            }
+            
+        } catch (error) {
+            console.error('Premium download failed:', error);
+            
+            if (window.notifications) {
+                window.notifications.showError('Download failed. Please contact support with your purchase confirmation.');
+            }
+        }
+    }
+    
+    /**
+     * Start premium download with purchase token
+     */
+    async startPremiumDownload(downloadToken, format, quality) {
+        console.log(`Starting premium download: ${format} (${quality}) with token: ${downloadToken}`);
+        
+        // Call premium download endpoint
+        const response = await fetch(`/api/downloads/secure/${downloadToken}`, {
+            method: 'GET'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Premium download failed');
+        }
+        
+        // Handle file download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `audio_visualization_${format}_${quality}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+
+    /**
+     * Legacy method for backward compatibility
+     */
+    async startDownload(format, quality) {
+        // Redirect to new methods based on format
+        if (format === 'gif') {
+            await this.startFreeDownload(format, quality);
+        } else {
                     window.notifications.showInfo('Video downloads coming soon! Premium feature in development.');
                 }
                 break;

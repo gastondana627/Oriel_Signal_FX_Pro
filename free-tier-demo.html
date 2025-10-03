@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Tier Integration Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .demo-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .demo-header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .demo-header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .status-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .status-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .status-value {
+            color: #666;
+            font-family: monospace;
+        }
+
+        .downloads-remaining {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .downloads-remaining.warning {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        .downloads-remaining.exhausted {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .download-btn {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            font-size: 18px;
+            padding: 15px;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, #1e7e34 0%, #17a2b8 100%);
+        }
+
+        .download-btn.last-download {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            animation: pulse 2s infinite;
+        }
+
+        .test-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .log-output {
+            background: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 8px;
+            height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .notification.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>Free Tier Integration Demo</h1>
+            <p>Test the one-time download licensing free tier functionality</p>
+        </div>
+
+        <div class="status-panel">
+            <h3>Current Status</h3>
+            <div class="status-item">
+                <span class="status-label">Session ID:</span>
+                <span class="status-value" id="session-id">Loading...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">User ID:</span>
+                <span class="status-value" id="user-id">Not authenticated</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">User Type:</span>
+                <span class="status-value" id="user-type">Anonymous</span>
+            </div>
+        </div>
+
+        <div class="downloads-remaining" id="downloads-counter">
+            Loading download status...
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn download-btn" id="download-button" data-file-id="demo_file_123">
+                Download Free Sample
+            </button>
+            <button class="btn btn-secondary" onclick="checkLimits()">
+                Check Limits
+            </button>
+            <button class="btn btn-warning" onclick="simulateRegistration()">
+                Simulate Registration
+            </button>
+            <button class="btn btn-primary" onclick="showUpgradePrompt()">
+                Show Upgrade Prompt
+            </button>
+            <button class="btn btn-success" onclick="resetDemo()">
+                Reset Demo
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h3>Test Functions</h3>
+            <div class="test-buttons">
+                <button class="btn btn-secondary" onclick="runTests()">Run All Tests</button>
+                <button class="btn btn-secondary" onclick="testWatermark()">Test Watermark</button>
+                <button class="btn btn-secondary" onclick="testLimitExhaustion()">Test Limit Exhaustion</button>
+                <button class="btn btn-secondary" onclick="clearLog()">Clear Log</button>
+            </div>
+            
+            <div class="log-output" id="log-output">
+                <div>Free Tier Integration Demo - Ready</div>
+                <div>Click buttons above to test functionality</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the free tier integration script -->
+    <script src="free-tier-integration.js"></script>
+    <script src="test-free-tier-integration.js"></script>
+
+    <script>
+        // Demo functionality
+        let logOutput = document.getElementById('log-output');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#51cf66' : type === 'warning' ? '#ffd43b' : '#00ff00';
+            logOutput.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+
+        function clearLog() {
+            logOutput.innerHTML = '<div>Log cleared</div>';
+        }
+
+        // Simple notification system
+        window.notifications = {
+            show: function(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.classList.add('show'), 10);
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+                
+                log(`Notification: ${message}`, type);
+            }
+        };
+
+        // Demo functions
+        async function checkLimits() {
+            log('Checking download limits...');
+            try {
+                const result = await window.freeTierManager.checkDownloadLimits();
+                if (result.success) {
+                    log(`Limits: ${result.downloads_used}/${result.max_downloads} used, ${result.downloads_remaining} remaining`, 'success');
+                    updateStatus();
+                } else {
+                    log(`Error checking limits: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function simulateRegistration() {
+            log('Simulating user registration...');
+            const newUserId = 'demo_user_' + Date.now();
+            
+            // Simulate setting user data
+            localStorage.setItem('user_data', JSON.stringify({
+                id: newUserId,
+                email: 'demo@example.com',
+                plan: 'free'
+            }));
+            
+            await window.freeTierManager.handleUserRegistration(newUserId);
+            updateStatus();
+            log(`Registered as user: ${newUserId}`, 'success');
+        }
+
+        async function showUpgradePrompt() {
+            log('Showing upgrade prompt...');
+            const promptData = {
+                title: 'Demo Upgrade Prompt',
+                message: 'This is a demonstration of the upgrade prompt functionality.',
+                action_text: 'Upgrade Now',
+                action_url: '/pricing',
+                benefits: [
+                    'Unlimited downloads',
+                    'No watermarks',
+                    'Commercial license',
+                    'Priority support'
+                ]
+            };
+            
+            const usageData = {
+                downloads_used: 3,
+                max_downloads: 3,
+                downloads_remaining: 0
+            };
+            
+            window.freeTierManager.showUpgradePrompt(promptData, usageData);
+            log('Upgrade prompt displayed', 'success');
+        }
+
+        function resetDemo() {
+            log('Resetting demo...');
+            localStorage.removeItem('oriel_session_id');
+            localStorage.removeItem('user_data');
+            location.reload();
+        }
+
+        async function testWatermark() {
+            log('Testing watermark functionality...');
+            try {
+                const result = await window.freeTierManager.processFreeDownload('watermark_test_file');
+                if (result.success && result.watermarked) {
+                    log('Watermark test successful - file would be watermarked', 'success');
+                } else {
+                    log('Watermark test failed or limits exhausted', 'warning');
+                }
+            } catch (error) {
+                log(`Watermark test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLimitExhaustion() {
+            log('Testing limit exhaustion...');
+            // This would normally exhaust the limits by making multiple downloads
+            log('In a real scenario, this would make multiple downloads until limits are reached', 'info');
+            
+            // Simulate exhausted state
+            const mockExhaustedResponse = {
+                success: false,
+                needsUpgrade: true,
+                upgrade_prompt: {
+                    title: 'Downloads Exhausted',
+                    message: 'You have used all your free downloads.',
+                    action_text: 'Upgrade Now',
+                    action_url: '/pricing',
+                    benefits: ['Unlimited downloads', 'No watermarks']
+                }
+            };
+            
+            window.freeTierManager.showUpgradePrompt(mockExhaustedResponse.upgrade_prompt, {
+                downloads_used: 3,
+                max_downloads: 3,
+                downloads_remaining: 0
+            });
+            
+            log('Limit exhaustion scenario demonstrated', 'warning');
+        }
+
+        async function runTests() {
+            log('Running comprehensive tests...');
+            try {
+                const tests = new FreeTierIntegrationTests();
+                const results = await tests.runAllTests();
+                
+                const passed = results.filter(r => r.status === 'PASSED').length;
+                const total = results.length;
+                log(`Tests completed: ${passed}/${total} passed`, passed === total ? 'success' : 'warning');
+            } catch (error) {
+                log(`Test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function updateStatus() {
+            if (window.freeTierManager) {
+                document.getElementById('session-id').textContent = window.freeTierManager.sessionId || 'None';
+                document.getElementById('user-id').textContent = window.freeTierManager.userId || 'Not authenticated';
+                document.getElementById('user-type').textContent = window.freeTierManager.userId ? 'Registered' : 'Anonymous';
+                
+                // Update download counter
+                await window.freeTierManager.updateDownloadCounter();
+            }
+        }
+
+        // Initialize demo when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            log('Demo initialized');
+            
+            // Wait for FreeTierManager to be ready
+            setTimeout(async () => {
+                if (window.freeTierManager) {
+                    await updateStatus();
+                    log('Free tier manager ready');
+                } else {
+                    log('Free tier manager not available', 'error');
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

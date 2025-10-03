@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oriel FX - Enhanced UI Theme System</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0D1117, #1A1A1A);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .demo-section {
+            margin: 40px 0;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .demo-card {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .demo-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            display: inline-block;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: var(--oriel-primary);
+            color: white;
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, var(--oriel-primary), var(--oriel-secondary));
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(131, 9, 213, 0.3);
+        }
+        
+        .logo-demo {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .logo-text {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 20px 0;
+        }
+        
+        .animation-demo {
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .purchase-modal-demo {
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            margin: 20px auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .purchase-step {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--oriel-primary);
+        }
+        
+        .free-tier-demo {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <!-- Header -->
+        <div class="logo-demo">
+            <h1 class="logo-text oriel-gradient-text oriel-fade-in">ORIEL FX</h1>
+            <p class="oriel-slide-up">Enhanced UI Theme System with Animations</p>
+        </div>
+        
+        <!-- Color Palette Demo -->
+        <div class="demo-section">
+            <h2>🎨 Color Palette & Branding</h2>
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>Primary Colors</h3>
+                    <div style="background: var(--oriel-primary); padding: 20px; border-radius: 8px; margin: 10px 0;">
+                        Primary: #8309D5
+                    </div>
+                    <div style="background: var(--oriel-secondary); padding: 20px; border-radius: 8px; margin: 10px 0;">
+                        Secondary: #FF6B6B
+                    </div>
+                    <div class="oriel-gradient" style="padding: 20px; border-radius: 8px; margin: 10px 0;">
+                        Brand Gradient
+                    </div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>Accent Colors</h3>
+                    <div style="background: var(--oriel-accent); padding: 20px; border-radius: 8px; margin: 10px 0;">
+                        Accent: #00D4FF
+                    </div>
+                    <div style="background: var(--oriel-success); padding: 20px; border-radius: 8px; margin: 10px 0;">
+                        Success: #28A745
+                    </div>
+                    <div style="background: var(--oriel-warning); padding: 20px; border-radius: 8px; margin: 10px 0;">
+                        Warning: #FFC107
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Animation Demos -->
+        <div class="demo-section">
+            <h2>✨ Animation Sequences</h2>
+            
+            <div class="demo-grid">
+                <!-- Download Animation -->
+                <div class="demo-card">
+                    <h3>Download Sequence Animation</h3>
+                    <div id="downloadDemo" class="animation-demo">
+                        <span>Click to start download animation</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="playDownloadAnimation()">
+                        Start Download
+                    </button>
+                </div>
+                
+                <!-- Free Tier Animation -->
+                <div class="demo-card">
+                    <h3>Free Tier Badge Animation</h3>
+                    <div class="free-tier-demo">
+                        <div id="freeTierBadge" style="display: inline-block;">
+                            FREE DOWNLOAD
+                        </div>
+                        <p>Subtle animation encourages upgrades</p>
+                    </div>
+                    <button class="btn btn-gradient" onclick="playFreeTierAnimation()">
+                        Show Free Tier
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Purchase Flow Animation -->
+            <div class="demo-card">
+                <h3>Purchase Flow Animation</h3>
+                <div id="purchaseModal" class="purchase-modal-demo" style="display: none;">
+                    <h3>Choose Your Plan</h3>
+                    <div class="purchase-step">
+                        <strong>Personal Use</strong> - $2.99
+                        <br><small>Perfect for social media</small>
+                    </div>
+                    <div class="purchase-step">
+                        <strong>Commercial Use</strong> - $9.99
+                        <br><small>For business projects</small>
+                    </div>
+                    <div class="purchase-step">
+                        <strong>Premium Commercial</strong> - $19.99
+                        <br><small>4K quality + extended license</small>
+                    </div>
+                </div>
+                <button class="btn btn-gradient" onclick="playPurchaseAnimation()">
+                    Show Purchase Flow
+                </button>
+            </div>
+        </div>
+        
+        <!-- Interactive Elements -->
+        <div class="demo-section">
+            <h2>🎯 Interactive Elements</h2>
+            <div class="controls">
+                <button class="btn btn-primary oriel-pulse">Pulsing Button</button>
+                <button class="btn btn-gradient" onclick="showLoadingDemo()">Loading State</button>
+                <button class="btn" style="background: var(--oriel-success);" onclick="showSuccessDemo()">Success State</button>
+            </div>
+            
+            <div id="loadingDemo" class="animation-demo" style="display: none;">
+                <span>Loading...</span>
+            </div>
+            
+            <div id="successDemo" class="animation-demo" style="display: none;">
+                <span>✅ Success!</span>
+            </div>
+        </div>
+        
+        <!-- Console Log Fixes -->
+        <div class="demo-section">
+            <h2>🔧 Console Log Improvements</h2>
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>Health Check Optimization</h3>
+                    <p>✅ Exponential backoff for failed health checks</p>
+                    <p>✅ Graceful degradation when backend is offline</p>
+                    <p>✅ Reduced console spam from 660+ to manageable levels</p>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>Response Handling</h3>
+                    <p>✅ Fixed "response.clone is not a function" errors</p>
+                    <p>✅ Proper error handling for network failures</p>
+                    <p>✅ Mock responses for offline scenarios</p>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>Retry Logic</h3>
+                    <p>✅ Limited retry attempts (max 5)</p>
+                    <p>✅ Intelligent logging with duplicate suppression</p>
+                    <p>✅ Better UX during connection issues</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load the enhanced theme system -->
+    <script src="enhanced-ui-theme-system.js"></script>
+    
+    <script>
+        // Demo functions
+        function playDownloadAnimation() {
+            const element = document.getElementById('downloadDemo');
+            orielTheme.playDownloadSequence(element);
+        }
+        
+        function playFreeTierAnimation() {
+            const element = document.getElementById('freeTierBadge');
+            orielTheme.playFreeTierAnimation(element);
+        }
+        
+        function playPurchaseAnimation() {
+            const modal = document.getElementById('purchaseModal');
+            modal.style.display = 'block';
+            orielTheme.playPurchaseFlowAnimation(modal);
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 5000);
+        }
+        
+        function showLoadingDemo() {
+            const element = document.getElementById('loadingDemo');
+            element.style.display = 'flex';
+            orielTheme.showLoadingState(element);
+            
+            setTimeout(() => {
+                orielTheme.hideLoadingState(element);
+                element.style.display = 'none';
+            }, 3000);
+        }
+        
+        function showSuccessDemo() {
+            const element = document.getElementById('successDemo');
+            element.style.display = 'flex';
+            orielTheme.showSuccessState(element);
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+                element.classList.remove('oriel-success-checkmark');
+            }, 3000);
+        }
+        
+        // Test the console fixes
+        console.log('🧪 Testing console log improvements...');
+        
+        // This should be suppressed after 5 identical messages
+        for (let i = 0; i < 10; i++) {
+            console.log('Repeated message test');
+        }
+        
+        console.log('✅ Enhanced UI Theme System loaded successfully!');
+    </script>
+</body>
+</html>
