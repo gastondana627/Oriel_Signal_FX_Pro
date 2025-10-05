@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Centralized Error Management</title>
+    <link rel="stylesheet" href="error-handling-styles.css">
+</head>
+<body>
+    <div style="padding: 20px; font-family: Arial, sans-serif;">
+        <h1>Centralized Error Management Test</h1>
+        
+        <div style="margin: 20px 0;">
+            <button onclick="testApiError()" style="margin: 5px; padding: 10px;">Test API Error</button>
+            <button onclick="testNetworkError()" style="margin: 5px; padding: 10px;">Test Network Error</button>
+            <button onclick="testAuthError()" style="margin: 5px; padding: 10px;">Test Auth Error</button>
+            <button onclick="testSpamPrevention()" style="margin: 5px; padding: 10px;">Test Spam Prevention</button>
+            <button onclick="testRetryLogic()" style="margin: 5px; padding: 10px;">Test Retry Logic</button>
+            <button onclick="testCircuitBreaker()" style="margin: 5px; padding: 10px;">Test Circuit Breaker</button>
+            <button onclick="getStats()" style="margin: 5px; padding: 10px;">Get Stats</button>
+        </div>
+        
+        <div id="output" style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-top: 20px; white-space: pre-wrap; font-family: monospace;"></div>
+    </div>
+
+    <!-- Load error handling systems -->
+    <script src="enhanced-logger.js"></script>
+    <script src="clean-logging-system.js"></script>
+    <script src="api-error-handler.js"></script>
+    <script src="centralized-error-manager.js"></script>
+    <script src="error-recovery-system.js"></script>
+    <script src="error-handling-integration.js"></script>
+
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message) {
+            output.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function testApiError() {
+            log('Testing API Error handling...');
+            try {
+                const error = new Error('API request failed');
+                error.status = 500;
+                
+                const result = await window.centralizedErrorManager.handleError(error, {
+                    endpoint: '/api/test',
+                    operation: 'test_api_call'
+                });
+                
+                log('API Error Result: ' + JSON.stringify(result, null, 2));
+            } catch (e) {
+                log('Error in test: ' + e.message);
+            }
+        }
+
+        async function testNetworkError() {
+            log('Testing Network Error handling...');
+            try {
+                const error = new Error('Failed to fetch');
+                
+                const result = await window.centralizedErrorManager.handleError(error, {
+                    endpoint: '/api/network-test',
+                    operation: 'network_test'
+                });
+                
+                log('Network Error Result: ' + JSON.stringify(result, null, 2));
+            } catch (e) {
+                log('Error in test: ' + e.message);
+            }
+        }
+
+        async function testAuthError() {
+            log('Testing Auth Error handling...');
+            try {
+                const error = new Error('Token expired');
+                error.status = 401;
+                
+                const result = await window.centralizedErrorManager.handleError(error, {
+                    endpoint: '/api/protected',
+                    operation: 'auth_test'
+                });
+                
+                log('Auth Error Result: ' + JSON.stringify(result, null, 2));
+            } catch (e) {
+                log('Error in test: ' + e.message);
+            }
+        }
+
+        async function testSpamPrevention() {
+            log('Testing Spam Prevention...');
+            
+            // Generate multiple identical errors
+            for (let i = 0; i < 10; i++) {
+                const error = new Error('Repeated error message');
+                const result = await window.centralizedErrorManager.handleError(error, {
+                    operation: 'spam_test'
+                });
+                
+                if (i === 0 || i === 9) {
+                    log(`Spam test ${i + 1}: ${result.spamFiltered ? 'FILTERED' : 'ALLOWED'}`);
+                }
+            }
+        }
+
+        async function testRetryLogic() {
+            log('Testing Retry Logic...');
+            
+            let attemptCount = 0;
+            const retryFunction = async () => {
+                attemptCount++;
+                if (attemptCount < 3) {
+                    throw new Error(`Attempt ${attemptCount} failed`);
+                }
+                return { success: true, data: 'Success after retries' };
+            };
+            
+            try {
+                const error = new Error('Retryable error');
+                const result = await window.centralizedErrorManager.handleError(error, {
+                    endpoint: '/api/retry-test',
+                    retryFunction: retryFunction
+                });
+                
+                log('Retry Logic Result: ' + JSON.stringify(result, null, 2));
+            } catch (e) {
+                log('Error in retry test: ' + e.message);
+            }
+        }
+
+        async function testCircuitBreaker() {
+            log('Testing Circuit Breaker...');
+            
+            // Generate multiple failures to trigger circuit breaker
+            for (let i = 0; i < 12; i++) {
+                const error = new Error('Service failure');
+                error.status = 500;
+                
+                const result = await window.centralizedErrorManager.handleError(error, {
+                    endpoint: '/api/failing-service',
+                    operation: 'circuit_breaker_test'
+                });
+                
+                if (i === 0 || i === 5 || i === 11) {
+                    log(`Circuit breaker test ${i + 1}: ${result.circuitBreakerOpen ? 'OPEN' : 'CLOSED'}`);
+                }
+            }
+        }
+
+        function getStats() {
+            log('Getting Error Management Stats...');
+            
+            if (window.centralizedErrorManager) {
+                const stats = window.centralizedErrorManager.getStats();
+                log('Centralized Error Manager Stats: ' + JSON.stringify(stats, null, 2));
+            }
+            
+            if (window.cleanLoggingSystem) {
+                const logStats = window.cleanLoggingSystem.getStats();
+                log('Clean Logging System Stats: ' + JSON.stringify(logStats, null, 2));
+            }
+            
+            if (window.apiErrorHandler) {
+                const apiStats = window.apiErrorHandler.getStats();
+                log('API Error Handler Stats: ' + JSON.stringify(apiStats, null, 2));
+            }
+        }
+
+        // Initialize and test
+        window.addEventListener('load', () => {
+            log('Centralized Error Management System loaded successfully!');
+            log('Available systems:');
+            log('- Centralized Error Manager: ' + (window.centralizedErrorManager ? 'Available' : 'Not Available'));
+            log('- Clean Logging System: ' + (window.cleanLoggingSystem ? 'Available' : 'Not Available'));
+            log('- API Error Handler: ' + (window.apiErrorHandler ? 'Available' : 'Not Available'));
+            log('- Error Recovery System: ' + (window.errorRecoverySystem ? 'Available' : 'Not Available'));
+            log('- Enhanced Logger: ' + (window.enhancedLogger ? 'Available' : 'Not Available'));
+            log('- Error Handling Integration: ' + (window.errorHandlingIntegration ? 'Available' : 'Not Available'));
+            log('\nClick the buttons above to test different error scenarios.');
+        });
+    </script>
+</body>
+</html>
+</text>
+</invoke>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Integration Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0A0A0A;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 4px solid #00D4FF;
+        }
+        .test-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #00D4FF, #FF6B6B);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Logo Integration Test</h1>
+        
+        <div class="status" id="system-status">Checking logo system...</div>
+        
+        <button type="button" class="test-btn" onclick="testHeaderLogo()">Check Header Logo</button>
+        <button type="button" class="test-btn" onclick="testLoading()">Test Loading</button>
+        <button type="button" class="test-btn" onclick="testSplash()">Test Splash</button>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <!-- Include the logo system -->
+    <script src="geometric-logo-system.js"></script>
+    <script src="logo-integration-enhancer.js"></script>
+    
+    <script>
+        function updateStatus(message, isSuccess = true) {
+            const status = document.getElementById('system-status');
+            status.textContent = message;
+            status.style.borderLeftColor = isSuccess ? '#00FF80' : '#FF6B6B';
+            status.style.backgroundColor = isSuccess ? 'rgba(0, 255, 128, 0.1)' : 'rgba(255, 107, 107, 0.1)';
+        }
+        
+        function testHeaderLogo() {
+            const header = document.querySelector('.oriel-header');
+            if (header) {
+                updateStatus('✅ Header logo found and integrated');
+            } else {
+                updateStatus('❌ Header logo not found', false);
+            }
+        }
+        
+        function testLoading() {
+            if (window.OrielLogo) {
+                window.OrielLogo.showLoading('Testing...');
+                setTimeout(() => {
+                    window.OrielLogo.hideLoading();
+                    updateStatus('✅ Loading test completed');
+                }, 2000);
+            } else {
+                updateStatus('❌ OrielLogo not available', false);
+            }
+        }
+        
+        function testSplash() {
+            if (window.OrielLogo) {
+                window.OrielLogo.showSplash();
+                setTimeout(() => {
+                    window.OrielLogo.hideSplash();
+                    updateStatus('✅ Splash test completed');
+                }, 2000);
+            } else {
+                updateStatus('❌ OrielLogo not available', false);
+            }
+        }
+        
+        // Check system on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (window.geometricLogo && window.OrielLogo) {
+                    updateStatus('✅ Logo system loaded successfully');
+                    testHeaderLogo();
+                } else {
+                    updateStatus('❌ Logo system failed to load', false);
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

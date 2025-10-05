@@ -295,7 +295,14 @@ class AuthManager {
             
             // If refresh fails, logout user
             this.clearAuthState();
-            this.notificationManager.show('Session expired. Please log in again.', 'warning');
+            
+            // Show user-friendly message
+            const message = 'Your session has expired. Please log in again.';
+            if (this.notificationManager) {
+                this.notificationManager.show(message, 'warning');
+            } else if (window.notifications) {
+                window.notifications.show(message, 'warning');
+            }
             
             return { success: false, error: 'Token refresh failed' };
         }
@@ -324,6 +331,27 @@ class AuthManager {
         
         // Notify state change
         this.notifyStateChange();
+    }
+
+    /**
+     * Handle authentication failure (called by API error handlers)
+     */
+    handleAuthenticationFailure() {
+        // Clear authentication state
+        this.clearAuthState();
+        
+        // Show login modal if UI is available
+        if (window.authUI && typeof window.authUI.showLoginModal === 'function') {
+            window.authUI.showLoginModal('Your session has expired. Please log in again.');
+        }
+        
+        // Log the event
+        if (window.enhancedLogger) {
+            window.enhancedLogger.warn('Authentication failure handled', {
+                timestamp: new Date().toISOString(),
+                reason: 'Token expired or invalid'
+            });
+        }
     }
 
     /**

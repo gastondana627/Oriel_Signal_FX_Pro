@@ -1,0 +1,646 @@
+/**
+ * Responsive Geometric Design Enhancements
+ * Task 8.1: Mobile compatibility and responsive scaling
+ * Task 8.2: Geometric animations and interactions
+ */
+
+/* ===== ENHANCED RESPONSIVE VARIABLES ===== */
+:root {
+    /* Responsive sizing variables */
+    --geometric-base-size: 1rem;
+    --geometric-scale-factor: 1;
+    --geometric-spacing: 20px;
+    --geometric-border-radius-mobile: 6px;
+    --geometric-border-radius-tablet: 8px;
+    --geometric-border-radius-desktop: 12px;
+    
+    /* Animation variables */
+    --geometric-animation-duration: 0.3s;
+    --geometric-animation-timing: cubic-bezier(0.4, 0, 0.2, 1);
+    --geometric-hover-scale: 1.05;
+    --geometric-active-scale: 0.98;
+    
+    /* Mobile-first responsive breakpoints */
+    --mobile-max: 480px;
+    --tablet-max: 768px;
+    --desktop-min: 1024px;
+}
+
+/* ===== MOBILE-FIRST RESPONSIVE FOUNDATION ===== */
+/* Base styles for mobile (320px+) */
+.geometric-container {
+    padding: var(--geometric-spacing);
+    margin: 0 auto;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Enhanced mobile control panel */
+.control-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    transform: translateY(0);
+    margin: 0;
+    padding: 15px;
+    border-radius: var(--geometric-border-radius-mobile) var(--geometric-border-radius-mobile) 0 0;
+    max-height: 60vh;
+    overflow-y: auto;
+    z-index: 1000;
+    transition: transform var(--geometric-animation-duration) var(--geometric-animation-timing);
+}
+
+.control-panel.collapsed {
+    transform: translateY(calc(100% - 60px));
+}
+
+.control-panel-toggle {
+    display: block;
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--geometric-gradient-primary);
+    border: none;
+    border-radius: var(--geometric-border-radius-mobile) var(--geometric-border-radius-mobile) 0 0;
+    padding: 8px 20px;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: var(--geometric-glow-cyan);
+    transition: all var(--geometric-animation-duration) var(--geometric-animation-timing);
+}
+
+.control-panel-toggle:hover {
+    transform: translateX(-50%) scale(var(--geometric-hover-scale));
+    box-shadow: var(--geometric-glow-mixed);
+}
+
+/* Mobile-optimized control groups */
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.control {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--geometric-cyan);
+}
+
+/* Enhanced mobile buttons */
+.geometric-button,
+button:not(.close-button):not(.modal-button) {
+    min-height: 44px; /* iOS touch target minimum */
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: var(--geometric-border-radius-mobile);
+    position: relative;
+    overflow: hidden;
+    transform: scale(1);
+    transition: all var(--geometric-animation-duration) var(--geometric-animation-timing);
+}
+
+.geometric-button:hover,
+button:not(.close-button):not(.modal-button):hover {
+    transform: scale(var(--geometric-hover-scale));
+}
+
+.geometric-button:active,
+button:not(.close-button):not(.modal-button):active {
+    transform: scale(var(--geometric-active-scale));
+}
+
+/* Mobile user status bar */
+.user-status-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 15px;
+    margin: 0;
+    border-radius: 0 0 var(--geometric-border-radius-mobile) var(--geometric-border-radius-mobile);
+    z-index: 999;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+}
+
+.status-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.auth-buttons,
+.user-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.auth-btn,
+.user-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+    min-height: 36px;
+}
+
+/* ===== GEOMETRIC ANIMATIONS AND INTERACTIONS ===== */
+
+/* Neon glow hover effects */
+@keyframes geometric-neon-pulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 5px var(--geometric-cyan),
+            0 0 10px var(--geometric-cyan),
+            0 0 15px var(--geometric-cyan);
+    }
+    50% {
+        box-shadow: 
+            0 0 10px var(--geometric-pink),
+            0 0 20px var(--geometric-pink),
+            0 0 30px var(--geometric-pink);
+    }
+}
+
+@keyframes geometric-glow-shift {
+    0%, 100% {
+        filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.4));
+    }
+    25% {
+        filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.6));
+    }
+    50% {
+        filter: drop-shadow(0 0 20px rgba(255, 107, 107, 0.6));
+    }
+    75% {
+        filter: drop-shadow(0 0 15px rgba(255, 107, 107, 0.4));
+    }
+}
+
+@keyframes geometric-shape-morph {
+    0%, 100% {
+        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    }
+    33% {
+        clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    }
+    66% {
+        clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    }
+}
+
+@keyframes geometric-gradient-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes geometric-border-dance {
+    0%, 100% {
+        border-image-source: linear-gradient(45deg, var(--geometric-cyan), var(--geometric-pink));
+    }
+    25% {
+        border-image-source: linear-gradient(135deg, var(--geometric-cyan), var(--geometric-pink));
+    }
+    50% {
+        border-image-source: linear-gradient(225deg, var(--geometric-cyan), var(--geometric-pink));
+    }
+    75% {
+        border-image-source: linear-gradient(315deg, var(--geometric-cyan), var(--geometric-pink));
+    }
+}
+
+/* Interactive geometric elements */
+.geometric-interactive {
+    position: relative;
+    cursor: pointer;
+    transition: all var(--geometric-animation-duration) var(--geometric-animation-timing);
+}
+
+.geometric-interactive:hover {
+    animation: geometric-neon-pulse 2s ease-in-out infinite;
+}
+
+.geometric-interactive.morphing:hover {
+    animation: geometric-shape-morph 3s ease-in-out infinite;
+}
+
+.geometric-interactive.flowing {
+    background: linear-gradient(270deg, var(--geometric-cyan), var(--geometric-pink), var(--geometric-cyan));
+    background-size: 200% 200%;
+    animation: geometric-gradient-flow 4s ease infinite;
+}
+
+.geometric-interactive.border-dancing {
+    border: 2px solid;
+    border-image: linear-gradient(45deg, var(--geometric-cyan), var(--geometric-pink)) 1;
+    animation: geometric-border-dance 3s ease-in-out infinite;
+}
+
+/* Enhanced modal animations */
+.auth-modal,
+.payment-modal,
+.dashboard-modal {
+    transition: all var(--geometric-animation-duration) var(--geometric-animation-timing);
+}
+
+.auth-modal-content,
+.payment-modal-content,
+.dashboard-modal-content {
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+    transition: all var(--geometric-animation-duration) var(--geometric-animation-timing);
+}
+
+.auth-modal:not(.modal-hidden) .auth-modal-content,
+.payment-modal:not(.modal-hidden) .payment-modal-content,
+.dashboard-modal:not(.modal-hidden) .dashboard-modal-content {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+/* Geometric card hover effects */
+.geometric-card,
+.plan-card,
+.credit-option {
+    transition: all var(--geometric-animation-duration) var(--geometric-animation-timing);
+    position: relative;
+    overflow: hidden;
+}
+
+.geometric-card::before,
+.plan-card::before,
+.credit-option::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg, transparent, var(--geometric-cyan), transparent);
+    opacity: 0;
+    transition: opacity var(--geometric-animation-duration) var(--geometric-animation-timing);
+    animation: geometric-rotate 3s linear infinite;
+    z-index: -1;
+}
+
+.geometric-card:hover::before,
+.plan-card:hover::before,
+.credit-option:hover::before {
+    opacity: 0.1;
+}
+
+/* ===== TABLET RESPONSIVE DESIGN ===== */
+@media (min-width: 481px) and (max-width: 768px) {
+    :root {
+        --geometric-scale-factor: 1.1;
+        --geometric-spacing: 25px;
+    }
+    
+    .control-panel {
+        position: fixed;
+        top: 80px;
+        left: 20px;
+        right: auto;
+        bottom: auto;
+        width: 300px;
+        max-height: calc(100vh - 100px);
+        border-radius: var(--geometric-border-radius-tablet);
+        transform: translateX(0);
+    }
+    
+    .control-panel.collapsed {
+        transform: translateX(-250px);
+    }
+    
+    .control-panel-toggle {
+        display: block;
+        position: absolute;
+        top: 50%;
+        right: -40px;
+        left: auto;
+        transform: translateY(-50%);
+        border-radius: 0 var(--geometric-border-radius-tablet) var(--geometric-border-radius-tablet) 0;
+        padding: 20px 8px;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+    }
+    
+    .user-status-bar {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        border-radius: var(--geometric-border-radius-tablet);
+    }
+    
+    .control-group {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .control {
+        flex: 1;
+        min-width: 120px;
+    }
+}
+
+/* ===== DESKTOP RESPONSIVE DESIGN ===== */
+@media (min-width: 769px) {
+    :root {
+        --geometric-scale-factor: 1.2;
+        --geometric-spacing: 30px;
+    }
+    
+    .control-panel {
+        position: fixed;
+        top: 100px;
+        left: 30px;
+        right: auto;
+        bottom: auto;
+        width: 350px;
+        max-height: calc(100vh - 120px);
+        border-radius: var(--geometric-border-radius-desktop);
+        transform: translateX(0);
+    }
+    
+    .control-panel.collapsed {
+        transform: translateX(-300px);
+    }
+    
+    .control-panel-toggle {
+        right: -50px;
+        padding: 25px 10px;
+        border-radius: 0 var(--geometric-border-radius-desktop) var(--geometric-border-radius-desktop) 0;
+    }
+    
+    .user-status-bar {
+        position: fixed;
+        top: 30px;
+        left: 30px;
+        right: 30px;
+        border-radius: var(--geometric-border-radius-desktop);
+    }
+    
+    .control-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+    }
+    
+    /* Desktop-specific hover effects */
+    .geometric-button:hover,
+    button:not(.close-button):not(.modal-button):hover {
+        transform: scale(var(--geometric-hover-scale)) translateY(-2px);
+        box-shadow: 
+            var(--geometric-glow-mixed),
+            0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+}
+
+/* ===== LARGE DESKTOP RESPONSIVE DESIGN ===== */
+@media (min-width: 1200px) {
+    :root {
+        --geometric-scale-factor: 1.3;
+        --geometric-spacing: 40px;
+    }
+    
+    .control-panel {
+        width: 400px;
+        top: 120px;
+        left: 40px;
+    }
+    
+    .user-status-bar {
+        top: 40px;
+        left: 40px;
+        right: 40px;
+    }
+}
+
+/* ===== ULTRA-WIDE RESPONSIVE DESIGN ===== */
+@media (min-width: 1600px) {
+    .control-panel {
+        width: 450px;
+        left: 60px;
+    }
+    
+    .user-status-bar {
+        left: 60px;
+        right: 60px;
+    }
+}
+
+/* ===== ACCESSIBILITY AND PERFORMANCE ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .geometric-interactive:hover {
+        animation: none;
+    }
+    
+    .geometric-card::before,
+    .plan-card::before,
+    .credit-option::before {
+        animation: none;
+    }
+}
+
+@media (prefers-contrast: high) {
+    :root {
+        --geometric-cyan: #00FFFF;
+        --geometric-pink: #FF00FF;
+        --geometric-border-width: 3px;
+    }
+    
+    .geometric-button,
+    button:not(.close-button):not(.modal-button) {
+        border: 2px solid currentColor;
+    }
+}
+
+/* ===== TOUCH DEVICE OPTIMIZATIONS ===== */
+@media (hover: none) and (pointer: coarse) {
+    .geometric-button,
+    button:not(.close-button):not(.modal-button),
+    .auth-btn,
+    .user-btn {
+        min-height: 48px; /* Larger touch targets */
+        padding: 14px 24px;
+    }
+    
+    .control input[type="range"] {
+        height: 12px; /* Larger slider for touch */
+    }
+    
+    .control input[type="range"]::-webkit-slider-thumb {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .control input[type="range"]::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+    }
+    
+    /* Remove hover effects on touch devices */
+    .geometric-interactive:hover {
+        animation: none;
+    }
+    
+    .geometric-button:hover,
+    button:not(.close-button):not(.modal-button):hover {
+        transform: none;
+        box-shadow: var(--geometric-glow-cyan);
+    }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .control-panel,
+    .user-status-bar,
+    .geometric-button,
+    button {
+        display: none !important;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+}
+
+/* ===== GEOMETRIC UTILITY CLASSES FOR RESPONSIVE DESIGN ===== */
+.geometric-responsive-text {
+    font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+}
+
+.geometric-responsive-spacing {
+    padding: clamp(10px, 3vw, 30px);
+    margin: clamp(5px, 2vw, 20px);
+}
+
+.geometric-responsive-border {
+    border-radius: clamp(6px, 1.5vw, 12px);
+}
+
+.geometric-hide-mobile {
+    display: none;
+}
+
+@media (min-width: 481px) {
+    .geometric-hide-mobile {
+        display: block;
+    }
+    
+    .geometric-hide-tablet {
+        display: none;
+    }
+}
+
+@media (min-width: 769px) {
+    .geometric-hide-tablet {
+        display: block;
+    }
+    
+    .geometric-hide-desktop {
+        display: none;
+    }
+}
+
+@media (min-width: 1024px) {
+    .geometric-hide-desktop {
+        display: block;
+    }
+}
+
+/* ===== ENHANCED LOADING STATES ===== */
+.geometric-loading-enhanced {
+    position: relative;
+    overflow: hidden;
+}
+
+.geometric-loading-enhanced::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(0, 212, 255, 0.2),
+        rgba(255, 107, 107, 0.2),
+        transparent
+    );
+    animation: geometric-loading-sweep 2s ease-in-out infinite;
+}
+
+@keyframes geometric-loading-sweep {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* ===== GEOMETRIC PROGRESS INDICATORS ===== */
+.geometric-progress {
+    width: 100%;
+    height: 8px;
+    background: rgba(10, 10, 10, 0.8);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.geometric-progress-bar {
+    height: 100%;
+    background: var(--geometric-gradient-primary);
+    border-radius: 4px;
+    transition: width var(--geometric-animation-duration) var(--geometric-animation-timing);
+    position: relative;
+}
+
+.geometric-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    animation: progress-shimmer 2s ease-in-out infinite;
+}
+
+@keyframes progress-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}

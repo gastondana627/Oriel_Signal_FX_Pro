@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometric Theme Integration Test</title>
+    <link rel="stylesheet" href="geometric-theme-system.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 10px;
+        }
+        .test-section h2 {
+            color: #fff;
+            margin-top: 0;
+        }
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="geometric-text-gradient">Geometric Theme System Test</h1>
+        
+        <!-- Button Tests -->
+        <div class="test-section">
+            <h2>Geometric Buttons</h2>
+            <div class="component-grid">
+                <button class="geometric-button">Primary Button</button>
+                <button class="auth-btn">Auth Button</button>
+                <button class="user-btn">User Button</button>
+                <button id="play-pause-button">Play/Pause</button>
+                <button id="download-button">Download</button>
+                <button id="upgrade-button">Upgrade</button>
+            </div>
+        </div>
+
+        <!-- Card Tests -->
+        <div class="test-section">
+            <h2>Geometric Cards</h2>
+            <div class="component-grid">
+                <div class="geometric-card">
+                    <h3>Geometric Card</h3>
+                    <p>This is a test card with geometric styling.</p>
+                </div>
+                <div class="plan-card">
+                    <h3>Plan Card</h3>
+                    <p>This is a plan card with geometric styling.</p>
+                </div>
+                <div class="credit-option">
+                    <h3>Credit Option</h3>
+                    <p>This is a credit option with geometric styling.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Tests -->
+        <div class="test-section">
+            <h2>Progress Indicators</h2>
+            <div class="progress-bar" style="width: 300px; height: 20px; margin: 10px 0;">
+                <div class="progress-bar-inner" style="width: 60%;"></div>
+            </div>
+            <div class="usage-progress" style="width: 300px; height: 8px; margin: 10px 0;">
+                <div class="usage-progress-bar" style="width: 40%;"></div>
+            </div>
+        </div>
+
+        <!-- Form Tests -->
+        <div class="test-section">
+            <h2>Form Elements</h2>
+            <div class="form-group" style="max-width: 300px;">
+                <label>Email Input</label>
+                <input type="email" placeholder="test@example.com">
+            </div>
+            <div class="form-group" style="max-width: 300px; margin-top: 15px;">
+                <label>Range Input</label>
+                <input type="range" min="0" max="100" value="50">
+            </div>
+            <div class="form-group" style="max-width: 300px; margin-top: 15px;">
+                <label>Color Input</label>
+                <input type="color" value="#00D4FF">
+            </div>
+        </div>
+
+        <!-- Animation Tests -->
+        <div class="test-section">
+            <h2>Geometric Animations</h2>
+            <div class="component-grid">
+                <div class="geometric-card geometric-pulse">
+                    <h3>Pulse Animation</h3>
+                    <p>This card has a pulse animation.</p>
+                </div>
+                <div class="geometric-card geometric-glow-shift">
+                    <h3>Glow Shift</h3>
+                    <p>This card has a glow shift animation.</p>
+                </div>
+                <div class="geometric-card geometric-loading">
+                    <h3>Loading Effect</h3>
+                    <p>This card has a loading sweep effect.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Utility Classes Tests -->
+        <div class="test-section">
+            <h2>Utility Classes</h2>
+            <div class="component-grid">
+                <div class="geometric-bg" style="padding: 20px; border-radius: 10px;">
+                    <h3 style="margin: 0; color: white;">Geometric Background</h3>
+                </div>
+                <div class="geometric-border" style="padding: 20px; border-radius: 10px;">
+                    <h3 style="margin: 0;">Geometric Border</h3>
+                </div>
+                <div class="geometric-shadow" style="padding: 20px; border-radius: 10px; background: #222;">
+                    <h3 style="margin: 0;">Geometric Shadow</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shape Tests -->
+        <div class="test-section">
+            <h2>Geometric Shapes</h2>
+            <div class="component-grid">
+                <div class="geometric-hexagon geometric-bg" style="width: 100px; height: 100px; margin: 20px auto;"></div>
+                <div class="geometric-triangle geometric-bg" style="width: 100px; height: 100px; margin: 20px auto;"></div>
+                <div class="geometric-diamond geometric-bg" style="width: 100px; height: 100px; margin: 20px auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="geometric-logo-system.js"></script>
+    <script>
+        // Test script to verify theme functionality
+        console.log('🎨 Geometric Theme Integration Test Loaded');
+        
+        // Test button interactions
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', () => {
+                console.log('Button clicked:', button.textContent);
+            });
+        });
+
+        // Test form interactions
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('change', () => {
+                console.log('Input changed:', input.type, input.value);
+            });
+        });
+
+        // Verify CSS custom properties are loaded
+        const root = document.documentElement;
+        const cyancColor = getComputedStyle(root).getPropertyValue('--geometric-cyan');
+        const pinkColor = getComputedStyle(root).getPropertyValue('--geometric-pink');
+        
+        console.log('🎨 Theme colors loaded:', { cyan: cyancColor, pink: pinkColor });
+        
+        // Test if logo system is available
+        if (window.GeometricLogoSystem) {
+            console.log('✅ Geometric Logo System loaded successfully');
+        } else {
+            console.log('❌ Geometric Logo System not found');
+        }
+    </script>
+</body>
+</html>

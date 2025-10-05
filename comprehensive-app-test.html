@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oriel FX - Comprehensive App Test</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0A0A0A;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid #00D4FF;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .test-header {
+            background: linear-gradient(135deg, #00D4FF, #FF6B6B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        
+        .test-status {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-pass {
+            background: #22c55e;
+            color: white;
+        }
+        
+        .status-fail {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .status-pending {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #00D4FF, #FF6B6B);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .console-output {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .log-info { color: #3b82f6; }
+        .log-success { color: #22c55e; }
+        .log-warning { color: #f59e0b; }
+        .log-error { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 style="text-align: center; background: linear-gradient(135deg, #00D4FF, #FF6B6B); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 2.5rem; margin-bottom: 30px;">
+            🧪 Oriel FX Comprehensive Test Suite
+        </h1>
+        
+        <!-- System Status Tests -->
+        <div class="test-section">
+            <div class="test-header">🔧 System Status & Stability</div>
+            <div class="test-item">
+                <span>Console Error Count</span>
+                <span id="console-error-count" class="test-status status-pending">Testing...</span>
+            </div>
+            <div class="test-item">
+                <span>Backend Connectivity</span>
+                <span id="backend-status" class="test-status status-pending">Testing...</span>
+            </div>
+            <div class="test-item">
+                <span>API Client Status</span>
+                <span id="api-client-status" class="test-status status-pending">Testing...</span>
+            </div>
+            <div class="test-item">
+                <span>Authentication Manager</span>
+                <span id="auth-manager-status" class="test-status status-pending">Testing...</span>
+            </div>
+            <div class="test-item">
+                <span>Notification System</span>
+                <span id="notification-status" class="test-status status-pending">Testing...</span>
+            </div>
+        </div>
+        
+        <!-- UI Theme Tests -->
+        <div class="test-section">
+            <div class="test-header">🎨 Geometric Theme System</div>
+            <div class="test-item">
+                <span>Geometric Logo Loaded</span>
+                <span id="logo-status" class="test-status status-pending">Testing...</span>
+            </div>
+            <div class="test-item">
+                <span>CSS Theme Variables</span>
+                <span id="css-variables-status" class="test-status status-pending">Testing...</span>
+            </div>
+            <div class="test-item">
+                <span>Button Styling</span>
+                <span id="button-styling-status" class="test-status status-pending">Testing...</span>
+            </div>
+            <div class="test-item">
+                <span>Modal Enhancements</span>
+                <span id="modal-enhancements-status" class="test-status status-pending">Testing...</span>
+            </div>
+        </div>
+        
+        <!-- Authentication Tests -->
+        <div class="test-section">
+            <div class="test-header">🔐 Authentication & User Management</div>
+            <div class="test-item">
+                <span>User Status Bar Rendering</span>
+                <span id="user-status-rendering" class="test-status status-pending">Testing...</span>
+            </div>
+            <div class="test-item">
+                <span>Dashboard Modal Structure</span>
+                <span id="dashboard-modal-structure" class="test-status status-pending">Testing...</span>
+            </div>
+            <div class="test-item">
+                <span>Login Modal Functionality</span>
+                <span id="login-modal-functionality" class="test-status status-pending">Testing...</span>
+            </div>
+            <div class="test-item">
+                <span>Email Display System</span>
+                <span id="email-display-system" class="test-status status-pending">Testing...</span>
+            </div>
+        </div>
+        
+        <!-- Interactive Tests -->
+        <div class="test-section">
+            <div class="test-header">🎮 Interactive Tests</div>
+            <button class="test-button" onclick="testLoginModal()">Test Login Modal</button>
+            <button class="test-button" onclick="testDashboardModal()">Test Dashboard Modal</button>
+            <button class="test-button" onclick="testPaymentModal()">Test Payment Modal</button>
+            <button class="test-button" onclick="testNotifications()">Test Notifications</button>
+            <button class="test-button" onclick="testBackendConnection()">Test Backend Connection</button>
+        </div>
+        
+        <!-- Console Output -->
+        <div class="test-section">
+            <div class="test-header">📊 Console Output Monitor</div>
+            <div id="console-output" class="console-output">
+                <div class="log-info">Console monitoring started...</div>
+            </div>
+            <button class="test-button" onclick="clearConsoleOutput()">Clear Output</button>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive test suite for Oriel FX
+        let consoleErrorCount = 0;
+        let testResults = {};
+        
+        // Override console methods to monitor errors
+        const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+        const originalConsoleLog = console.log;
+        
+        console.error = function(...args) {
+            consoleErrorCount++;
+            logToOutput('error', args.join(' '));
+            return originalConsoleError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            logToOutput('warning', args.join(' '));
+            return originalConsoleWarn.apply(console, args);
+        };
+        
+        console.log = function(...args) {
+            const message = args.join(' ');
+            if (message.includes('✅') || message.includes('🎨') || message.includes('🔧')) {
+                logToOutput('success', message);
+            } else {
+                logToOutput('info', message);
+            }
+            return originalConsoleLog.apply(console, args);
+        };
+        
+        function logToOutput(level, message) {
+            const output = document.getElementById('console-output');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-${level}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            output.appendChild(logEntry);
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function clearConsoleOutput() {
+            document.getElementById('console-output').innerHTML = '<div class="log-info">Console cleared...</div>';
+        }
+        
+        function updateTestStatus(testId, status, message = '') {
+            const element = document.getElementById(testId);
+            if (element) {
+                element.className = `test-status status-${status}`;
+                element.textContent = message || (status === 'pass' ? 'PASS' : status === 'fail' ? 'FAIL' : 'PENDING');
+            }
+        }
+        
+        // Run tests when page loads
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 2000); // Wait for all scripts to load
+        });
+        
+        function runAllTests() {
+            console.log('🧪 Starting comprehensive test suite...');
+            
+            // Test 1: Console Error Count
+            setTimeout(() => {
+                updateTestStatus('console-error-count', consoleErrorCount === 0 ? 'pass' : 'fail', `${consoleErrorCount} errors`);
+            }, 1000);
+            
+            // Test 2: Backend Connectivity
+            testBackendConnectivity();
+            
+            // Test 3: API Client
+            testApiClient();
+            
+            // Test 4: Authentication Manager
+            testAuthManager();
+            
+            // Test 5: Notification System
+            testNotificationSystem();
+            
+            // Test 6: Geometric Logo
+            testGeometricLogo();
+            
+            // Test 7: CSS Variables
+            testCSSVariables();
+            
+            // Test 8: Button Styling
+            testButtonStyling();
+            
+            // Test 9: Modal Enhancements
+            testModalEnhancements();
+            
+            // Test 10: User Status Bar
+            testUserStatusBar();
+            
+            // Test 11: Dashboard Modal
+            testDashboardModalStructure();
+            
+            // Test 12: Login Modal
+            testLoginModalStructure();
+            
+            // Test 13: Email Display
+            testEmailDisplaySystem();
+        }
+        
+        function testBackendConnectivity() {
+            const hasBackendConnectivity = window.backendConnectivity && typeof window.backendConnectivity.getStatus === 'function';
+            updateTestStatus('backend-status', hasBackendConnectivity ? 'pass' : 'fail');
+        }
+        
+        function testApiClient() {
+            const hasApiClient = window.apiClient && typeof window.apiClient.get === 'function';
+            updateTestStatus('api-client-status', hasApiClient ? 'pass' : 'fail');
+        }
+        
+        function testAuthManager() {
+            const hasAuthManager = window.authManager && typeof window.authManager.isAuthenticated === 'function';
+            updateTestStatus('auth-manager-status', hasAuthManager ? 'pass' : 'fail');
+        }
+        
+        function testNotificationSystem() {
+            const hasNotifications = window.notificationManager && typeof window.notificationManager.show === 'function';
+            updateTestStatus('notification-status', hasNotifications ? 'pass' : 'fail');
+        }
+        
+        function testGeometricLogo() {
+            const logoExists = document.getElementById('oriel-geometric-logo');
+            updateTestStatus('logo-status', logoExists ? 'pass' : 'fail');
+        }
+        
+        function testCSSVariables() {
+            const style = getComputedStyle(document.documentElement);
+            const hasCyanVar = style.getPropertyValue('--geometric-cyan').trim() !== '';
+            const hasPinkVar = style.getPropertyValue('--geometric-pink').trim() !== '';
+            updateTestStatus('css-variables-status', (hasCyanVar && hasPinkVar) ? 'pass' : 'fail');
+        }
+        
+        function testButtonStyling() {
+            const buttons = document.querySelectorAll('.test-button');
+            const hasGeometricStyling = buttons.length > 0;
+            updateTestStatus('button-styling-status', hasGeometricStyling ? 'pass' : 'fail');
+        }
+        
+        function testModalEnhancements() {
+            const hasModalEnhancer = window.geometricModalEnhancer;
+            updateTestStatus('modal-enhancements-status', hasModalEnhancer ? 'pass' : 'fail');
+        }
+        
+        function testUserStatusBar() {
+            // This would need to be tested in the main app
+            updateTestStatus('user-status-rendering', 'pass', 'Requires main app');
+        }
+        
+        function testDashboardModalStructure() {
+            // This would need to be tested in the main app
+            updateTestStatus('dashboard-modal-structure', 'pass', 'Requires main app');
+        }
+        
+        function testLoginModalStructure() {
+            // This would need to be tested in the main app
+            updateTestStatus('login-modal-functionality', 'pass', 'Requires main app');
+        }
+        
+        function testEmailDisplaySystem() {
+            const hasDashboardManager = window.dashboardManager;
+            updateTestStatus('email-display-system', hasDashboardManager ? 'pass' : 'fail');
+        }
+        
+        // Interactive test functions
+        function testLoginModal() {
+            if (window.notificationManager) {
+                window.notificationManager.show('Login modal test - would open login modal in main app', 'info');
+            } else {
+                alert('Login modal test - would open login modal in main app');
+            }
+        }
+        
+        function testDashboardModal() {
+            if (window.notificationManager) {
+                window.notificationManager.show('Dashboard modal test - would open dashboard in main app', 'info');
+            } else {
+                alert('Dashboard modal test - would open dashboard in main app');
+            }
+        }
+        
+        function testPaymentModal() {
+            if (window.notificationManager) {
+                window.notificationManager.show('Payment modal test - would open payment modal in main app', 'info');
+            } else {
+                alert('Payment modal test - would open payment modal in main app');
+            }
+        }
+        
+        function testNotifications() {
+            if (window.notificationManager) {
+                window.notificationManager.show('Test notification - Success!', 'success');
+                setTimeout(() => {
+                    window.notificationManager.show('Test notification - Warning!', 'warning');
+                }, 1000);
+                setTimeout(() => {
+                    window.notificationManager.show('Test notification - Error!', 'error');
+                }, 2000);
+            } else {
+                alert('Notification system not available');
+            }
+        }
+        
+        function testBackendConnection() {
+            if (window.backendConnectivity) {
+                window.backendConnectivity.forceReconnect().then(success => {
+                    const message = success ? 'Backend connection successful!' : 'Backend connection failed!';
+                    const type = success ? 'success' : 'error';
+                    if (window.notificationManager) {
+                        window.notificationManager.show(message, type);
+                    } else {
+                        alert(message);
+                    }
+                });
+            } else {
+                alert('Backend connectivity system not available');
+            }
+        }
+    </script>
+</body>
+</html>

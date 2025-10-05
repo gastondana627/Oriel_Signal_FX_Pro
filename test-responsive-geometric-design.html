@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Geometric Design Test - Oriel FX</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="geometric-theme-system.css">
+    <link rel="stylesheet" href="responsive-geometric-enhancements.css">
+    <style>
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid var(--geometric-cyan);
+            border-radius: var(--geometric-border-radius);
+            background: rgba(10, 10, 10, 0.8);
+        }
+        
+        .test-title {
+            color: var(--geometric-cyan);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            background: var(--geometric-gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .breakpoint-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: var(--geometric-gradient-primary);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            z-index: 10000;
+            font-size: 0.9rem;
+        }
+        
+        .device-info {
+            position: fixed;
+            top: 60px;
+            right: 10px;
+            background: rgba(10, 10, 10, 0.9);
+            color: var(--geometric-cyan);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            z-index: 10000;
+            border: 1px solid var(--geometric-cyan);
+        }
+        
+        .animation-test {
+            width: 100px;
+            height: 100px;
+            background: var(--geometric-gradient-primary);
+            border-radius: 50%;
+            margin: 20px auto;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .animation-test:hover {
+            transform: scale(1.2);
+            box-shadow: var(--geometric-glow-mixed);
+        }
+        
+        .responsive-text {
+            font-size: clamp(1rem, 4vw, 2rem);
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .mobile-only { display: block; }
+        .tablet-only { display: none; }
+        .desktop-only { display: none; }
+        
+        @media (min-width: 481px) {
+            .mobile-only { display: none; }
+            .tablet-only { display: block; }
+        }
+        
+        @media (min-width: 769px) {
+            .tablet-only { display: none; }
+            .desktop-only { display: block; }
+        }
+        
+        .progress-test {
+            width: 100%;
+            height: 20px;
+            background: rgba(10, 10, 10, 0.8);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-bar-test {
+            height: 100%;
+            background: var(--geometric-gradient-primary);
+            width: 0%;
+            transition: width 2s ease;
+            position: relative;
+        }
+        
+        .progress-bar-test::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: progress-shimmer 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="breakpoint-indicator" id="breakpoint-indicator">
+        Loading...
+    </div>
+    
+    <div class="device-info" id="device-info">
+        <div>Screen: <span id="screen-size">-</span></div>
+        <div>Touch: <span id="touch-support">-</span></div>
+        <div>Motion: <span id="motion-preference">-</span></div>
+    </div>
+
+    <h1 class="geometric-text-gradient">Responsive Geometric Design Test</h1>
+    
+    <!-- Breakpoint Test -->
+    <div class="test-section">
+        <h2 class="test-title">📱 Breakpoint Detection</h2>
+        <div class="mobile-only">
+            <p style="color: var(--geometric-pink);">✅ Mobile Layout Active (≤480px)</p>
+        </div>
+        <div class="tablet-only">
+            <p style="color: var(--geometric-cyan);">✅ Tablet Layout Active (481px-768px)</p>
+        </div>
+        <div class="desktop-only">
+            <p style="color: var(--geometric-pink);">✅ Desktop Layout Active (≥769px)</p>
+        </div>
+        
+        <div class="responsive-text geometric-text-gradient">
+            Responsive Text Scaling
+        </div>
+    </div>
+
+    <!-- Button Tests -->
+    <div class="test-section">
+        <h2 class="test-title">🔘 Interactive Button Tests</h2>
+        <div class="test-grid">
+            <button class="geometric-button">Primary Button</button>
+            <button class="geometric-button geometric-interactive">Interactive Button</button>
+            <button class="geometric-button geometric-interactive flowing">Flowing Gradient</button>
+            <button class="geometric-button geometric-interactive morphing">Morphing Shape</button>
+        </div>
+    </div>
+
+    <!-- Card Tests -->
+    <div class="test-section">
+        <h2 class="test-title">🃏 Geometric Card Tests</h2>
+        <div class="test-grid">
+            <div class="geometric-card geometric-interactive">
+                <h3>Standard Card</h3>
+                <p>Hover to see geometric effects</p>
+            </div>
+            <div class="geometric-card geometric-interactive border-dancing">
+                <h3>Border Dancing</h3>
+                <p>Animated border gradients</p>
+            </div>
+            <div class="geometric-card geometric-interactive morphing">
+                <h3>Shape Morphing</h3>
+                <p>Geometric shape transitions</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Animation Tests -->
+    <div class="test-section">
+        <h2 class="test-title">✨ Animation Tests</h2>
+        <div class="animation-test" onclick="testClickAnimation(this)"></div>
+        <p style="text-align: center; color: var(--geometric-cyan);">
+            Click the circle above to test click animations
+        </p>
+        
+        <div class="progress-test">
+            <div class="progress-bar-test" id="progress-bar"></div>
+        </div>
+        <button onclick="animateProgress()" class="geometric-button">Animate Progress</button>
+    </div>
+
+    <!-- Control Panel Test -->
+    <div class="test-section">
+        <h2 class="test-title">🎛️ Control Panel Responsive Test</h2>
+        <div class="control-panel" style="position: relative; margin: 20px 0;">
+            <div class="control-group">
+                <div class="control">
+                    <label for="test-color">Test Color</label>
+                    <input type="color" id="test-color" value="#8309D5">
+                </div>
+                <div class="control">
+                    <label for="test-range">Test Range</label>
+                    <input type="range" id="test-range" min="0" max="100" value="50">
+                </div>
+            </div>
+            <button class="geometric-button">Test Button</button>
+        </div>
+    </div>
+
+    <!-- Modal Test -->
+    <div class="test-section">
+        <h2 class="test-title">🪟 Modal Responsive Test</h2>
+        <button onclick="showTestModal()" class="geometric-button">Show Test Modal</button>
+    </div>
+
+    <!-- Test Modal -->
+    <div id="test-modal" class="auth-modal modal-hidden">
+        <div class="auth-modal-content">
+            <button type="button" onclick="hideTestModal()" class="close-button">&times;</button>
+            <div class="auth-header">
+                <h2>Responsive Modal Test</h2>
+                <p>This modal adapts to different screen sizes</p>
+            </div>
+            <div class="form-group">
+                <label for="test-input">Test Input</label>
+                <input type="text" id="test-input" placeholder="Test responsive input">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="geometric-button">Test Action</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Test -->
+    <div class="test-section">
+        <h2 class="test-title">⚡ Performance Test</h2>
+        <div id="performance-results">
+            <p>FPS: <span id="fps-counter">-</span></p>
+            <p>Animation Count: <span id="animation-count">0</span></p>
+            <p>Reduced Motion: <span id="reduced-motion-status">-</span></p>
+        </div>
+        <button onclick="runPerformanceTest()" class="geometric-button">Run Performance Test</button>
+    </div>
+
+    <script src="geometric-logo-system.js"></script>
+    <script src="responsive-geometric-manager.js"></script>
+    <script src="geometric-animation-system.js"></script>
+    <script src="geometric-interaction-enhancer.js"></script>
+    <script src="validate-responsive-geometric-implementation.js"></script>
+    
+    <script>
+        // Test utilities
+        let animationCount = 0;
+        let fpsCounter = 0;
+        let lastTime = performance.now();
+        
+        function updateDeviceInfo() {
+            const breakpointEl = document.getElementById('breakpoint-indicator');
+            const deviceInfoEl = document.getElementById('device-info');
+            const screenSizeEl = document.getElementById('screen-size');
+            const touchSupportEl = document.getElementById('touch-support');
+            const motionPreferenceEl = document.getElementById('motion-preference');
+            
+            if (window.responsiveGeometricManager) {
+                const breakpoint = window.responsiveGeometricManager.getCurrentBreakpoint();
+                breakpointEl.textContent = `${breakpoint.toUpperCase()} (${window.innerWidth}px)`;
+                
+                screenSizeEl.textContent = `${window.innerWidth}x${window.innerHeight}`;
+                touchSupportEl.textContent = window.responsiveGeometricManager.isTouch ? 'Yes' : 'No';
+                motionPreferenceEl.textContent = window.responsiveGeometricManager.prefersReducedMotion ? 'Reduced' : 'Normal';
+            }
+        }
+        
+        function testClickAnimation(element) {
+            animationCount++;
+            document.getElementById('animation-count').textContent = animationCount;
+            
+            // Create ripple effect
+            const ripple = document.createElement('div');
+            ripple.style.cssText = `
+                position: absolute;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(255, 107, 107, 0.5), transparent);
+                transform: scale(0);
+                animation: test-ripple 0.6s ease-out;
+                pointer-events: none;
+                width: 100px;
+                height: 100px;
+                top: 50%;
+                left: 50%;
+                margin: -50px 0 0 -50px;
+            `;
+            
+            element.style.position = 'relative';
+            element.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 600);
+        }
+        
+        function animateProgress() {
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = '0%';
+            
+            setTimeout(() => {
+                progressBar.style.width = '100%';
+            }, 100);
+            
+            setTimeout(() => {
+                progressBar.style.width = '0%';
+            }, 2500);
+        }
+        
+        function showTestModal() {
+            const modal = document.getElementById('test-modal');
+            modal.classList.remove('modal-hidden');
+        }
+        
+        function hideTestModal() {
+            const modal = document.getElementById('test-modal');
+            modal.classList.add('modal-hidden');
+        }
+        
+        function runPerformanceTest() {
+            let frames = 0;
+            const startTime = performance.now();
+            
+            function countFrames() {
+                frames++;
+                const currentTime = performance.now();
+                
+                if (currentTime - startTime >= 1000) {
+                    document.getElementById('fps-counter').textContent = frames;
+                    document.getElementById('reduced-motion-status').textContent = 
+                        window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'Yes' : 'No';
+                    return;
+                }
+                
+                requestAnimationFrame(countFrames);
+            }
+            
+            requestAnimationFrame(countFrames);
+        }
+        
+        // Add test ripple animation
+        const testStyle = document.createElement('style');
+        testStyle.textContent = `
+            @keyframes test-ripple {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(testStyle);
+        
+        // Initialize tests
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDeviceInfo();
+            
+            // Update device info on resize
+            window.addEventListener('resize', updateDeviceInfo);
+            
+            // Listen for breakpoint changes
+            window.addEventListener('breakpointChange', (e) => {
+                console.log('Breakpoint changed:', e.detail);
+                updateDeviceInfo();
+            });
+            
+            // Auto-animate progress bar
+            setTimeout(() => {
+                animateProgress();
+            }, 1000);
+            
+            // Start FPS monitoring
+            function monitorFPS() {
+                const currentTime = performance.now();
+                const delta = currentTime - lastTime;
+                fpsCounter = Math.round(1000 / delta);
+                lastTime = currentTime;
+                
+                requestAnimationFrame(monitorFPS);
+            }
+            monitorFPS();
+        });
+        
+        console.log('🧪 Responsive Geometric Design Test initialized');
+        console.log('📱 Resize the window to test different breakpoints');
+        console.log('🖱️ Hover and click elements to test interactions');
+    </script>
+</body>
+</html>

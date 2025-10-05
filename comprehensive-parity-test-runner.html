@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Localhost/Production Parity Test Runner</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0A0A0A, #1A1A1A);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .test-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .test-header h1 {
+            background: linear-gradient(135deg, #00D4FF, #FF6B6B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 3rem;
+            margin: 0;
+        }
+
+        .test-header p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 10px 0;
+        }
+
+        .environment-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .env-button {
+            padding: 15px 30px;
+            border: 2px solid #00D4FF;
+            background: transparent;
+            color: #00D4FF;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .env-button:hover {
+            background: #00D4FF;
+            color: #0A0A0A;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .env-button.active {
+            background: #00D4FF;
+            color: #0A0A0A;
+        }
+
+        .test-suite-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .test-suite-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .test-suite-card:hover {
+            border-color: #00D4FF;
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.1);
+        }
+
+        .suite-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .suite-icon {
+            font-size: 2.5rem;
+        }
+
+        .suite-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #00D4FF;
+        }
+
+        .suite-description {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .suite-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .suite-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .suite-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .run-button {
+            background: linear-gradient(135deg, #00D4FF, #FF6B6B);
+            color: white;
+        }
+
+        .run-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        .view-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .view-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .overall-summary {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00D4FF;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .summary-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .summary-title {
+            font-size: 1.8rem;
+            color: #00D4FF;
+            margin-bottom: 10px;
+        }
+
+        .overall-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .overall-stat {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .overall-stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .overall-stat-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .master-controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .master-button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .run-all-button {
+            background: linear-gradient(135deg, #00D4FF, #FF6B6B);
+            color: white;
+        }
+
+        .run-all-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        .clear-all-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .clear-all-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .environment-info {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #00D4FF;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-ready { background: #28A745; }
+        .status-running { background: #00D4FF; animation: pulse 2s infinite; }
+        .status-completed { background: #28A745; }
+        .status-failed { background: #DC3545; }
+        .status-warning { background: #FFC107; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .progress-section {
+            margin: 30px 0;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .progress-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #00D4FF;
+        }
+
+        .progress-percentage {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00D4FF, #FF6B6B);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 6px;
+        }
+
+        .test-recommendations {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #FFC107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .recommendations-title {
+            color: #FFC107;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .recommendation-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 212, 255, 0.3);
+            border-top: 4px solid #00D4FF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .loading-details {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" id="loadingText">Running Tests...</div>
+            <div class="loading-details" id="loadingDetails">Initializing test suite</div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🔄 Comprehensive Parity Test Suite</h1>
+            <p>Complete localhost/production parity validation for Oriel FX</p>
+            <p>Ensuring feature consistency and geometric UI design across environments</p>
+        </div>
+
+        <div class="environment-selector">
+            <button class="env-button active" data-env="localhost">🏠 Localhost Testing</button>
+            <button class="env-button" data-env="production">🌐 Production Testing</button>
+        </div>
+
+        <div class="environment-info">
+            <div class="info-item">
+                <div class="info-label">Current Environment</div>
+                <div class="info-value" id="currentEnvironment">Localhost</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">API Base URL</div>
+                <div class="info-value" id="apiBaseUrl">http://localhost:9999</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Test Status</div>
+                <div class="info-value" id="overallTestStatus">
+                    <span class="status-indicator status-ready"></span>Ready
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Last Run</div>
+                <div class="info-value" id="lastRunTime">Never</div>
+            </div>
+        </div>
+
+        <div class="overall-summary">
+            <div class="summary-header">
+                <div class="summary-title">Overall Test Results</div>
+            </div>
+            <div class="overall-stats">
+                <div class="overall-stat">
+                    <div class="overall-stat-number" id="totalTests" style="color: #00D4FF;">0</div>
+                    <div class="overall-stat-label">Total Tests</div>
+                </div>
+                <div class="overall-stat">
+                    <div class="overall-stat-number" id="passedTests" style="color: #28A745;">0</div>
+                    <div class="overall-stat-label">Passed</div>
+                </div>
+                <div class="overall-stat">
+                    <div class="overall-stat-number" id="failedTests" style="color: #DC3545;">0</div>
+                    <div class="overall-stat-label">Failed</div>
+                </div>
+                <div class="overall-stat">
+                    <div class="overall-stat-number" id="successRate" style="color: #FFC107;">0%</div>
+                    <div class="overall-stat-label">Success Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-header">
+                <div class="progress-title">Test Progress</div>
+                <div class="progress-percentage" id="progressPercentage">0%</div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="overallProgressBar"></div>
+            </div>
+        </div>
+
+        <div class="master-controls">
+            <button class="master-button run-all-button" id="runAllTests">🚀 Run All Tests</button>
+            <button class="master-button clear-all-button" id="clearAllResults">🗑️ Clear All Results</button>
+        </div>
+
+        <div class="test-suite-grid">
+            <!-- Feature Consistency Test Suite -->
+            <div class="test-suite-card" data-suite="feature-consistency">
+                <div class="suite-header">
+                    <div class="suite-icon">🌍</div>
+                    <div>
+                        <div class="suite-title">Feature Consistency Tests</div>
+                        <div class="suite-description">
+                            Comprehensive validation of all application features across localhost and production environments.
+                            Tests API connectivity, authentication, UI consistency, and error handling.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="suite-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="featureTotal">21</div>
+                        <div class="stat-label">Total Tests</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="featurePassed" style="color: #28A745;">0</div>
+                        <div class="stat-label">Passed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="featureFailed" style="color: #DC3545;">0</div>
+                        <div class="stat-label">Failed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="featureRate" style="color: #FFC107;">0%</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                </div>
+                
+                <div class="suite-controls">
+                    <button class="suite-button run-button" onclick="runFeatureTests()">Run Tests</button>
+                    <a href="localhost-production-parity-test.html" class="suite-button view-button" target="_blank">View Details</a>
+                </div>
+            </div>
+
+            <!-- Download Functionality Test Suite -->
+            <div class="test-suite-card" data-suite="download-functionality">
+                <div class="suite-header">
+                    <div class="suite-icon">📥</div>
+                    <div>
+                        <div class="suite-title">Download Functionality Tests</div>
+                        <div class="suite-description">
+                            Validates audio upload and download functionality with geometric UI design.
+                            Tests file handling, visualizer integration, and download process with progress indicators.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="suite-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="downloadTotal">8</div>
+                        <div class="stat-label">Total Tests</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="downloadPassed" style="color: #28A745;">0</div>
+                        <div class="stat-label">Passed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="downloadFailed" style="color: #DC3545;">0</div>
+                        <div class="stat-label">Failed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="downloadRate" style="color: #FFC107;">0%</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                </div>
+                
+                <div class="suite-controls">
+                    <button class="suite-button run-button" onclick="runDownloadTests()">Run Tests</button>
+                    <a href="download-functionality-parity-test.html" class="suite-button view-button" target="_blank">View Details</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-recommendations" id="testRecommendations" style="display: none;">
+            <div class="recommendations-title">📋 Test Recommendations</div>
+            <div id="recommendationsContent"></div>
+        </div>
+    </div>
+
+    <script src="comprehensive-parity-test-runner.js"></script>
+</body>
+</html>

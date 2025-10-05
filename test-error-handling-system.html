@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Handling System Test</title>
+    <link rel="stylesheet" href="error-handling-styles.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            background: linear-gradient(135deg, #00d4ff, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            margin: 0;
+        }
+        
+        .test-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .test-section h2 {
+            color: #00d4ff;
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .test-button.danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        }
+        
+        .test-button.danger:hover {
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+        }
+        
+        .test-button.warning {
+            background: linear-gradient(135deg, #ff9500, #ff8c00);
+        }
+        
+        .test-button.warning:hover {
+            box-shadow: 0 8px 20px rgba(255, 149, 0, 0.3);
+        }
+        
+        .status-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-panel h3 {
+            color: #00d4ff;
+            margin-top: 0;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-value {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            color: #00d4ff;
+        }
+        
+        .log-output {
+            background: #000;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+        
+        .log-entry {
+            margin: 4px 0;
+            padding: 2px 0;
+        }
+        
+        .log-entry.error {
+            color: #ff6b6b;
+        }
+        
+        .log-entry.warn {
+            color: #ff9500;
+        }
+        
+        .log-entry.info {
+            color: #00d4ff;
+        }
+        
+        .log-entry.success {
+            color: #00ff88;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .control-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .control-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .metric-card {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00d4ff;
+            margin: 8px 0;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Error Handling System Test</h1>
+            <p>Comprehensive testing for centralized error management, API error handling, and clean logging</p>
+        </div>
+
+        <div class="controls">
+            <button class="control-button" onclick="clearLogs()">Clear Logs</button>
+            <button class="control-button" onclick="resetSystems()">Reset Systems</button>
+            <button class="control-button" onclick="updateStats()">Refresh Stats</button>
+            <button class="control-button" onclick="exportReport()">Export Report</button>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 System Status</h2>
+            <div class="status-panel">
+                <h3>Initialized Systems</h3>
+                <div id="systemStatus"></div>
+            </div>
+            
+            <div class="metrics">
+                <div class="metric-card">
+                    <div class="metric-value" id="errorCount">0</div>
+                    <div class="metric-label">Errors Handled</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="spamFiltered">0</div>
+                    <div class="metric-label">Spam Filtered</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="retriesAttempted">0</div>
+                    <div class="metric-label">Retries Attempted</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="circuitBreakers">0</div>
+                    <div class="metric-label">Circuit Breakers</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🚨 Error Recovery Tests</h2>
+            <p>Test centralized error management and recovery strategies</p>
+            <div class="test-grid">
+                <button class="test-button danger" onclick="testNetworkError()">Network Error</button>
+                <button class="test-button danger" onclick="testServerError()">Server Error (500)</button>
+                <button class="test-button warning" onclick="testAuthError()">Auth Error (401)</button>
+                <button class="test-button warning" onclick="testRateLimit()">Rate Limit (429)</button>
+                <button class="test-button danger" onclick="testTimeout()">Request Timeout</button>
+                <button class="test-button" onclick="testRetrySuccess()">Retry Success</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔄 API Error Handling Tests</h2>
+            <p>Test API error handling with circuit breaker and token refresh</p>
+            <div class="test-grid">
+                <button class="test-button danger" onclick="testCircuitBreaker()">Circuit Breaker</button>
+                <button class="test-button warning" onclick="testTokenRefresh()">Token Refresh</button>
+                <button class="test-button" onclick="testFallbackEndpoint()">Fallback Endpoint</button>
+                <button class="test-button danger" onclick="testConsecutiveFailures()">Consecutive Failures</button>
+                <button class="test-button" onclick="testHealthyEndpoint()">Healthy Endpoint</button>
+                <button class="test-button warning" onclick="testOfflineMode()">Offline Mode</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧹 Clean Logging Tests</h2>
+            <p>Test spam prevention and log filtering</p>
+            <div class="test-grid">
+                <button class="test-button warning" onclick="testSpamFilter()">Spam Filter</button>
+                <button class="test-button" onclick="testLogGrouping()">Log Grouping</button>
+                <button class="test-button danger" onclick="testConsoleSpam()">Console Spam</button>
+                <button class="test-button" onclick="testRateLimit()">Rate Limiting</button>
+                <button class="test-button" onclick="testLogLevels()">Log Levels</button>
+                <button class="test-button warning" onclick="testErrorPatterns()">Error Patterns</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🎯 UI Integration Tests</h2>
+            <p>Test user-facing error handling and recovery</p>
+            <div class="test-grid">
+                <button class="test-button" onclick="testErrorNotification()">Error Notification</button>
+                <button class="test-button" onclick="testSuccessNotification()">Success Notification</button>
+                <button class="test-button warning" onclick="testSupportModal()">Support Modal</button>
+                <button class="test-button" onclick="testRetryNotification()">Retry Notification</button>
+                <button class="test-button danger" onclick="testFallbackModal()">Fallback Modal</button>
+                <button class="test-button" onclick="testRecoveryActions()">Recovery Actions</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Real-time Logs</h2>
+            <div class="log-output" id="logOutput"></div>
+        </div>
+    </div>
+
+    <!-- Load error handling systems -->
+    <script src="centralized-error-manager.js"></script>
+    <script src="api-error-handler.js"></script>
+    <script src="clean-logging-system.js"></script>
+    <script src="error-handling-integration.js"></script>
+
+    <script>
+        // Test framework
+        class ErrorHandlingTestFramework {
+            constructor() {
+                this.testResults = [];
+                this.logEntries = [];
+                this.errorCount = 0;
+                this.spamCount = 0;
+                this.retryCount = 0;
+                
+                this.init();
+            }
+
+            init() {
+                this.setupLogCapture();
+                this.updateSystemStatus();
+                this.startMetricsUpdate();
+                
+                this.log('info', 'Error Handling Test Framework initialized');
+            }
+
+            setupLogCapture() {
+                // Capture console output
+                const originalLog = console.log;
+                const originalError = console.error;
+                const originalWarn = console.warn;
+
+                console.log = (...args) => {
+                    this.captureLog('info', args);
+                    originalLog.apply(console, args);
+                };
+
+                console.error = (...args) => {
+                    this.captureLog('error', args);
+                    originalError.apply(console, args);
+                };
+
+                console.warn = (...args) => {
+                    this.captureLog('warn', args);
+                    originalWarn.apply(console, args);
+                };
+            }
+
+            captureLog(level, args) {
+                const message = args.map(arg => 
+                    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+                ).join(' ');
+
+                this.logEntries.push({
+                    timestamp: new Date().toLocaleTimeString(),
+                    level: level,
+                    message: message
+                });
+
+                this.updateLogDisplay();
+            }
+
+            log(level, message) {
+                this.captureLog(level, [message]);
+                
+                if (window.cleanLoggingSystem) {
+                    window.cleanLoggingSystem.log(level.toUpperCase(), message);
+                }
+            }
+
+            updateLogDisplay() {
+                const logOutput = document.getElementById('logOutput');
+                const recentLogs = this.logEntries.slice(-50); // Show last 50 logs
+                
+                logOutput.innerHTML = recentLogs.map(entry => 
+                    `<div class="log-entry ${entry.level}">[${entry.timestamp}] ${entry.message}</div>`
+                ).join('');
+                
+                logOutput.scrollTop = logOutput.scrollHeight;
+            }
+
+            updateSystemStatus() {
+                const statusDiv = document.getElementById('systemStatus');
+                const systems = [
+                    { name: 'Centralized Error Manager', obj: window.centralizedErrorManager },
+                    { name: 'API Error Handler', obj: window.apiErrorHandler },
+                    { name: 'Clean Logging System', obj: window.cleanLoggingSystem },
+                    { name: 'Error Handling Integration', obj: window.errorHandlingIntegration }
+                ];
+
+                statusDiv.innerHTML = systems.map(system => `
+                    <div class="status-item">
+                        <span>${system.name}</span>
+                        <span class="status-value">${system.obj ? '✅ Active' : '❌ Not Found'}</span>
+                    </div>
+                `).join('');
+            }
+
+            startMetricsUpdate() {
+                setInterval(() => {
+                    this.updateMetrics();
+                }, 2000);
+            }
+
+            updateMetrics() {
+                let errorCount = 0;
+                let spamFiltered = 0;
+                let retriesAttempted = 0;
+                let circuitBreakers = 0;
+
+                if (window.centralizedErrorManager) {
+                    const stats = window.centralizedErrorManager.getStats();
+                    errorCount = Object.values(stats.errorCounts || {}).reduce((a, b) => a + b, 0);
+                    circuitBreakers = Object.keys(stats.circuitBreakers || {}).length;
+                }
+
+                if (window.cleanLoggingSystem) {
+                    const stats = window.cleanLoggingSystem.getStats();
+                    spamFiltered = stats.spamFiltered || 0;
+                }
+
+                if (window.apiErrorHandler) {
+                    const stats = window.apiErrorHandler.getStats();
+                    retriesAttempted = stats.errorHistory ? stats.errorHistory.length : 0;
+                }
+
+                document.getElementById('errorCount').textContent = errorCount;
+                document.getElementById('spamFiltered').textContent = spamFiltered;
+                document.getElementById('retriesAttempted').textContent = retriesAttempted;
+                document.getElementById('circuitBreakers').textContent = circuitBreakers;
+            }
+
+            async runTest(testName, testFunction) {
+                this.log('info', `🧪 Running test: ${testName}`);
+                
+                try {
+                    const result = await testFunction();
+                    this.log('success', `✅ Test passed: ${testName}`);
+                    return result;
+                } catch (error) {
+                    this.log('error', `❌ Test failed: ${testName} - ${error.message}`);
+                    throw error;
+                }
+            }
+        }
+
+        // Initialize test framework
+        const testFramework = new ErrorHandlingTestFramework();
+
+        // Test functions
+        async function testNetworkError() {
+            await testFramework.runTest('Network Error', async () => {
+                const error = new Error('Failed to fetch');
+                error.name = 'NetworkError';
+                
+                if (window.centralizedErrorManager) {
+                    const result = await window.centralizedErrorManager.handleError(error, {
+                        endpoint: '/api/test',
+                        operation: 'network_test'
+                    });
+                    
+                    if (!result.success) {
+                        testFramework.log('info', `Network error handled: ${result.error}`);
+                    }
+                }
+            });
+        }
+
+        async function testServerError() {
+            await testFramework.runTest('Server Error', async () => {
+                const error = new Error('Internal Server Error');
+                error.status = 500;
+                
+                if (window.centralizedErrorManager) {
+                    const result = await window.centralizedErrorManager.handleError(error, {
+                        endpoint: '/api/test',
+                        operation: 'server_error_test'
+                    });
+                    
+                    testFramework.log('info', `Server error handled: ${result.error}`);
+                }
+            });
+        }
+
+        async function testAuthError() {
+            await testFramework.runTest('Auth Error', async () => {
+                const error = new Error('Unauthorized');
+                error.status = 401;
+                
+                if (window.centralizedErrorManager) {
+                    const result = await window.centralizedErrorManager.handleError(error, {
+                        endpoint: '/api/protected',
+                        operation: 'auth_test'
+                    });
+                    
+                    testFramework.log('info', `Auth error handled: ${result.error}`);
+                }
+            });
+        }
+
+        async function testRateLimit() {
+            await testFramework.runTest('Rate Limit', async () => {
+                const error = new Error('Too Many Requests');
+                error.status = 429;
+                error.retryAfter = 5000;
+                
+                if (window.centralizedErrorManager) {
+                    const result = await window.centralizedErrorManager.handleError(error, {
+                        endpoint: '/api/limited',
+                        operation: 'rate_limit_test'
+                    });
+                    
+                    testFramework.log('info', `Rate limit handled: ${result.error}`);
+                }
+            });
+        }
+
+        async function testTimeout() {
+            await testFramework.runTest('Request Timeout', async () => {
+                const error = new Error('Request timeout');
+                error.name = 'AbortError';
+                
+                if (window.centralizedErrorManager) {
+                    const result = await window.centralizedErrorManager.handleError(error, {
+                        endpoint: '/api/slow',
+                        operation: 'timeout_test'
+                    });
+                    
+                    testFramework.log('info', `Timeout handled: ${result.error}`);
+                }
+            });
+        }
+
+        async function testRetrySuccess() {
+            await testFramework.runTest('Retry Success', async () => {
+                let attempts = 0;
+                const retryFunction = async () => {
+                    attempts++;
+                    if (attempts < 3) {
+                        throw new Error('Temporary failure');
+                    }
+                    return { success: true, data: 'Success after retries' };
+                };
+                
+                if (window.centralizedErrorManager) {
+                    const result = await window.centralizedErrorManager.handleError(
+                        new Error('Temporary failure'), 
+                        {
+                            endpoint: '/api/retry',
+                            operation: 'retry_test',
+                            retryFunction: retryFunction
+                        }
+                    );
+                    
+                    testFramework.log('success', `Retry succeeded after ${attempts} attempts`);
+                }
+            });
+        }
+
+        async function testCircuitBreaker() {
+            await testFramework.runTest('Circuit Breaker', async () => {
+                // Simulate multiple failures to trigger circuit breaker
+                for (let i = 0; i < 6; i++) {
+                    const error = new Error('Service unavailable');
+                    error.status = 503;
+                    
+                    if (window.centralizedErrorManager) {
+                        await window.centralizedErrorManager.handleError(error, {
+                            endpoint: '/api/failing-service',
+                            operation: 'circuit_breaker_test'
+                        });
+                    }
+                }
+                
+                testFramework.log('info', 'Circuit breaker should be open now');
+            });
+        }
+
+        async function testTokenRefresh() {
+            await testFramework.runTest('Token Refresh', async () => {
+                // Mock token refresh
+                if (window.apiErrorHandler) {
+                    try {
+                        await window.apiErrorHandler.forceTokenRefresh();
+                        testFramework.log('success', 'Token refresh completed');
+                    } catch (error) {
+                        testFramework.log('info', `Token refresh failed (expected): ${error.message}`);
+                    }
+                }
+            });
+        }
+
+        async function testSpamFilter() {
+            await testFramework.runTest('Spam Filter', async () => {
+                // Generate spam messages
+                for (let i = 0; i < 10; i++) {
+                    console.error('Failed to fetch resource');
+                    console.warn('Health check failed');
+                    console.error('Download modal not found');
+                }
+                
+                testFramework.log('info', 'Spam messages generated - should be filtered');
+            });
+        }
+
+        async function testLogGrouping() {
+            await testFramework.runTest('Log Grouping', async () => {
+                // Generate similar messages that should be grouped
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        console.error(`API error occurred: ${i}`);
+                    }, i * 100);
+                }
+                
+                testFramework.log('info', 'Similar messages generated - should be grouped');
+            });
+        }
+
+        async function testConsoleSpam() {
+            await testFramework.runTest('Console Spam', async () => {
+                // Test spam patterns
+                const spamMessages = [
+                    'Failed to fetch',
+                    'NetworkError when attempting to fetch resource',
+                    'ERR_NETWORK',
+                    'Download modal not found',
+                    'Health check failed',
+                    '401 Unauthorized'
+                ];
+                
+                spamMessages.forEach(msg => {
+                    for (let i = 0; i < 5; i++) {
+                        console.error(msg);
+                    }
+                });
+                
+                testFramework.log('info', 'Console spam test completed');
+            });
+        }
+
+        async function testLogLevels() {
+            await testFramework.runTest('Log Levels', async () => {
+                if (window.cleanLoggingSystem) {
+                    window.cleanLoggingSystem.debug('Debug message');
+                    window.cleanLoggingSystem.info('Info message');
+                    window.cleanLoggingSystem.warn('Warning message');
+                    window.cleanLoggingSystem.error('Error message');
+                    window.cleanLoggingSystem.critical('Critical message');
+                }
+                
+                testFramework.log('info', 'Log levels test completed');
+            });
+        }
+
+        async function testErrorPatterns() {
+            await testFramework.runTest('Error Patterns', async () => {
+                const patterns = [
+                    'CORS error occurred',
+                    'Mixed Content: The page at',
+                    'Uncaught (in promise)',
+                    'ERR_INTERNET_DISCONNECTED'
+                ];
+                
+                patterns.forEach(pattern => {
+                    console.error(pattern);
+                });
+                
+                testFramework.log('info', 'Error patterns test completed');
+            });
+        }
+
+        // UI Test Functions
+        async function testErrorNotification() {
+            if (window.errorRecoverySystem) {
+                window.errorRecoverySystem.showErrorMessage({
+                    type: 'network',
+                    message: 'This is a test error notification',
+                    retryable: true,
+                    showSupport: false
+                });
+            }
+        }
+
+        async function testSuccessNotification() {
+            if (window.errorRecoverySystem) {
+                window.errorRecoverySystem.showSuccessMessage('This is a test success notification');
+            }
+        }
+
+        async function testSupportModal() {
+            if (window.errorRecoverySystem) {
+                window.errorRecoverySystem.showSupportOptions({
+                    type: 'server',
+                    message: 'Test server error',
+                    context: { endpoint: '/api/test' }
+                });
+            }
+        }
+
+        async function testRetryNotification() {
+            if (window.errorRecoverySystem) {
+                window.errorRecoverySystem.showRetryNotification(2);
+                setTimeout(() => {
+                    window.errorRecoverySystem.hideRetryNotification();
+                }, 3000);
+            }
+        }
+
+        async function testFallbackModal() {
+            if (window.errorHandlingIntegration) {
+                window.errorHandlingIntegration.createFallbackModal('test', {});
+            }
+        }
+
+        async function testRecoveryActions() {
+            testFramework.log('info', 'Testing recovery actions - check notifications for action buttons');
+            await testErrorNotification();
+        }
+
+        // Additional test functions
+        async function testFallbackEndpoint() {
+            await testFramework.runTest('Fallback Endpoint', async () => {
+                const error = new Error('Primary endpoint failed');
+                error.status = 503;
+                
+                if (window.centralizedErrorManager) {
+                    const result = await window.centralizedErrorManager.handleError(error, {
+                        endpoint: '/api/primary',
+                        fallbackEndpoint: '/api/fallback',
+                        operation: 'fallback_test'
+                    });
+                    
+                    testFramework.log('info', `Fallback test result: ${result.error || 'Success'}`);
+                }
+            });
+        }
+
+        async function testConsecutiveFailures() {
+            await testFramework.runTest('Consecutive Failures', async () => {
+                for (let i = 0; i < 3; i++) {
+                    const error = new Error(`Failure ${i + 1}`);
+                    error.status = 500;
+                    
+                    if (window.centralizedErrorManager) {
+                        await window.centralizedErrorManager.handleError(error, {
+                            endpoint: '/api/consecutive-fail',
+                            operation: 'consecutive_failure_test'
+                        });
+                    }
+                }
+                
+                testFramework.log('info', 'Consecutive failures test completed');
+            });
+        }
+
+        async function testHealthyEndpoint() {
+            await testFramework.runTest('Healthy Endpoint', async () => {
+                if (window.apiErrorHandler) {
+                    const health = window.apiErrorHandler.getEndpointHealth();
+                    testFramework.log('info', `Endpoint health: ${JSON.stringify(health)}`);
+                }
+            });
+        }
+
+        async function testOfflineMode() {
+            await testFramework.runTest('Offline Mode', async () => {
+                // Simulate offline
+                Object.defineProperty(navigator, 'onLine', {
+                    writable: true,
+                    value: false
+                });
+                
+                const error = new Error('Network error');
+                
+                if (window.centralizedErrorManager) {
+                    const result = await window.centralizedErrorManager.handleError(error, {
+                        endpoint: '/api/offline-test',
+                        operation: 'offline_test'
+                    });
+                    
+                    testFramework.log('info', `Offline mode result: ${result.error}`);
+                }
+                
+                // Restore online status
+                Object.defineProperty(navigator, 'onLine', {
+                    writable: true,
+                    value: true
+                });
+            });
+        }
+
+        // Control functions
+        function clearLogs() {
+            testFramework.logEntries = [];
+            testFramework.updateLogDisplay();
+            testFramework.log('info', 'Logs cleared');
+        }
+
+        function resetSystems() {
+            if (window.centralizedErrorManager) {
+                window.centralizedErrorManager.reset();
+            }
+            if (window.cleanLoggingSystem) {
+                window.cleanLoggingSystem.reset();
+            }
+            if (window.apiErrorHandler) {
+                window.apiErrorHandler.resetAllCircuitBreakers();
+                window.apiErrorHandler.clearErrorHistory();
+            }
+            
+            testFramework.log('info', 'All systems reset');
+        }
+
+        function updateStats() {
+            testFramework.updateMetrics();
+            testFramework.updateSystemStatus();
+            testFramework.log('info', 'Statistics updated');
+        }
+
+        function exportReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                testResults: testFramework.testResults,
+                logEntries: testFramework.logEntries,
+                systemStats: {}
+            };
+            
+            if (window.errorHandlingIntegration) {
+                report.systemStats = window.errorHandlingIntegration.getErrorReport();
+            }
+            
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `error-handling-report-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            testFramework.log('info', 'Report exported');
+        }
+
+        // Auto-run basic tests on load
+        setTimeout(() => {
+            testFramework.log('info', '🚀 Running automated tests...');
+            
+            // Run a few basic tests automatically
+            setTimeout(() => testNetworkError(), 1000);
+            setTimeout(() => testSpamFilter(), 2000);
+            setTimeout(() => testLogLevels(), 3000);
+        }, 1000);
+    </script>
+</body>
+</html>

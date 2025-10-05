@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oriel FX - Logo Integration Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0A0A0A;
+            font-family: Arial, sans-serif;
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            padding: 100px 20px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            margin: 40px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .test-section h2 {
+            color: #00D4FF;
+            margin-top: 0;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .test-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #00D4FF, #FF6B6B);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .test-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        .logo-showcase {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .logo-item {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(0, 212, 255, 0.1);
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 4px solid #00D4FF;
+        }
+        
+        /* Mock modal for testing */
+        .test-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 10, 10, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .test-modal.show {
+            display: block;
+        }
+        
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #FF6B6B;
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 style="text-align: center; background: linear-gradient(135deg, #00D4FF, #FF6B6B); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            🎨 Oriel FX Logo Integration Test
+        </h1>
+        
+        <div class="test-section">
+            <h2>📍 Header Logo Integration</h2>
+            <p>The header logo should appear in the top-right corner with the "ORIEL FX" text.</p>
+            <div class="status" id="header-status">Checking header logo...</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔄 Loading States</h2>
+            <p>Test the loading overlay and splash screen functionality.</p>
+            <div class="test-buttons">
+                <button class="test-btn" onclick="testLoading()">Show Loading</button>
+                <button class="test-btn" onclick="testSplash()">Show Splash</button>
+                <button class="test-btn" onclick="hideAll()">Hide All</button>
+            </div>
+            <div class="status" id="loading-status">Ready to test loading states</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎭 Modal Integration</h2>
+            <p>Test logo integration in modal headers.</p>
+            <div class="test-buttons">
+                <button class="test-btn" onclick="showTestModal()">Show Test Modal</button>
+                <button class="test-btn" onclick="addModalLogo()">Add Logo to Modal</button>
+            </div>
+            <div class="status" id="modal-status">Ready to test modal integration</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎯 Custom Logo Placement</h2>
+            <p>Test adding logos to custom elements.</p>
+            <div class="logo-showcase" id="logo-showcase">
+                <div class="logo-item">
+                    <p>Small Logo (30px)</p>
+                    <div id="small-logo-container"></div>
+                </div>
+                <div class="logo-item">
+                    <p>Medium Logo (50px)</p>
+                    <div id="medium-logo-container"></div>
+                </div>
+                <div class="logo-item">
+                    <p>Large Logo (80px)</p>
+                    <div id="large-logo-container"></div>
+                </div>
+            </div>
+            <div class="test-buttons">
+                <button class="test-btn" onclick="addCustomLogos()">Add Custom Logos</button>
+                <button class="test-btn" onclick="pulseLogos()">Pulse Animation</button>
+                <button class="test-btn" onclick="toggleAnimation()">Toggle Rotation</button>
+            </div>
+            <div class="status" id="custom-status">Ready to add custom logos</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📱 Responsive Design</h2>
+            <p>Resize your browser window to test responsive behavior.</p>
+            <div class="status" id="responsive-status">Logos should scale appropriately on different screen sizes</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎨 Color Customization</h2>
+            <p>Test dynamic color updates.</p>
+            <div class="test-buttons">
+                <button class="test-btn" onclick="changeColors('#FF0080', '#00FF80')">Pink/Green</button>
+                <button class="test-btn" onclick="changeColors('#FFD700', '#FF4500')">Gold/Orange</button>
+                <button class="test-btn" onclick="changeColors('#00D4FF', '#FF6B6B')">Default Colors</button>
+            </div>
+            <div class="status" id="color-status">Ready to test color changes</div>
+        </div>
+    </div>
+    
+    <!-- Test Modal -->
+    <div class="test-modal" id="test-modal">
+        <button class="close-btn" onclick="hideTestModal()">&times;</button>
+        <div class="modal-header">
+            <h2>Test Modal</h2>
+        </div>
+        <p>This is a test modal to demonstrate logo integration in modal headers.</p>
+        <button class="test-btn" onclick="hideTestModal()">Close</button>
+    </div>
+    
+    <!-- Include the geometric logo system -->
+    <script src="geometric-logo-system.js"></script>
+    
+    <script>
+        // Test functions
+        function updateStatus(elementId, message, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = message;
+                element.style.borderLeftColor = isSuccess ? '#00FF80' : '#FF6B6B';
+                element.style.backgroundColor = isSuccess ? 'rgba(0, 255, 128, 0.1)' : 'rgba(255, 107, 107, 0.1)';
+            }
+        }
+        
+        function testLoading() {
+            if (window.OrielLogo) {
+                window.OrielLogo.showLoading('Testing loading state...');
+                updateStatus('loading-status', 'Loading overlay shown');
+                setTimeout(() => {
+                    window.OrielLogo.hideLoading();
+                    updateStatus('loading-status', 'Loading overlay hidden');
+                }, 3000);
+            } else {
+                updateStatus('loading-status', 'OrielLogo not available', false);
+            }
+        }
+        
+        function testSplash() {
+            if (window.OrielLogo) {
+                window.OrielLogo.showSplash();
+                updateStatus('loading-status', 'Splash screen shown');
+                setTimeout(() => {
+                    window.OrielLogo.hideSplash();
+                    updateStatus('loading-status', 'Splash screen hidden');
+                }, 3000);
+            } else {
+                updateStatus('loading-status', 'OrielLogo not available', false);
+            }
+        }
+        
+        function hideAll() {
+            if (window.OrielLogo) {
+                window.OrielLogo.hideLoading();
+                window.OrielLogo.hideSplash();
+                updateStatus('loading-status', 'All overlays hidden');
+            }
+        }
+        
+        function showTestModal() {
+            document.getElementById('test-modal').classList.add('show');
+            updateStatus('modal-status', 'Test modal shown');
+        }
+        
+        function hideTestModal() {
+            document.getElementById('test-modal').classList.remove('show');
+            updateStatus('modal-status', 'Test modal hidden');
+        }
+        
+        function addModalLogo() {
+            const modal = document.getElementById('test-modal');
+            const header = modal.querySelector('.modal-header h2');
+            
+            if (window.OrielLogo && header) {
+                const logo = window.OrielLogo.addToElement(header, 25, 'test-modal-logo');
+                if (logo) {
+                    header.style.display = 'flex';
+                    header.style.alignItems = 'center';
+                    header.style.gap = '10px';
+                    logo.style.marginRight = '10px';
+                    updateStatus('modal-status', 'Logo added to modal header');
+                } else {
+                    updateStatus('modal-status', 'Failed to add logo to modal', false);
+                }
+            } else {
+                updateStatus('modal-status', 'OrielLogo not available or header not found', false);
+            }
+        }
+        
+        function addCustomLogos() {
+            const containers = [
+                { id: 'small-logo-container', size: 30 },
+                { id: 'medium-logo-container', size: 50 },
+                { id: 'large-logo-container', size: 80 }
+            ];
+            
+            let added = 0;
+            containers.forEach(({ id, size }) => {
+                const container = document.getElementById(id);
+                if (container && window.OrielLogo) {
+                    // Clear existing logos
+                    container.innerHTML = '';
+                    const logo = window.OrielLogo.addToElement(container, size, `custom-${id}`);
+                    if (logo) added++;
+                }
+            });
+            
+            updateStatus('custom-status', `Added ${added} custom logos`);
+        }
+        
+        function pulseLogos() {
+            if (window.OrielLogo) {
+                window.OrielLogo.pulse('header');
+                window.OrielLogo.pulse('custom-small-logo-container');
+                window.OrielLogo.pulse('custom-medium-logo-container');
+                window.OrielLogo.pulse('custom-large-logo-container');
+                updateStatus('custom-status', 'Pulse animation triggered');
+            }
+        }
+        
+        function toggleAnimation() {
+            if (window.geometricLogo) {
+                window.geometricLogo.toggleAnimation();
+                updateStatus('custom-status', 'Animation toggled');
+            }
+        }
+        
+        function changeColors(color1, color2) {
+            if (window.geometricLogo) {
+                window.geometricLogo.updateColors(color1, color2);
+                updateStatus('color-status', `Colors changed to ${color1} and ${color2}`);
+            }
+        }
+        
+        // Check header logo on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const headerLogo = document.querySelector('.oriel-header');
+                if (headerLogo) {
+                    updateStatus('header-status', 'Header logo successfully integrated');
+                } else {
+                    updateStatus('header-status', 'Header logo not found', false);
+                }
+            }, 1000);
+        });
+        
+        // Monitor window resize for responsive testing
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                const width = window.innerWidth;
+                updateStatus('responsive-status', `Window width: ${width}px - Logos should adapt accordingly`);
+            }, 250);
+        });
+    </script>
+</body>
+</html>

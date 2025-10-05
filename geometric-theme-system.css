@@ -1,0 +1,554 @@
+/**
+ * Geometric Theme System - Cyan/Pink Gradient Design
+ * Complete visual transformation matching the icosahedron concept
+ */
+
+/* ===== CORE GEOMETRIC THEME VARIABLES ===== */
+:root {
+    /* Primary Colors */
+    --geometric-cyan: #00D4FF;
+    --geometric-pink: #FF6B6B;
+    --geometric-dark: #0A0A0A;
+    --geometric-darker: #050505;
+    
+    /* Gradients */
+    --geometric-gradient-primary: linear-gradient(135deg, var(--geometric-cyan), var(--geometric-pink));
+    --geometric-gradient-secondary: linear-gradient(45deg, var(--geometric-cyan), var(--geometric-pink));
+    --geometric-gradient-radial: radial-gradient(circle, var(--geometric-cyan), var(--geometric-pink));
+    
+    /* Glow Effects */
+    --geometric-glow-cyan: 0 0 20px rgba(0, 212, 255, 0.3);
+    --geometric-glow-pink: 0 0 20px rgba(255, 107, 107, 0.3);
+    --geometric-glow-mixed: 0 0 30px rgba(0, 212, 255, 0.2), 0 0 60px rgba(255, 107, 107, 0.1);
+    
+    /* Geometric Shapes */
+    --geometric-border-radius: 8px;
+    --geometric-border-width: 2px;
+    --geometric-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== BODY AND BACKGROUND ===== */
+body {
+    background: var(--geometric-dark);
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 107, 107, 0.1) 0%, transparent 50%);
+    color: #ffffff;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ===== GEOMETRIC BUTTON SYSTEM ===== */
+.geometric-button, 
+button:not(.close-button):not(.modal-button),
+.auth-btn,
+.user-btn,
+#play-pause-button,
+#download-button,
+#randomize-button,
+#upgrade-button,
+#buy-credits-button {
+    background: var(--geometric-gradient-primary);
+    border: none;
+    border-radius: var(--geometric-border-radius);
+    color: white;
+    font-weight: 600;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: var(--geometric-transition);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--geometric-glow-cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 14px;
+}
+
+.geometric-button:hover,
+button:not(.close-button):not(.modal-button):hover,
+.auth-btn:hover,
+.user-btn:hover,
+#play-pause-button:hover,
+#download-button:hover,
+#randomize-button:hover,
+#upgrade-button:hover,
+#buy-credits-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--geometric-glow-mixed);
+    background: var(--geometric-gradient-secondary);
+}
+
+.geometric-button:active,
+button:not(.close-button):not(.modal-button):active {
+    transform: translateY(0);
+}
+
+/* Geometric button glow effect */
+.geometric-button::before,
+button:not(.close-button):not(.modal-button)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.geometric-button:hover::before,
+button:not(.close-button):not(.modal-button):hover::before {
+    left: 100%;
+}
+
+/* ===== CONTROL PANEL GEOMETRIC STYLING ===== */
+.control-panel {
+    background: rgba(10, 10, 10, 0.9);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: var(--geometric-border-width) solid;
+    border-image: var(--geometric-gradient-primary) 1;
+    border-radius: var(--geometric-border-radius);
+    box-shadow: var(--geometric-glow-cyan);
+    transition: var(--geometric-transition);
+}
+
+.control-panel:hover {
+    box-shadow: var(--geometric-glow-mixed);
+    transform: translateY(-2px);
+}
+
+/* Control inputs */
+.control input[type="color"],
+.control input[type="range"] {
+    border: 2px solid var(--geometric-cyan);
+    border-radius: var(--geometric-border-radius);
+    background: var(--geometric-dark);
+    transition: var(--geometric-transition);
+}
+
+.control input[type="color"]:focus,
+.control input[type="range"]:focus {
+    outline: none;
+    box-shadow: var(--geometric-glow-cyan);
+    border-color: var(--geometric-pink);
+}
+
+/* Range slider styling */
+.control input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: var(--geometric-gradient-primary);
+    border-radius: 4px;
+}
+
+.control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--geometric-gradient-primary);
+    cursor: pointer;
+    box-shadow: var(--geometric-glow-cyan);
+}
+
+.control input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--geometric-gradient-primary);
+    cursor: pointer;
+    border: none;
+    box-shadow: var(--geometric-glow-cyan);
+}
+
+/* ===== USER STATUS BAR GEOMETRIC STYLING ===== */
+.user-status-bar {
+    background: rgba(10, 10, 10, 0.95);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: var(--geometric-border-width) solid;
+    border-image: var(--geometric-gradient-primary) 1;
+    border-radius: var(--geometric-border-radius);
+    box-shadow: var(--geometric-glow-pink);
+    transition: var(--geometric-transition);
+}
+
+.user-status-bar:hover {
+    box-shadow: var(--geometric-glow-mixed);
+}
+
+/* ===== MODAL GEOMETRIC STYLING ===== */
+.auth-modal,
+.payment-modal,
+.dashboard-modal {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+.auth-modal-content,
+.payment-modal-content,
+.dashboard-modal-content {
+    background: var(--geometric-dark);
+    border: var(--geometric-border-width) solid;
+    border-image: var(--geometric-gradient-primary) 1;
+    border-radius: 16px;
+    box-shadow: var(--geometric-glow-mixed);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-modal-content::before,
+.payment-modal-content::before,
+.dashboard-modal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--geometric-gradient-primary);
+    z-index: 1;
+}
+
+/* Form inputs */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    background: rgba(10, 10, 10, 0.8);
+    border: 2px solid var(--geometric-cyan);
+    border-radius: var(--geometric-border-radius);
+    color: white;
+    padding: 12px 16px;
+    transition: var(--geometric-transition);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--geometric-pink);
+    box-shadow: var(--geometric-glow-pink);
+}
+
+/* ===== GEOMETRIC SHAPES AND ANIMATIONS ===== */
+@keyframes geometric-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: var(--geometric-glow-cyan);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: var(--geometric-glow-mixed);
+    }
+}
+
+@keyframes geometric-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes geometric-glow-shift {
+    0%, 100% {
+        box-shadow: var(--geometric-glow-cyan);
+    }
+    50% {
+        box-shadow: var(--geometric-glow-pink);
+    }
+}
+
+/* Geometric pulse animation class */
+.geometric-pulse {
+    animation: geometric-pulse 2s ease-in-out infinite;
+}
+
+.geometric-rotate {
+    animation: geometric-rotate 10s linear infinite;
+}
+
+.geometric-glow-shift {
+    animation: geometric-glow-shift 3s ease-in-out infinite;
+}
+
+/* ===== GEOMETRIC CARDS ===== */
+.geometric-card,
+.plan-card,
+.credit-option,
+.stat-card,
+.info-item {
+    background: rgba(10, 10, 10, 0.8);
+    border: var(--geometric-border-width) solid var(--geometric-cyan);
+    border-radius: var(--geometric-border-radius);
+    padding: 20px;
+    transition: var(--geometric-transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.geometric-card:hover,
+.plan-card:hover,
+.credit-option:hover,
+.stat-card:hover,
+.info-item:hover {
+    border-color: var(--geometric-pink);
+    box-shadow: var(--geometric-glow-mixed);
+    transform: translateY(-4px);
+}
+
+.geometric-card::before,
+.plan-card::before,
+.credit-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--geometric-gradient-primary);
+}
+
+/* ===== PROGRESS BARS ===== */
+.progress-bar,
+.usage-progress {
+    background: var(--geometric-dark);
+    border-radius: var(--geometric-border-radius);
+    overflow: hidden;
+    border: 1px solid var(--geometric-cyan);
+}
+
+.progress-bar-inner,
+.usage-progress-bar {
+    background: var(--geometric-gradient-primary);
+    height: 100%;
+    border-radius: var(--geometric-border-radius);
+    transition: var(--geometric-transition);
+    position: relative;
+}
+
+.progress-bar-inner::after,
+.usage-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: progress-shimmer 2s ease-in-out infinite;
+}
+
+@keyframes progress-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ===== GEOMETRIC NAVIGATION ===== */
+.dashboard-tabs {
+    border-bottom: 2px solid var(--geometric-cyan);
+}
+
+.dashboard-tab-btn {
+    background: transparent;
+    border: none;
+    color: #ccc;
+    padding: 15px 25px;
+    cursor: pointer;
+    transition: var(--geometric-transition);
+    position: relative;
+}
+
+.dashboard-tab-btn:hover {
+    color: var(--geometric-cyan);
+    background: rgba(0, 212, 255, 0.1);
+}
+
+.dashboard-tab-btn.active {
+    color: var(--geometric-pink);
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.dashboard-tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--geometric-gradient-primary);
+}
+
+/* ===== GEOMETRIC NOTIFICATIONS ===== */
+#clean-notifications .notification,
+.notification {
+    background: var(--geometric-dark);
+    border: var(--geometric-border-width) solid var(--geometric-cyan);
+    border-radius: var(--geometric-border-radius);
+    box-shadow: var(--geometric-glow-cyan);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+.notification.success {
+    border-color: #22c55e;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+}
+
+.notification.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.notification.warning {
+    border-color: #f59e0b;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+}
+
+/* ===== GEOMETRIC LOADING STATES ===== */
+.geometric-loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.geometric-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--geometric-gradient-primary);
+    opacity: 0.3;
+    animation: geometric-loading-sweep 1.5s ease-in-out infinite;
+}
+
+@keyframes geometric-loading-sweep {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* ===== RESPONSIVE GEOMETRIC DESIGN ===== */
+@media (max-width: 768px) {
+    :root {
+        --geometric-border-radius: 6px;
+        --geometric-border-width: 1px;
+    }
+    
+    .control-panel {
+        margin: 10px;
+        padding: 15px;
+    }
+    
+    .user-status-bar {
+        margin: 10px;
+        padding: 12px;
+    }
+    
+    .geometric-button,
+    button:not(.close-button):not(.modal-button) {
+        padding: 10px 20px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-modal-content,
+    .payment-modal-content,
+    .dashboard-modal-content {
+        margin: 10px;
+        border-radius: 12px;
+    }
+    
+    .geometric-card,
+    .plan-card,
+    .credit-option {
+        padding: 15px;
+    }
+}
+
+/* ===== GEOMETRIC ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+    .geometric-pulse,
+    .geometric-rotate,
+    .geometric-glow-shift {
+        animation: none;
+    }
+    
+    .progress-bar-inner::after,
+    .usage-progress-bar::after {
+        animation: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --geometric-cyan: #00FFFF;
+        --geometric-pink: #FF00FF;
+        --geometric-border-width: 3px;
+    }
+}
+
+/* ===== GEOMETRIC UTILITY CLASSES ===== */
+.geometric-text-gradient {
+    background: var(--geometric-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+.geometric-border {
+    border: var(--geometric-border-width) solid;
+    border-image: var(--geometric-gradient-primary) 1;
+}
+
+.geometric-shadow {
+    box-shadow: var(--geometric-glow-mixed);
+}
+
+.geometric-bg {
+    background: var(--geometric-gradient-primary);
+}
+
+.geometric-bg-dark {
+    background: var(--geometric-dark);
+}
+
+/* ===== SPECIAL GEOMETRIC EFFECTS ===== */
+.geometric-hexagon {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.geometric-triangle {
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.geometric-diamond {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+/* ===== GEOMETRIC LOGO INTEGRATION ===== */
+#oriel-geometric-logo {
+    z-index: 1001;
+}
+
+/* Ensure logo doesn't interfere with control panel */
+.control-panel {
+    margin-top: 80px;
+}
+
+@media (max-width: 768px) {
+    .control-panel {
+        margin-top: 70px;
+    }
+}
+
+@media (max-width: 480px) {
+    .control-panel {
+        margin-top: 60px;
+    }
+}

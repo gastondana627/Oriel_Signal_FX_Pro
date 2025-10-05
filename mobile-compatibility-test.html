@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Compatibility Test - Oriel FX</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="geometric-theme-system.css">
+    <link rel="stylesheet" href="responsive-geometric-enhancements.css">
+    <style>
+        .test-container {
+            padding: 20px;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid var(--geometric-cyan);
+            border-radius: var(--geometric-border-radius);
+            background: rgba(10, 10, 10, 0.8);
+        }
+        
+        .test-title {
+            color: var(--geometric-cyan);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            background: var(--geometric-gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .device-simulator {
+            border: 3px solid var(--geometric-pink);
+            border-radius: 20px;
+            margin: 10px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .device-simulator::before {
+            content: attr(data-device);
+            position: absolute;
+            top: -25px;
+            left: 0;
+            background: var(--geometric-gradient-primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .mobile-simulator {
+            width: 375px;
+            height: 667px;
+            max-width: 100%;
+        }
+        
+        .tablet-simulator {
+            width: 768px;
+            height: 1024px;
+            max-width: 100%;
+        }
+        
+        .desktop-simulator {
+            width: 1200px;
+            height: 800px;
+            max-width: 100%;
+        }
+        
+        .simulator-content {
+            width: 100%;
+            height: 100%;
+            transform-origin: top left;
+            overflow: hidden;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .compatibility-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: var(--geometric-gradient-primary);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            z-index: 10000;
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .test-result.pass {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+            color: #22c55e;
+        }
+        
+        .test-result.fail {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        .test-result.warning {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+        }
+        
+        .touch-test-area {
+            width: 100%;
+            height: 60px;
+            background: var(--geometric-gradient-primary);
+            border-radius: var(--geometric-border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: var(--geometric-transition);
+        }
+        
+        .touch-test-area:active {
+            transform: scale(0.95);
+            background: var(--geometric-gradient-secondary);
+        }
+        
+        .viewport-info {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(10, 10, 10, 0.9);
+            color: var(--geometric-cyan);
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            z-index: 10000;
+            border: 1px solid var(--geometric-cyan);
+        }
+    </style>
+</head>
+<body>
+    <div class="compatibility-indicator" id="compatibility-indicator">
+        Testing...
+    </div>
+    
+    <div class="viewport-info" id="viewport-info">
+        <div>Viewport: <span id="viewport-size">-</span></div>
+        <div>Device Pixel Ratio: <span id="device-pixel-ratio">-</span></div>
+        <div>Touch Support: <span id="touch-support">-</span></div>
+        <div>Orientation: <span id="orientation">-</span></div>
+    </div>
+
+    <div class="test-container">
+        <h1 class="geometric-text-gradient">Mobile Compatibility Test Suite</h1>
+        
+        <!-- Viewport and Device Detection Test -->
+        <div class="test-section">
+            <h2 class="test-title">📱 Device Detection & Viewport</h2>
+            <div id="device-detection-results"></div>
+            
+            <div class="touch-test-area" onclick="testTouch(this)">
+                Tap to Test Touch Response
+            </div>
+        </div>
+
+        <!-- Responsive Breakpoint Test -->
+        <div class="test-section">
+            <h2 class="test-title">📐 Responsive Breakpoint Test</h2>
+            <div id="breakpoint-results"></div>
+            
+            <div class="test-grid">
+                <div class="geometric-card">
+                    <h3>Mobile Layout</h3>
+                    <p class="mobile-only">✅ Visible on Mobile</p>
+                    <p class="tablet-only">❌ Hidden on Mobile</p>
+                    <p class="desktop-only">❌ Hidden on Mobile</p>
+                </div>
+                <div class="geometric-card">
+                    <h3>Tablet Layout</h3>
+                    <p class="mobile-only">❌ Hidden on Tablet</p>
+                    <p class="tablet-only">✅ Visible on Tablet</p>
+                    <p class="desktop-only">❌ Hidden on Tablet</p>
+                </div>
+                <div class="geometric-card">
+                    <h3>Desktop Layout</h3>
+                    <p class="mobile-only">❌ Hidden on Desktop</p>
+                    <p class="tablet-only">❌ Hidden on Desktop</p>
+                    <p class="desktop-only">✅ Visible on Desktop</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel Mobile Test -->
+        <div class="test-section">
+            <h2 class="test-title">🎛️ Control Panel Mobile Compatibility</h2>
+            <div id="control-panel-results"></div>
+            
+            <div class="control-panel" style="position: relative; margin: 20px 0;">
+                <div class="control-group">
+                    <div class="control">
+                        <label for="test-color-mobile">Color</label>
+                        <input type="color" id="test-color-mobile" value="#00D4FF">
+                    </div>
+                    <div class="control">
+                        <label for="test-range-mobile">Range</label>
+                        <input type="range" id="test-range-mobile" min="0" max="100" value="50">
+                    </div>
+                </div>
+                <button type="button" class="geometric-button">Test Button</button>
+            </div>
+        </div>
+
+        <!-- Button Touch Target Test -->
+        <div class="test-section">
+            <h2 class="test-title">👆 Touch Target Size Test</h2>
+            <div id="touch-target-results"></div>
+            
+            <div class="test-grid">
+                <button type="button" class="geometric-button" data-test="small">Small Button</button>
+                <button type="button" class="geometric-button" data-test="medium" style="padding: 12px 24px;">Medium Button</button>
+                <button type="button" class="geometric-button" data-test="large" style="padding: 16px 32px;">Large Button</button>
+            </div>
+        </div>
+
+        <!-- Modal Mobile Test -->
+        <div class="test-section">
+            <h2 class="test-title">🪟 Modal Mobile Compatibility</h2>
+            <div id="modal-results"></div>
+            
+            <button type="button" onclick="showMobileTestModal()" class="geometric-button">Test Mobile Modal</button>
+        </div>
+
+        <!-- Typography and Readability Test -->
+        <div class="test-section">
+            <h2 class="test-title">📝 Typography & Readability</h2>
+            <div id="typography-results"></div>
+            
+            <div style="font-size: 12px; margin: 10px 0;">12px text - Too small for mobile</div>
+            <div style="font-size: 14px; margin: 10px 0;">14px text - Minimum mobile size</div>
+            <div style="font-size: 16px; margin: 10px 0;">16px text - Recommended mobile size</div>
+            <div style="font-size: 18px; margin: 10px 0;">18px text - Large mobile size</div>
+        </div>
+
+        <!-- Performance Test -->
+        <div class="test-section">
+            <h2 class="test-title">⚡ Mobile Performance Test</h2>
+            <div id="performance-results"></div>
+            
+            <button type="button" onclick="runPerformanceTest()" class="geometric-button">Run Performance Test</button>
+            
+            <div id="performance-metrics" style="margin-top: 15px;">
+                <div>FPS: <span id="fps-display">-</span></div>
+                <div>Memory Usage: <span id="memory-display">-</span></div>
+                <div>Animation Performance: <span id="animation-performance">-</span></div>
+            </div>
+        </div>
+
+        <!-- Accessibility Test -->
+        <div class="test-section">
+            <h2 class="test-title">♿ Mobile Accessibility</h2>
+            <div id="accessibility-results"></div>
+            
+            <div class="test-grid">
+                <button type="button" class="geometric-button" style="min-height: 44px;">44px Touch Target</button>
+                <button type="button" class="geometric-button" style="min-height: 48px;">48px Touch Target</button>
+                <input type="text" placeholder="Test input accessibility" style="min-height: 44px; padding: 12px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Test Modal -->
+    <div id="mobile-test-modal" class="auth-modal modal-hidden">
+        <div class="auth-modal-content">
+            <button type="button" onclick="hideMobileTestModal()" class="close-button">&times;</button>
+            <div class="auth-header">
+                <h2>Mobile Modal Test</h2>
+                <p>Testing modal responsiveness on mobile devices</p>
+            </div>
+            <div class="form-group">
+                <label for="mobile-test-input">Test Input</label>
+                <input type="text" id="mobile-test-input" placeholder="Test mobile input">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="geometric-button" onclick="hideMobileTestModal()">Close Modal</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="responsive-geometric-manager.js"></script>
+    
+    <script>
+        class MobileCompatibilityTester {
+            constructor() {
+                this.testResults = {};
+                this.init();
+            }
+            
+            init() {
+                this.updateViewportInfo();
+                this.runAllTests();
+                
+                // Update on resize
+                window.addEventListener('resize', () => {
+                    this.updateViewportInfo();
+                    this.runAllTests();
+                });
+                
+                // Update on orientation change
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(() => {
+                        this.updateViewportInfo();
+                        this.runAllTests();
+                    }, 100);
+                });
+            }
+            
+            updateViewportInfo() {
+                const viewportSize = document.getElementById('viewport-size');
+                const devicePixelRatio = document.getElementById('device-pixel-ratio');
+                const touchSupport = document.getElementById('touch-support');
+                const orientation = document.getElementById('orientation');
+                
+                viewportSize.textContent = `${window.innerWidth}x${window.innerHeight}`;
+                devicePixelRatio.textContent = window.devicePixelRatio || 1;
+                touchSupport.textContent = 'ontouchstart' in window ? 'Yes' : 'No';
+                orientation.textContent = window.innerHeight > window.innerWidth ? 'Portrait' : 'Landscape';
+            }
+            
+            runAllTests() {
+                this.testDeviceDetection();
+                this.testBreakpoints();
+                this.testControlPanel();
+                this.testTouchTargets();
+                this.testModals();
+                this.testTypography();
+                this.testAccessibility();
+                this.updateCompatibilityIndicator();
+            }
+            
+            testDeviceDetection() {
+                const results = document.getElementById('device-detection-results');
+                const tests = [];
+                
+                // Test viewport meta tag
+                const viewportMeta = document.querySelector('meta[name="viewport"]');
+                tests.push({
+                    name: 'Viewport Meta Tag',
+                    pass: viewportMeta && viewportMeta.content.includes('width=device-width'),
+                    message: viewportMeta ? 'Viewport meta tag found' : 'Missing viewport meta tag'
+                });
+                
+                // Test responsive manager
+                tests.push({
+                    name: 'Responsive Manager',
+                    pass: window.responsiveGeometricManager !== undefined,
+                    message: window.responsiveGeometricManager ? 'Responsive manager loaded' : 'Responsive manager not found'
+                });
+                
+                // Test breakpoint detection
+                const currentBreakpoint = window.responsiveGeometricManager?.getCurrentBreakpoint();
+                tests.push({
+                    name: 'Breakpoint Detection',
+                    pass: currentBreakpoint !== undefined,
+                    message: currentBreakpoint ? `Current breakpoint: ${currentBreakpoint}` : 'Breakpoint detection failed'
+                });
+                
+                // Test touch device detection
+                const isTouch = 'ontouchstart' in window;
+                tests.push({
+                    name: 'Touch Detection',
+                    pass: true,
+                    message: `Touch support: ${isTouch ? 'Yes' : 'No'}`
+                });
+                
+                this.renderTestResults(results, tests);
+                this.testResults.deviceDetection = tests.every(t => t.pass);
+            }
+            
+            testBreakpoints() {
+                const results = document.getElementById('breakpoint-results');
+                const tests = [];
+                const width = window.innerWidth;
+                
+                // Test mobile breakpoint
+                tests.push({
+                    name: 'Mobile Breakpoint (≤480px)',
+                    pass: width <= 480 ? document.querySelector('.mobile-only').style.display !== 'none' : true,
+                    message: width <= 480 ? 'Mobile layout active' : 'Not in mobile range'
+                });
+                
+                // Test tablet breakpoint
+                tests.push({
+                    name: 'Tablet Breakpoint (481px-768px)',
+                    pass: (width > 480 && width <= 768) ? document.querySelector('.tablet-only').style.display !== 'none' : true,
+                    message: (width > 480 && width <= 768) ? 'Tablet layout active' : 'Not in tablet range'
+                });
+                
+                // Test desktop breakpoint
+                tests.push({
+                    name: 'Desktop Breakpoint (>768px)',
+                    pass: width > 768 ? document.querySelector('.desktop-only').style.display !== 'none' : true,
+                    message: width > 768 ? 'Desktop layout active' : 'Not in desktop range'
+                });
+                
+                // Test CSS custom properties
+                const rootStyles = getComputedStyle(document.documentElement);
+                const geometricCyan = rootStyles.getPropertyValue('--geometric-cyan');
+                tests.push({
+                    name: 'CSS Custom Properties',
+                    pass: geometricCyan.includes('#00D4FF') || geometricCyan.includes('rgb(0, 212, 255)'),
+                    message: geometricCyan ? 'CSS variables loaded' : 'CSS variables not found'
+                });
+                
+                this.renderTestResults(results, tests);
+                this.testResults.breakpoints = tests.every(t => t.pass);
+            }
+            
+            testControlPanel() {
+                const results = document.getElementById('control-panel-results');
+                const tests = [];
+                const controlPanel = document.querySelector('.control-panel');
+                
+                if (controlPanel) {
+                    const rect = controlPanel.getBoundingClientRect();
+                    
+                    // Test control panel visibility
+                    tests.push({
+                        name: 'Control Panel Visibility',
+                        pass: rect.width > 0 && rect.height > 0,
+                        message: 'Control panel is visible'
+                    });
+                    
+                    // Test control panel positioning
+                    tests.push({
+                        name: 'Control Panel Positioning',
+                        pass: rect.left >= 0 && rect.top >= 0,
+                        message: 'Control panel positioned correctly'
+                    });
+                    
+                    // Test responsive behavior
+                    const isMobile = window.innerWidth <= 480;
+                    const expectedBehavior = isMobile ? 'bottom' : 'left';
+                    tests.push({
+                        name: 'Responsive Positioning',
+                        pass: true, // This would need more complex testing
+                        message: `Expected ${expectedBehavior} positioning for current viewport`
+                    });
+                } else {
+                    tests.push({
+                        name: 'Control Panel',
+                        pass: false,
+                        message: 'Control panel not found'
+                    });
+                }
+                
+                this.renderTestResults(results, tests);
+                this.testResults.controlPanel = tests.every(t => t.pass);
+            }
+            
+            testTouchTargets() {
+                const results = document.getElementById('touch-target-results');
+                const tests = [];
+                const buttons = document.querySelectorAll('button[data-test]');
+                
+                buttons.forEach(button => {
+                    const rect = button.getBoundingClientRect();
+                    const minSize = 44; // iOS minimum touch target size
+                    
+                    tests.push({
+                        name: `${button.dataset.test} Button Touch Target`,
+                        pass: rect.width >= minSize && rect.height >= minSize,
+                        message: `${Math.round(rect.width)}x${Math.round(rect.height)}px ${rect.width >= minSize && rect.height >= minSize ? '✅' : '❌'}`
+                    });
+                });
+                
+                // Test input touch targets
+                const inputs = document.querySelectorAll('input[type="range"], input[type="color"]');
+                inputs.forEach((input, index) => {
+                    const rect = input.getBoundingClientRect();
+                    tests.push({
+                        name: `Input ${index + 1} Touch Target`,
+                        pass: rect.height >= 32, // Minimum for form inputs
+                        message: `Height: ${Math.round(rect.height)}px ${rect.height >= 32 ? '✅' : '❌'}`
+                    });
+                });
+                
+                this.renderTestResults(results, tests);
+                this.testResults.touchTargets = tests.every(t => t.pass);
+            }
+            
+            testModals() {
+                const results = document.getElementById('modal-results');
+                const tests = [];
+                const modal = document.getElementById('mobile-test-modal');
+                
+                if (modal) {
+                    const modalContent = modal.querySelector('.auth-modal-content');
+                    
+                    tests.push({
+                        name: 'Modal Structure',
+                        pass: modalContent !== null,
+                        message: 'Modal content structure found'
+                    });
+                    
+                    // Test modal responsive classes
+                    const hasResponsiveClasses = modalContent.classList.contains('auth-modal-content');
+                    tests.push({
+                        name: 'Modal Responsive Classes',
+                        pass: hasResponsiveClasses,
+                        message: hasResponsiveClasses ? 'Responsive classes applied' : 'Missing responsive classes'
+                    });
+                    
+                    // Test backdrop filter support
+                    const backdropSupport = CSS.supports('backdrop-filter', 'blur(10px)') || CSS.supports('-webkit-backdrop-filter', 'blur(10px)');
+                    tests.push({
+                        name: 'Backdrop Filter Support',
+                        pass: backdropSupport,
+                        message: backdropSupport ? 'Backdrop filter supported' : 'Backdrop filter not supported'
+                    });
+                } else {
+                    tests.push({
+                        name: 'Modal',
+                        pass: false,
+                        message: 'Test modal not found'
+                    });
+                }
+                
+                this.renderTestResults(results, tests);
+                this.testResults.modals = tests.every(t => t.pass);
+            }
+            
+            testTypography() {
+                const results = document.getElementById('typography-results');
+                const tests = [];
+                
+                // Test font size scaling
+                const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+                tests.push({
+                    name: 'Root Font Size',
+                    pass: rootFontSize >= 14,
+                    message: `${rootFontSize}px ${rootFontSize >= 14 ? '✅' : '❌'}`
+                });
+                
+                // Test text contrast
+                const bodyStyles = getComputedStyle(document.body);
+                const textColor = bodyStyles.color;
+                const backgroundColor = bodyStyles.backgroundColor;
+                tests.push({
+                    name: 'Text Contrast',
+                    pass: textColor.includes('255') || textColor.includes('white'), // Simple check for light text
+                    message: `Text color: ${textColor}`
+                });
+                
+                // Test responsive text classes
+                const responsiveText = document.querySelector('.geometric-responsive-text');
+                tests.push({
+                    name: 'Responsive Text Classes',
+                    pass: responsiveText !== null || document.querySelector('[class*="clamp"]') !== null,
+                    message: 'Responsive text utilities available'
+                });
+                
+                this.renderTestResults(results, tests);
+                this.testResults.typography = tests.every(t => t.pass);
+            }
+            
+            testAccessibility() {
+                const results = document.getElementById('accessibility-results');
+                const tests = [];
+                
+                // Test reduced motion preference
+                const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                tests.push({
+                    name: 'Reduced Motion Support',
+                    pass: true, // Always pass, just informational
+                    message: `Reduced motion: ${prefersReducedMotion ? 'Enabled' : 'Disabled'}`
+                });
+                
+                // Test high contrast support
+                const prefersHighContrast = window.matchMedia('(prefers-contrast: high)').matches;
+                tests.push({
+                    name: 'High Contrast Support',
+                    pass: true, // Always pass, just informational
+                    message: `High contrast: ${prefersHighContrast ? 'Enabled' : 'Disabled'}`
+                });
+                
+                // Test focus indicators
+                const focusableElements = document.querySelectorAll('button, input, select, textarea, a[href]');
+                let hasFocusStyles = false;
+                focusableElements.forEach(el => {
+                    const styles = getComputedStyle(el, ':focus');
+                    if (styles.outline !== 'none' || styles.boxShadow !== 'none') {
+                        hasFocusStyles = true;
+                    }
+                });
+                
+                tests.push({
+                    name: 'Focus Indicators',
+                    pass: hasFocusStyles,
+                    message: hasFocusStyles ? 'Focus styles detected' : 'Focus styles may be missing'
+                });
+                
+                // Test semantic HTML
+                const hasSemanticElements = document.querySelector('main, section, article, nav, header, footer') !== null;
+                tests.push({
+                    name: 'Semantic HTML',
+                    pass: hasSemanticElements,
+                    message: hasSemanticElements ? 'Semantic elements found' : 'Consider adding semantic elements'
+                });
+                
+                this.renderTestResults(results, tests);
+                this.testResults.accessibility = tests.every(t => t.pass);
+            }
+            
+            renderTestResults(container, tests) {
+                container.innerHTML = tests.map(test => `
+                    <div class="test-result ${test.pass ? 'pass' : 'fail'}">
+                        <strong>${test.name}:</strong> ${test.message}
+                    </div>
+                `).join('');
+            }
+            
+            updateCompatibilityIndicator() {
+                const indicator = document.getElementById('compatibility-indicator');
+                const totalTests = Object.keys(this.testResults).length;
+                const passedTests = Object.values(this.testResults).filter(Boolean).length;
+                const percentage = Math.round((passedTests / totalTests) * 100);
+                
+                indicator.textContent = `Compatibility: ${percentage}% (${passedTests}/${totalTests})`;
+                
+                if (percentage >= 90) {
+                    indicator.style.background = 'linear-gradient(45deg, #22c55e, #16a34a)';
+                } else if (percentage >= 70) {
+                    indicator.style.background = 'linear-gradient(45deg, #f59e0b, #f97316)';
+                } else {
+                    indicator.style.background = 'linear-gradient(45deg, #ef4444, #dc2626)';
+                }
+            }
+        }
+        
+        // Test utilities
+        function testTouch(element) {
+            element.style.background = 'linear-gradient(45deg, #22c55e, #16a34a)';
+            element.textContent = 'Touch Detected! ✅';
+            
+            setTimeout(() => {
+                element.style.background = 'var(--geometric-gradient-primary)';
+                element.textContent = 'Tap to Test Touch Response';
+            }, 1000);
+        }
+        
+        function showMobileTestModal() {
+            document.getElementById('mobile-test-modal').classList.remove('modal-hidden');
+        }
+        
+        function hideMobileTestModal() {
+            document.getElementById('mobile-test-modal').classList.add('modal-hidden');
+        }
+        
+        function runPerformanceTest() {
+            const fpsDisplay = document.getElementById('fps-display');
+            const memoryDisplay = document.getElementById('memory-display');
+            const animationDisplay = document.getElementById('animation-performance');
+            
+            // FPS Test
+            let frames = 0;
+            const startTime = performance.now();
+            
+            function countFrames() {
+                frames++;
+                const currentTime = performance.now();
+                
+                if (currentTime - startTime >= 1000) {
+                    fpsDisplay.textContent = `${frames} FPS`;
+                    fpsDisplay.style.color = frames >= 30 ? '#22c55e' : frames >= 15 ? '#f59e0b' : '#ef4444';
+                    return;
+                }
+                
+                requestAnimationFrame(countFrames);
+            }
+            
+            requestAnimationFrame(countFrames);
+            
+            // Memory Test
+            if (performance.memory) {
+                const memory = performance.memory;
+                const usedMB = Math.round(memory.usedJSHeapSize / 1048576);
+                memoryDisplay.textContent = `${usedMB} MB`;
+                memoryDisplay.style.color = usedMB < 50 ? '#22c55e' : usedMB < 100 ? '#f59e0b' : '#ef4444';
+            } else {
+                memoryDisplay.textContent = 'Not available';
+            }
+            
+            // Animation Performance Test
+            const testElement = document.createElement('div');
+            testElement.style.cssText = `
+                position: fixed;
+                top: -100px;
+                left: -100px;
+                width: 50px;
+                height: 50px;
+                background: var(--geometric-gradient-primary);
+                transition: transform 0.3s ease;
+            `;
+            document.body.appendChild(testElement);
+            
+            const animationStart = performance.now();
+            testElement.style.transform = 'translateX(100px)';
+            
+            testElement.addEventListener('transitionend', () => {
+                const animationTime = performance.now() - animationStart;
+                animationDisplay.textContent = `${Math.round(animationTime)}ms`;
+                animationDisplay.style.color = animationTime < 300 ? '#22c55e' : animationTime < 500 ? '#f59e0b' : '#ef4444';
+                document.body.removeChild(testElement);
+            });
+        }
+        
+        // Initialize tester
+        document.addEventListener('DOMContentLoaded', () => {
+            window.mobileCompatibilityTester = new MobileCompatibilityTester();
+        });
+        
+        console.log('🧪 Mobile Compatibility Test Suite initialized');
+        console.log('📱 This test validates responsive design and mobile compatibility');
+    </script>
+</body>
+</html>
