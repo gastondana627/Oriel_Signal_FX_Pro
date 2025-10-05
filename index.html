@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oriel_FX - Audio Visualizer</title>
+    <!-- Critical CSS - Load first -->
+    <link rel="stylesheet" href="unified-geometric-fix.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="purchase-modal.css">
     <link rel="stylesheet" href="geometric-theme-system.css">
@@ -12,6 +14,17 @@
     <link rel="stylesheet" href="responsive-geometric-enhancements.css">
     <link rel="stylesheet" href="mobile-geometric-enhancements.css">
     <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    
+    <!-- Preload critical JavaScript -->
+    <link rel="preload" href="ui-initialization-fix.js" as="script">
+    
+    <!-- Critical UI fix - Load immediately -->
+    <script>
+        // Immediate scroll fix
+        document.documentElement.style.overflow = 'auto';
+        document.body.style.overflow = 'auto';
+        document.body.style.overflowX = 'hidden';
+    </script>
 </head>
 
 <body>
@@ -892,6 +905,9 @@
     <!-- Geometric Interaction Enhancer -->
     <script src="geometric-interaction-enhancer.js"></script>
 
+    <!-- UI Initialization Fix - Load FIRST -->
+    <script src="ui-initialization-fix.js"></script>
+    
     <!-- Main Application Scripts -->
     <script src="script.js"></script>
     <script src="graph.js"></script>
