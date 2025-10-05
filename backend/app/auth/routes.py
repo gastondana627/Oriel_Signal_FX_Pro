@@ -13,6 +13,7 @@ from app.models import User, PasswordResetToken
 from app.auth import bp
 from app.security import auth_rate_limit
 from app.security.validators import sanitize_input, validate_json_input, SecurityValidationError
+from app.email import get_email_service
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +100,6 @@ def register():
         
         # Send welcome email (non-blocking)
         try:
-            from app.email import get_email_service
             email_service = get_email_service()
             email_service.send_welcome_email(user.email, user.email.split('@')[0])
         except Exception as email_error:
@@ -315,10 +315,9 @@ def request_password_reset():
             
             # Send password reset email
             try:
-                from app.email.console_service import ConsoleEmailService
-                email_service = ConsoleEmailService()
+                email_service = get_email_service()
                 
-                # Send email (console service will log it for development)
+                # Send email
                 email_result = email_service.send_password_reset_email(
                     user_email=email,
                     reset_token=reset_token

@@ -55,6 +55,16 @@ class DownloadModal {
                                 <div class="format-badge personal">$2.99</div>
                             </div>
                             
+                            <div class="download-format-option premium-option" data-format="mov" data-tier="personal">
+                                <div class="format-icon">🎥</div>
+                                <div class="format-info">
+                                    <h4>MOV Video - Personal</h4>
+                                    <p>1080p HD, personal use license</p>
+                                    <span class="format-size">~15-30MB</span>
+                                </div>
+                                <div class="format-badge personal">$2.99</div>
+                            </div>
+                            
                             <div class="download-format-option premium-option" data-format="mp4" data-tier="commercial">
                                 <div class="format-icon">🎬</div>
                                 <div class="format-info">
@@ -65,12 +75,32 @@ class DownloadModal {
                                 <div class="format-badge commercial">$9.99</div>
                             </div>
                             
-                            <div class="download-format-option premium-option" data-format="mp4" data-tier="premium">
+                            <div class="download-format-option premium-option" data-format="mov" data-tier="commercial">
                                 <div class="format-icon">🎥</div>
+                                <div class="format-info">
+                                    <h4>MOV Video - Commercial</h4>
+                                    <p>1080p HD, commercial use license</p>
+                                    <span class="format-size">~15-30MB</span>
+                                </div>
+                                <div class="format-badge commercial">$9.99</div>
+                            </div>
+                            
+                            <div class="download-format-option premium-option" data-format="mp4" data-tier="premium">
+                                <div class="format-icon">🎬</div>
                                 <div class="format-info">
                                     <h4>MP4 Video - Premium</h4>
                                     <p>4K Ultra HD, extended commercial license</p>
                                     <span class="format-size">~50-100MB</span>
+                                </div>
+                                <div class="format-badge premium">$19.99</div>
+                            </div>
+                            
+                            <div class="download-format-option premium-option" data-format="mov" data-tier="premium">
+                                <div class="format-icon">🎥</div>
+                                <div class="format-info">
+                                    <h4>MOV Video - Premium</h4>
+                                    <p>4K Ultra HD, extended commercial license</p>
+                                    <span class="format-size">~75-150MB</span>
                                 </div>
                                 <div class="format-badge premium">$19.99</div>
                             </div>
@@ -730,12 +760,12 @@ window.downloadModal = downloadModal;
 document.addEventListener('DOMContentLoaded', () => {
     // Wait for other scripts to load
     setTimeout(() => {
-        // Replace MP3 download button
-        const mp3Button = document.getElementById('download-mp3-button');
-        if (mp3Button) {
+        // Replace download button (supports video formats)
+        const downloadButton = document.getElementById('download-mp3-button') || document.getElementById('download-button');
+        if (downloadButton) {
             // Remove all existing event listeners by cloning the element
-            const newButton = mp3Button.cloneNode(true);
-            mp3Button.parentNode.replaceChild(newButton, mp3Button);
+            const newButton = downloadButton.cloneNode(true);
+            downloadButton.parentNode.replaceChild(newButton, downloadButton);
             
             // Add new event listener with higher priority
             newButton.addEventListener('click', (e) => {
