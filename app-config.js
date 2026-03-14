@@ -67,7 +67,7 @@ class AppConfig {
             },
             production: {
                 api: {
-                    baseUrl: 'https://api.orielfx.com',
+                    baseUrl: 'https://oriel-fx-production.railway.app',
                     timeout: 15000,
                     retries: 2
                 },
