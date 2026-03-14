@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Upload & Modal Test</title>
+    <link rel="stylesheet" href="premium-ui-redesign.css">
+    <style>
+        body {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+        .test-result.pass {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4CAF50;
+        }
+        .test-result.fail {
+            background: rgba(244, 67, 54, 0.2);
+            border-left: 4px solid #f44336;
+        }
+        .test-result.info {
+            background: rgba(33, 150, 243, 0.2);
+            border-left: 4px solid #2196F3;
+        }
+        button {
+            margin: 10px 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Audio Upload & Modal Test Suite</h1>
+        
+        <div class="test-section">
+            <h2>1. Audio Upload Test</h2>
+            <label for="audioUpload" class="upload-btn">
+                📁 Upload Audio
+            </label>
+            <input type="file" id="audioUpload" accept="audio/*" class="hidden-input">
+            <div id="upload-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Modal System Test</h2>
+            <button type="button" id="login-btn" class="premium-btn primary">Open Login Modal</button>
+            <button type="button" id="register-btn" class="premium-btn primary">Open Register Modal</button>
+            <div id="modal-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Close Button Test</h2>
+            <p>Open a modal and try:</p>
+            <ul>
+                <li>Click the X button in top right</li>
+                <li>Press ESC key</li>
+                <li>Click outside the modal</li>
+            </ul>
+            <div id="close-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. Modal Switching Test</h2>
+            <p>Open login modal, then click "Sign up" link to switch to register modal</p>
+            <div id="switch-results"></div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="auth-modal modal-hidden">
+        <div class="auth-modal-content">
+            <button type="button" id="login-close-btn" class="close-button">&times;</button>
+            <div class="auth-header">
+                <h2>Welcome Back</h2>
+                <p>Sign in to your Oriel FX account</p>
+            </div>
+            <form id="login-form" class="auth-form">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" name="password" required>
+                </div>
+                <button type="submit" class="auth-submit-btn">Sign In</button>
+            </form>
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="#" id="show-register-link">Sign up</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="auth-modal modal-hidden">
+        <div class="auth-modal-content">
+            <button type="button" id="register-close-btn" class="close-button">&times;</button>
+            <div class="auth-header">
+                <h2>Create Account</h2>
+                <p>Join Oriel FX</p>
+            </div>
+            <form id="register-form" class="auth-form">
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+                    <input type="email" id="register-email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" name="password" required>
+                </div>
+                <button type="submit" class="auth-submit-btn">Create Account</button>
+            </form>
+            <div class="auth-footer">
+                <p>Already have an account? <a href="#" id="show-login-link">Sign in</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="premium-ui-controller.js"></script>
+    <script src="audio-upload-handler.js"></script>
+    
+    <script>
+        // Test Results Logger
+        const uploadResults = document.getElementById('upload-results');
+        const modalResults = document.getElementById('modal-results');
+        const closeResults = document.getElementById('close-results');
+        const switchResults = document.getElementById('switch-results');
+
+        function logResult(container, message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            container.appendChild(div);
+        }
+
+        // Test 1: Audio Upload
+        document.addEventListener('audioFileSelected', (e) => {
+            logResult(uploadResults, `✅ Audio file selected: ${e.detail.name}`, 'pass');
+            logResult(uploadResults, `File size: ${(e.detail.file.size / 1024).toFixed(2)} KB`, 'info');
+        });
+
+        const audioInput = document.getElementById('audioUpload');
+        audioInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                logResult(uploadResults, '✅ File input change event fired', 'pass');
+            }
+        });
+
+        // Test 2: Modal Opening
+        let loginOpened = false;
+        let registerOpened = false;
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.target.id === 'login-modal' && !mutation.target.classList.contains('modal-hidden')) {
+                    if (!loginOpened) {
+                        logResult(modalResults, '✅ Login modal opened successfully', 'pass');
+                        loginOpened = true;
+                    }
+                }
+                if (mutation.target.id === 'register-modal' && !mutation.target.classList.contains('modal-hidden')) {
+                    if (!registerOpened) {
+                        logResult(modalResults, '✅ Register modal opened successfully', 'pass');
+                        registerOpened = true;
+                    }
+                }
+            });
+        });
+
+        observer.observe(document.getElementById('login-modal'), { attributes: true, attributeFilter: ['class'] });
+        observer.observe(document.getElementById('register-modal'), { attributes: true, attributeFilter: ['class'] });
+
+        // Test 3: Close Button
+        document.getElementById('login-close-btn').addEventListener('click', () => {
+            logResult(closeResults, '✅ Login close button clicked', 'pass');
+        });
+
+        document.getElementById('register-close-btn').addEventListener('click', () => {
+            logResult(closeResults, '✅ Register close button clicked', 'pass');
+        });
+
+        // Test 4: Modal Switching
+        document.getElementById('show-register-link').addEventListener('click', () => {
+            logResult(switchResults, '✅ Switch to register link clicked', 'pass');
+        });
+
+        document.getElementById('show-login-link').addEventListener('click', () => {
+            logResult(switchResults, '✅ Switch to login link clicked', 'pass');
+        });
+
+        // Initial status
+        setTimeout(() => {
+            logResult(uploadResults, '📋 Audio upload handler loaded', 'info');
+            logResult(modalResults, '📋 Modal system initialized', 'info');
+            logResult(closeResults, '📋 Close buttons ready', 'info');
+            logResult(switchResults, '📋 Modal switching ready', 'info');
+        }, 500);
+    </script>
+</body>
+</html>

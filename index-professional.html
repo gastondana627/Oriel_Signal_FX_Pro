@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oriel FX - Professional Audio Visualizer</title>
+    
+    <!-- Professional Creative Tool Theme -->
+    <link rel="stylesheet" href="professional-creative-tool.css">
+    
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+    <!-- Main Application Container -->
+    <div class="app-container">
+        
+        <!-- TOP HEADER - Slim & Transparent -->
+        <header class="app-header">
+            <div class="app-brand">
+                <span>⚡</span>
+                <span>Oriel FX</span>
+            </div>
+            
+            <div class="header-actions">
+                <!-- Status Pill -->
+                <div id="downloads-status" class="status-pill">
+                    <span>📊</span>
+                    <span id="downloads-remaining-text">3 Downloads Remaining</span>
+                </div>
+                
+                <!-- Auth Buttons -->
+                <div id="auth-actions">
+                    <button type="button" id="login-btn" class="auth-button">Login</button>
+                    <button type="button" id="register-btn" class="auth-button primary">Sign Up</button>
+                </div>
+                
+                <!-- User Menu (Hidden by default) -->
+                <div id="user-menu" class="header-actions hidden">
+                    <span id="user-email-display" style="font-size: 13px; color: rgba(255, 255, 255, 0.7);"></span>
+                    <button type="button" id="dashboard-btn" class="auth-button">Dashboard</button>
+                    <button type="button" id="logout-btn" class="auth-button">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTROL SIDEBAR - Glassmorphic Panel -->
+        <aside class="app-sidebar">
+            
+            <!-- Shapes Section -->
+            <div class="control-group">
+                <div class="control-group-label">Shapes</div>
+                <div class="shape-grid">
+                    <button type="button" class="shape-button" data-shape="circle" title="Circle">⭕</button>
+                    <button type="button" class="shape-button active" data-shape="cube" title="Cube">◼️</button>
+                    <button type="button" class="shape-button" data-shape="triangle" title="Triangle">🔺</button>
+                    <button type="button" class="shape-button" data-shape="hexagon" title="Hexagon">⬡</button>
+                    <button type="button" class="shape-button" data-shape="star" title="Star">⭐</button>
+                    <button type="button" class="shape-button" data-shape="spiral" title="Spiral">🌀</button>
+                </div>
+            </div>
+
+            <!-- Visualization Controls -->
+            <div class="control-group">
+                <div class="control-group-label">Visualization</div>
+                
+                <div class="control-item">
+                    <label class="control-label">
+                        <span>Glow Color</span>
+                        <span class="control-value" id="glow-color-value">#00F5FF</span>
+                    </label>
+                    <input type="color" id="glowColor" value="#00F5FF">
+                </div>
+                
+                <div class="control-item">
+                    <label class="control-label">
+                        <span>Pulse Intensity</span>
+                        <span class="control-value" id="pulse-value">1.5</span>
+                    </label>
+                    <input type="range" id="pulse" min="0" max="3" step="0.1" value="1.5">
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="control-group">
+                <div class="control-group-label">Actions</div>
+                
+                <button type="button" id="randomize-button" class="btn btn-primary btn-full">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                    </svg>
+                    <span>Randomize</span>
+                </button>
+                
+                <!-- Drag & Drop Upload Zone -->
+                <div class="upload-zone" id="upload-zone">
+                    <div class="upload-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                        </svg>
+                    </div>
+                    <div class="upload-text">Drop audio file here</div>
+                    <div class="upload-hint">or click to browse</div>
+                    <input type="file" id="audioUpload" accept="audio/*" class="hidden">
+                </div>
+                
+                <button type="button" id="upgrade-button" class="btn btn-secondary btn-full hidden">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    <span>Upgrade Plan</span>
+                </button>
+
+                <button type="button" id="buy-credits-button" class="btn btn-secondary btn-full hidden">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                    <span>Buy Credits</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- CANVAS - The Hero -->
+        <main class="app-canvas">
+            <div id="graph-container"></div>
+        </main>
+
+        <!-- ACTION FOOTER - Transport Bar -->
+        <footer class="app-footer">
+            <div class="transport-bar">
+                <button type="button" id="play-pause-button" class="transport-button primary" title="Play/Pause">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                </button>
+                
+                <button type="button" id="download-button" class="transport-button" title="Download">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                    </svg>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- MODALS -->
+    
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Welcome Back</h2>
+                <p class="modal-subtitle">Sign in to your Oriel FX account</p>
+            </div>
+            <form id="login-form" style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="control-item">
+                    <label class="control-label">Email</label>
+                    <input type="email" id="login-email" name="email" required 
+                           style="width: 100%; height: 44px; padding: 0 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; font-family: inherit; font-size: 14px;">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Password</label>
+                    <input type="password" id="login-password" name="password" required
+                           style="width: 100%; height: 44px; padding: 0 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; font-family: inherit; font-size: 14px;">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+                <div style="text-align: center; font-size: 13px; color: rgba(255, 255, 255, 0.6);">
+                    Don't have an account? <a href="#" id="show-register-link" style="color: #00f5ff; text-decoration: none;">Sign up</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create Account</h2>
+                <p class="modal-subtitle">Join Oriel FX and start creating</p>
+            </div>
+            <form id="register-form" style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="control-item">
+                    <label class="control-label">Email</label>
+                    <input type="email" id="register-email" name="email" required
+                           style="width: 100%; height: 44px; padding: 0 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; font-family: inherit; font-size: 14px;">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Password</label>
+                    <input type="password" id="register-password" name="password" required
+                           style="width: 100%; height: 44px; padding: 0 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; font-family: inherit; font-size: 14px;">
+                </div>
+                <div class="control-item">
+                    <label class="control-label">Confirm Password</label>
+                    <input type="password" id="register-confirm-password" name="confirmPassword" required
+                           style="width: 100%; height: 44px; padding: 0 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; font-family: inherit; font-size: 14px;">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                <div style="text-align: center; font-size: 13px; color: rgba(255, 255, 255, 0.6);">
+                    Already have an account? <a href="#" id="show-login-link" style="color: #00f5ff; text-decoration: none;">Sign in</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Download Modal -->
+    <div id="progress-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div id="choice-view">
+                <div class="modal-header">
+                    <h2 class="modal-title">Choose Format</h2>
+                    <p class="modal-subtitle">Select your preferred download format</p>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button type="button" id="download-gif-button" class="btn btn-primary btn-full">Download GIF (30s)</button>
+                    <button type="button" id="download-mp3-button" class="btn btn-secondary btn-full">Download MP3</button>
+                </div>
+            </div>
+            <div id="progress-view" class="hidden">
+                <div class="modal-header">
+                    <h2 class="modal-title">Creating...</h2>
+                    <p class="modal-subtitle" id="modal-status">Recording your visualization</p>
+                </div>
+                <div style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; overflow: hidden;">
+                    <div id="progress-bar-inner" style="height: 100%; width: 0%; background: linear-gradient(90deg, #00f5ff, #ff00ff); transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Element -->
+    <audio id="background-music" src="assets/music_fx_a_trap_beat_with_a_heavy_bass_butwith_techno-2.wav" loop></audio>
+
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Controllers -->
+    <script src="professional-tool-controller.js"></script>
+    <script src="premium-ui-controller.js"></script>
+
+    <!-- Application Scripts -->
+    <script src="app-config.js"></script>
+    <script src="api-client.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="auth-manager.js"></script>
+    <script src="auth-ui.js"></script>
+    <script src="usage-tracker.js"></script>
+    <script src="payment-manager.js"></script>
+    <script src="payment-ui.js"></script>
+    <script src="payment-integration.js"></script>
+    <script src="feature-manager.js"></script>
+    <script src="download-modal.js"></script>
+    <script src="purchase-modal.js"></script>
+    <script src="saas-init.js"></script>
+    
+    <!-- Main Application -->
+    <script src="script.js"></script>
+    <script src="graph.js"></script>
+</body>
+</html>
