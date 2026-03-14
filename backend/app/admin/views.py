@@ -431,7 +431,6 @@ def init_admin(app):
     admin = Admin(
         app,
         name='Oriel Signal FX Pro Admin',
-        template_mode='bootstrap4',
         index_view=SecureAdminIndexView()
     )
     

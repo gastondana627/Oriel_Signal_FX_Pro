@@ -4,8 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oriel_FX - Audio Visualizer</title>
-    <!-- Critical CSS - Load first -->
+    <title>Oriel FX - Premium Audio Visualizer</title>
+    
+    <!-- Premium UI System - Load First -->
+    <link rel="stylesheet" href="premium-ui-redesign.css">
+    
+    <!-- Legacy CSS - For compatibility -->
+    <link rel="stylesheet" href="ui-layout-fix.css">
     <link rel="stylesheet" href="unified-geometric-fix.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="purchase-modal.css">
@@ -17,6 +22,7 @@
     <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
     
     <!-- Preload critical JavaScript -->
+    <link rel="preload" href="premium-ui-controller.js" as="script">
     <link rel="preload" href="ui-initialization-fix.js" as="script">
     
     <!-- Critical UI fix - Load immediately -->
@@ -29,68 +35,101 @@
 </head>
 
 <body>
+    <!-- 3D Visualization Canvas -->
     <div id="graph-container"></div>
 
-    <!-- User Status Bar (Top-Right) -->
-    <div id="user-status" class="user-status-bar glass-panel">
-        <!-- Anonymous User Status -->
-        <div id="anonymous-status" class="status-section">
-            <span id="downloads-remaining"></span>
-            <div class="auth-buttons">
-                <button type="button" id="login-btn" class="auth-btn">Login</button>
-                <button type="button" id="register-btn" class="auth-btn">Sign Up</button>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-brand">
+            <span>🎵</span>
+            <span>Oriel FX</span>
+        </div>
+        
+        <div class="nav-actions">
+            <!-- User Status Bar -->
+            <div id="user-status" class="user-status-bar">
+                <!-- Anonymous User Status -->
+                <div id="anonymous-status" class="status-section">
+                    <span id="downloads-remaining" class="downloads-badge"></span>
+                    <button type="button" id="login-btn" class="auth-btn">Login</button>
+                    <button type="button" id="register-btn" class="auth-btn primary">Sign Up</button>
+                </div>
+
+                <!-- Authenticated User Status -->
+                <div id="authenticated-status" class="status-section hidden">
+                    <div class="user-info">
+                        <span id="user-email" class="user-email"></span>
+                        <span id="user-credits" class="user-credits"></span>
+                    </div>
+                    <button type="button" id="dashboard-btn" class="user-btn">Dashboard</button>
+                    <button type="button" id="logout-btn" class="user-btn secondary">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+        <!-- Visualization Controls -->
+        <div class="control-section">
+            <h3 class="control-section-title">Visualization</h3>
+            
+            <div class="control">
+                <label for="glowColor">
+                    <span>Glow Color</span>
+                    <span id="glow-color-value">#8309D5</span>
+                </label>
+                <input type="color" id="glowColor" value="#8309D5">
+            </div>
+            
+            <div class="control">
+                <label for="pulse">
+                    <span>Pulse Intensity</span>
+                    <span id="pulse-value">1.5</span>
+                </label>
+                <input type="range" id="pulse" min="0" max="3" step="0.1" value="1.5">
             </div>
         </div>
 
-        <!-- Authenticated User Status -->
-        <div id="authenticated-status" class="status-section hidden">
-            <div class="user-info">
-                <span id="user-email" class="user-email"></span>
-                <span id="user-credits" class="user-credits"></span>
-            </div>
-            <div class="user-actions">
-                <button type="button" id="dashboard-btn" class="user-btn">Dashboard</button>
-                <button type="button" id="logout-btn" class="user-btn">Logout</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toolbox Sidebar (Left) -->
-    <div class="toolbox-sidebar control-panel glass-panel">
-        <div class="control-group">
-            <div class="control"><label for="glowColor">Glow Color</label><input type="color" id="glowColor"
-                    value="#8309D5"></div>
-            <div class="control"><label for="pulse">Pulse Intensity</label><input type="range" id="pulse" min="0"
-                    max="3" step="0.1" value="1.5"></div>
-        </div>
-
-        <div class="shape-selector-container">
-            <label>Shapes</label>
+        <!-- Shape Selection -->
+        <div class="control-section">
+            <h3 class="control-section-title">Shape</h3>
             <div class="shape-selector"></div>
         </div>
 
-        <button type="button" id="randomize-button" class="dynamic-color">Randomize</button>
-
-        <div class="control">
-            <label for="audioUpload" class="upload-btn">Upload Audio</label>
+        <!-- Actions -->
+        <div class="control-section">
+            <button type="button" id="randomize-button" class="premium-btn primary">
+                🎲 Randomize
+            </button>
+            
+            <label for="audioUpload" class="upload-btn">
+                📁 Upload Audio
+            </label>
             <input type="file" id="audioUpload" accept="audio/*" class="hidden-input">
-        </div>
+            
+            <!-- Upgrade Button -->
+            <button type="button" id="upgrade-button" class="premium-btn primary hidden">
+                ✨ Upgrade Plan
+            </button>
 
-        <!-- Buy More / Upgrade Actions -->
-        <div class="buy-more-container">
-            <button type="button" id="upgrade-button" class="dynamic-color hidden">✨ Upgrade Plan</button>
-            <button type="button" id="buy-credits-button" class="dynamic-color hidden">💎 Buy Credits</button>
-            <a href="https://www.buymeacoffee.com/gastondana627" target="_blank" rel="noopener" id="bmac-button"
-                class="dynamic-color">✨ Buy Me a Coffee</a>
+            <!-- Buy Credits Button -->
+            <button type="button" id="buy-credits-button" class="premium-btn secondary hidden">
+                💎 Buy Credits
+            </button>
+
+            <!-- Buy Me a Coffee -->
+            <a href="https://www.buymeacoffee.com/gastondana627" target="_blank" rel="noopener" 
+               id="bmac-button" class="premium-btn secondary">
+                ☕ Buy Me a Coffee
+            </a>
         </div>
     </div>
 
-    <img src="assets/qr-code.png" id="bmac-qrcode" class="qrcode-hidden" alt="Buy Me a Coffee QR Code">
-
-    <!-- Transport Bar (Bottom-Center) -->
-    <div class="transport-bar glass-panel">
-        <button id="play-pause-button" class="dynamic-color">Play Music</button>
-        <button id="download-button" class="dynamic-color">Download</button>
+    <!-- Bottom Action Buttons -->
+    <div class="bottom-actions">
+        <button id="play-pause-button">▶ Play Music</button>
+        <button id="download-button">⬇ Download</button>
     </div>
 
     <!-- Login Modal -->
@@ -910,18 +949,28 @@
     <!-- Responsive Geometric Manager -->
     <script src="responsive-geometric-manager.js"></script>
 
+    <!-- Premium UI Controller - Load FIRST -->
+    <script src="premium-ui-controller.js"></script>
+    
+    <!-- Audio Upload Handler -->
+    <script src="audio-upload-handler.js"></script>
+    
+    <!-- UI Value Display Enhancement -->
+    <script src="ui-value-display.js"></script>
+
     <!-- Geometric Animation System -->
     <script src="geometric-animation-system.js"></script>
 
     <!-- Geometric Interaction Enhancer -->
     <script src="geometric-interaction-enhancer.js"></script>
 
-    <!-- UI Initialization Fix - Load FIRST -->
+    <!-- UI Initialization Fix -->
     <script src="ui-initialization-fix.js"></script>
     
     <!-- Main Application Scripts -->
     <script src="script.js"></script>
     <script src="graph.js"></script>
+    
     <!-- Integration Test (development only) -->
     <script src="integration-test.js"></script>
 </body>

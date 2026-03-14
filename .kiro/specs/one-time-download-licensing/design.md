@@ -67,7 +67,7 @@ class PurchaseManager:
 ```python
 PRICING_TIERS = {
     'personal': {
-        'price': 299,  # $2.99 in cents
+        'price': 399,  # $2.99 in cents
         'name': 'Personal Use',
         'resolution': '1080p',
         'format': 'MP4',

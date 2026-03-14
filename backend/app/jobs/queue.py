@@ -2,7 +2,7 @@
 Redis queue configuration and management.
 """
 import redis
-from rq import Queue, Worker, Connection
+from rq import Queue, Worker
 from flask import current_app
 import logging
 

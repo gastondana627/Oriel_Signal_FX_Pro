@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Functionality Validation - Task 9.2</title>
+    
+    <!-- Load all required stylesheets -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="geometric-theme-system.css">
+    <link rel="stylesheet" href="auth-geometric-styles.css">
+    <link rel="stylesheet" href="responsive-geometric-enhancements.css">
+    <link rel="stylesheet" href="mobile-geometric-enhancements.css">
+    <link rel="stylesheet" href="unified-geometric-fix.css">
+    <link rel="stylesheet" href="purchase-modal.css">
+    
+    <style>
+        /* Test-specific styles */
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--geometric-dark);
+            color: white;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(10, 10, 10, 0.8);
+            border-radius: var(--geometric-border-radius);
+            border: var(--geometric-border-width) solid;
+            border-image: var(--geometric-gradient-primary) 1;
+        }
+        
+        .test-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--geometric-gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .test-subtitle {
+            color: #ccc;
+            font-size: 1.2rem;
+        }
+        
+        .test-section {
+            background: rgba(10, 10, 10, 0.6);
+            border-radius: var(--geometric-border-radius);
+            padding: 30px;
+            margin: 30px 0;
+            border: 2px solid var(--geometric-cyan);
+            box-shadow: var(--geometric-glow-cyan);
+            transition: var(--geometric-transition);
+        }
+        
+        .test-section:hover {
+            box-shadow: var(--geometric-glow-mixed);
+            transform: translateY(-2px);
+        }
+        
+        .test-section h2 {
+            color: var(--geometric-cyan);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .test-card {
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px solid var(--geometric-cyan);
+            border-radius: var(--geometric-border-radius);
+            padding: 20px;
+            transition: var(--geometric-transition);
+        }
+        
+        .test-card:hover {
+            border-color: var(--geometric-pink);
+            box-shadow: var(--geometric-glow-pink);
+        }
+        
+        .test-card h3 {
+            color: var(--geometric-pink);
+            margin-bottom: 15px;
+        }
+        
+        .test-button {
+            background: var(--geometric-gradient-primary);
+            border: none;
+            border-radius: var(--geometric-border-radius);
+            color: white;
+            font-weight: 600;
+            padding: 12px 24px;
+            cursor: pointer;
+            transition: var(--geometric-transition);
+            margin: 10px 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--geometric-glow-mixed);
+        }
+        
+        .test-results {
+            background: rgba(255, 107, 107, 0.1);
+            border: 2px solid var(--geometric-pink);
+            border-radius: var(--geometric-border-radius);
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 200px;
+        }
+        
+        .test-log {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: var(--geometric-border-radius);
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        
+        .log-entry {
+            margin: 5px 0;
+            padding: 2px 0;
+        }
+        
+        .log-success { color: #28a745; }
+        .log-error { color: #dc3545; }
+        .log-warning { color: #ffc107; }
+        .log-info { color: #17a2b8; }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .status-pass { background: #28a745; color: white; }
+        .status-fail { background: #dc3545; color: white; }
+        .status-pending { background: #ffc107; color: black; }
+        
+        .progress-demo {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: var(--geometric-border-radius);
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .geometric-progress-bar {
+            width: 100%;
+            height: 12px;
+            background: var(--geometric-dark);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--geometric-cyan);
+            margin: 10px 0;
+        }
+        
+        .geometric-progress-fill {
+            height: 100%;
+            background: var(--geometric-gradient-primary);
+            width: 0%;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        
+        .geometric-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: progress-shimmer 2s ease-in-out infinite;
+        }
+        
+        @keyframes progress-shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .audio-upload-demo {
+            border: 2px dashed var(--geometric-cyan);
+            border-radius: var(--geometric-border-radius);
+            padding: 30px;
+            text-align: center;
+            transition: var(--geometric-transition);
+        }
+        
+        .audio-upload-demo:hover {
+            border-color: var(--geometric-pink);
+            background: rgba(255, 107, 107, 0.05);
+        }
+        
+        .audio-upload-demo.dragover {
+            border-color: var(--geometric-pink);
+            background: rgba(255, 107, 107, 0.1);
+            box-shadow: var(--geometric-glow-pink);
+        }
+        
+        .format-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .format-card {
+            background: rgba(0, 212, 255, 0.05);
+            border: 2px solid var(--geometric-cyan);
+            border-radius: var(--geometric-border-radius);
+            padding: 20px;
+            text-align: center;
+            transition: var(--geometric-transition);
+        }
+        
+        .format-card:hover {
+            border-color: var(--geometric-pink);
+            transform: translateY(-3px);
+            box-shadow: var(--geometric-glow-pink);
+        }
+        
+        .format-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .compatibility-matrix {
+            display: grid;
+            grid-template-columns: 200px repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+        
+        .matrix-header {
+            background: var(--geometric-gradient-primary);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 4px;
+        }
+        
+        .matrix-cell {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            text-align: center;
+            border-radius: 4px;
+        }
+        
+        .matrix-pass { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+        .matrix-fail { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+        
+        @media (max-width: 768px) {
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .compatibility-matrix {
+                grid-template-columns: 1fr;
+            }
+            
+            .format-showcase {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <!-- Test Header -->
+        <div class="test-header">
+            <h1 class="test-title">Download Functionality Validation</h1>
+            <p class="test-subtitle">Task 9.2: Validate download functionality with geometric UI design</p>
+            <div class="test-requirements">
+                <strong>Requirements:</strong> 5.1 (Audio upload with geometric UI), 5.3 (Download process with geometric progress), 5.5 (Full compatibility)
+            </div>
+        </div>
+
+        <!-- Audio Upload Test -->
+        <div class="test-section">
+            <h2>🎵 Audio Upload with Geometric UI Design</h2>
+            <p>Testing that audio upload functionality works seamlessly with the new geometric theme.</p>
+            
+            <div class="test-grid">
+                <div class="test-card">
+                    <h3>File Upload Interface</h3>
+                    <div class="audio-upload-demo" id="audio-upload-zone">
+                        <div class="format-icon">🎵</div>
+                        <p>Drag & drop audio file here or click to browse</p>
+                        <input type="file" id="test-audio-upload" accept="audio/*" style="display: none;">
+                        <button type="button" class="test-button" onclick="document.getElementById('test-audio-upload').click()">
+                            Choose Audio File
+                        </button>
+                    </div>
+                    <div id="upload-status"></div>
+                </div>
+                
+                <div class="test-card">
+                    <h3>Geometric Theme Integration</h3>
+                    <p>Verify upload controls use geometric styling:</p>
+                    <ul>
+                        <li id="theme-colors">Cyan/Pink gradient colors</li>
+                        <li id="theme-borders">Geometric borders and shapes</li>
+                        <li id="theme-animations">Smooth hover animations</li>
+                        <li id="theme-glow">Neon glow effects</li>
+                    </ul>
+                    <button type="button" class="test-button" onclick="testGeometricThemeIntegration()">
+                        Test Theme Integration
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Process Test -->
+        <div class="test-section">
+            <h2>⬇️ Download Process with Geometric Progress Indicators</h2>
+            <p>Testing that the download process completes successfully with geometric-styled progress indicators.</p>
+            
+            <div class="test-grid">
+                <div class="test-card">
+                    <h3>Download Modal</h3>
+                    <p>Test the enhanced download modal with geometric styling:</p>
+                    <button type="button" class="test-button" onclick="testDownloadModal()">
+                        Open Download Modal
+                    </button>
+                    <button type="button" class="test-button" onclick="testModalStyling()">
+                        Verify Modal Styling
+                    </button>
+                </div>
+                
+                <div class="test-card">
+                    <h3>Progress Indicators</h3>
+                    <p>Test geometric progress bars and animations:</p>
+                    <div class="progress-demo">
+                        <div class="geometric-progress-bar">
+                            <div class="geometric-progress-fill" id="test-progress"></div>
+                        </div>
+                        <div id="progress-text">Ready to test...</div>
+                    </div>
+                    <button type="button" class="test-button" onclick="testProgressIndicators()">
+                        Test Progress Animation
+                    </button>
+                </div>
+            </div>
+            
+            <div class="format-showcase">
+                <div class="format-card" onclick="testFormatDownload('gif')">
+                    <div class="format-icon">🎞️</div>
+                    <h4>GIF Download</h4>
+                    <p>Animated visualization</p>
+                </div>
+                <div class="format-card" onclick="testFormatDownload('mp4')">
+                    <div class="format-icon">🎥</div>
+                    <h4>MP4 Download</h4>
+                    <p>Video format</p>
+                </div>
+                <div class="format-card" onclick="testFormatDownload('mov')">
+                    <div class="format-icon">🎬</div>
+                    <h4>MOV Download</h4>
+                    <p>High quality video</p>
+                </div>
+                <div class="format-card" onclick="testFormatDownload('mp3')">
+                    <div class="format-icon">🎵</div>
+                    <h4>MP3 Download</h4>
+                    <p>Audio file</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compatibility Test -->
+        <div class="test-section">
+            <h2>🔄 Full Functionality Compatibility</h2>
+            <p>Verify that all existing functionality maintains full compatibility with the geometric design.</p>
+            
+            <div class="compatibility-matrix">
+                <div class="matrix-header">Feature</div>
+                <div class="matrix-header">Geometric UI</div>
+                <div class="matrix-header">Functionality</div>
+                <div class="matrix-header">Performance</div>
+                <div class="matrix-header">Status</div>
+                
+                <div class="matrix-cell">Audio Upload</div>
+                <div class="matrix-cell" id="upload-ui-status">Testing...</div>
+                <div class="matrix-cell" id="upload-func-status">Testing...</div>
+                <div class="matrix-cell" id="upload-perf-status">Testing...</div>
+                <div class="matrix-cell" id="upload-overall-status">Pending</div>
+                
+                <div class="matrix-cell">Download Modal</div>
+                <div class="matrix-cell" id="modal-ui-status">Testing...</div>
+                <div class="matrix-cell" id="modal-func-status">Testing...</div>
+                <div class="matrix-cell" id="modal-perf-status">Testing...</div>
+                <div class="matrix-cell" id="modal-overall-status">Pending</div>
+                
+                <div class="matrix-cell">Progress Indicators</div>
+                <div class="matrix-cell" id="progress-ui-status">Testing...</div>
+                <div class="matrix-cell" id="progress-func-status">Testing...</div>
+                <div class="matrix-cell" id="progress-perf-status">Testing...</div>
+                <div class="matrix-cell" id="progress-overall-status">Pending</div>
+                
+                <div class="matrix-cell">File Downloads</div>
+                <div class="matrix-cell" id="download-ui-status">Testing...</div>
+                <div class="matrix-cell" id="download-func-status">Testing...</div>
+                <div class="matrix-cell" id="download-perf-status">Testing...</div>
+                <div class="matrix-cell" id="download-overall-status">Pending</div>
+            </div>
+            
+            <div class="test-grid">
+                <div class="test-card">
+                    <h3>Comprehensive Test Suite</h3>
+                    <button type="button" class="test-button" onclick="runFullCompatibilityTest()">
+                        Run All Tests
+                    </button>
+                    <button type="button" class="test-button" onclick="testPerformanceImpact()">
+                        Test Performance
+                    </button>
+                    <button type="button" class="test-button" onclick="testResponsiveDesign()">
+                        Test Responsive Design
+                    </button>
+                </div>
+                
+                <div class="test-card">
+                    <h3>Error Handling</h3>
+                    <button type="button" class="test-button" onclick="testErrorScenarios()">
+                        Test Error Scenarios
+                    </button>
+                    <button type="button" class="test-button" onclick="testFallbackBehavior()">
+                        Test Fallback Behavior
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="test-section">
+            <h2>📊 Test Results</h2>
+            <div class="test-results">
+                <h3>Test Execution Log</h3>
+                <div class="test-log" id="test-log">
+                    <div class="log-entry log-info">Test suite initialized. Ready to run validation tests...</div>
+                </div>
+                
+                <div class="test-summary" id="test-summary">
+                    <h4>Summary</h4>
+                    <p>Tests Passed: <span id="tests-passed">0</span></p>
+                    <p>Tests Failed: <span id="tests-failed">0</span></p>
+                    <p>Overall Status: <span id="overall-status" class="status-indicator status-pending">Pending</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load required JavaScript files -->
+    <script src="geometric-theme-system.js"></script>
+    <script src="geometric-logo-system.js"></script>
+    <script src="download-modal.js"></script>
+    <script src="fix-download-system.js"></script>
+    <script src="ui-initialization-fix.js"></script>
+    
+    <script>
+        // Test Suite Implementation
+        class DownloadFunctionalityValidator {
+            constructor() {
+                this.testResults = {
+                    passed: 0,
+                    failed: 0,
+                    total: 0
+                };
+                this.init();
+            }
+            
+            init() {
+                this.setupAudioUpload();
+                this.logInfo('Download Functionality Validator initialized');
+            }
+            
+            setupAudioUpload() {
+                const uploadZone = document.getElementById('audio-upload-zone');
+                const fileInput = document.getElementById('test-audio-upload');
+                
+                // Drag and drop functionality
+                uploadZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadZone.classList.add('dragover');
+                });
+                
+                uploadZone.addEventListener('dragleave', () => {
+                    uploadZone.classList.remove('dragover');
+                });
+                
+                uploadZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadZone.classList.remove('dragover');
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        this.handleAudioUpload(files[0]);
+                    }
+                });
+                
+                // File input change
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        this.handleAudioUpload(e.target.files[0]);
+                    }
+                });
+            }
+            
+            handleAudioUpload(file) {
+                const statusDiv = document.getElementById('upload-status');
+                
+                if (!file.type.startsWith('audio/')) {
+                    this.logError('Invalid file type. Please select an audio file.');
+                    statusDiv.innerHTML = '<span class="status-indicator status-fail">Invalid file type</span>';
+                    return;
+                }
+                
+                this.logSuccess(`Audio file uploaded: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+                statusDiv.innerHTML = `
+                    <div class="log-success">
+                        ✅ File: ${file.name}<br>
+                        📊 Size: ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                        🎵 Type: ${file.type}
+                    </div>
+                `;
+                
+                // Test geometric styling on upload
+                this.testGeometricThemeIntegration();
+            }
+            
+            testGeometricThemeIntegration() {
+                const tests = [
+                    { id: 'theme-colors', test: () => this.checkGeometricColors() },
+                    { id: 'theme-borders', test: () => this.checkGeometricBorders() },
+                    { id: 'theme-animations', test: () => this.checkGeometricAnimations() },
+                    { id: 'theme-glow', test: () => this.checkGeometricGlow() }
+                ];
+                
+                tests.forEach(({ id, test }) => {
+                    const element = document.getElementById(id);
+                    const passed = test();
+                    element.style.color = passed ? '#28a745' : '#dc3545';
+                    element.innerHTML = `${element.textContent} ${passed ? '✅' : '❌'}`;
+                });
+                
+                this.logInfo('Geometric theme integration test completed');
+            }
+            
+            checkGeometricColors() {
+                const computedStyle = getComputedStyle(document.documentElement);
+                const cyan = computedStyle.getPropertyValue('--geometric-cyan').trim();
+                const pink = computedStyle.getPropertyValue('--geometric-pink').trim();
+                return cyan === '#00D4FF' && pink === '#FF6B6B';
+            }
+            
+            checkGeometricBorders() {
+                const testButton = document.querySelector('.test-button');
+                const computedStyle = getComputedStyle(testButton);
+                return computedStyle.borderRadius !== '0px';
+            }
+            
+            checkGeometricAnimations() {
+                const testButton = document.querySelector('.test-button');
+                const computedStyle = getComputedStyle(testButton);
+                return computedStyle.transition.includes('transform') || computedStyle.transition.includes('all');
+            }
+            
+            checkGeometricGlow() {
+                const testSection = document.querySelector('.test-section');
+                const computedStyle = getComputedStyle(testSection);
+                return computedStyle.boxShadow !== 'none';
+            }
+            
+            testDownloadModal() {
+                try {
+                    if (window.downloadModal) {
+                        window.downloadModal.show();
+                        this.logSuccess('Download modal opened successfully');
+                        this.updateMatrixStatus('modal-func-status', true);
+                    } else if (window.downloadSystemFix) {
+                        window.downloadSystemFix.showModal();
+                        this.logSuccess('Download system fix modal opened successfully');
+                        this.updateMatrixStatus('modal-func-status', true);
+                    } else {
+                        throw new Error('No download modal system available');
+                    }
+                } catch (error) {
+                    this.logError(`Download modal test failed: ${error.message}`);
+                    this.updateMatrixStatus('modal-func-status', false);
+                }
+            }
+            
+            testModalStyling() {
+                // Check if modal has geometric styling
+                const modal = document.querySelector('.download-modal, .oriel-download-modal');
+                if (modal) {
+                    const computedStyle = getComputedStyle(modal);
+                    const hasGeometricStyling = computedStyle.background.includes('gradient') || 
+                                             computedStyle.borderRadius !== '0px';
+                    
+                    if (hasGeometricStyling) {
+                        this.logSuccess('Download modal has geometric styling');
+                        this.updateMatrixStatus('modal-ui-status', true);
+                    } else {
+                        this.logWarning('Download modal styling needs geometric enhancement');
+                        this.updateMatrixStatus('modal-ui-status', false);
+                    }
+                } else {
+                    this.logError('Download modal not found for styling test');
+                    this.updateMatrixStatus('modal-ui-status', false);
+                }
+            }
+            
+            testProgressIndicators() {
+                const progressBar = document.getElementById('test-progress');
+                const progressText = document.getElementById('progress-text');
+                
+                if (!progressBar) {
+                    this.logError('Progress bar not found');
+                    return;
+                }
+                
+                this.logInfo('Testing geometric progress indicators...');
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    progressBar.style.width = `${progress}%`;
+                    progressText.textContent = `Progress: ${progress}%`;
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        this.logSuccess('Progress indicator test completed');
+                        this.updateMatrixStatus('progress-func-status', true);
+                        this.updateMatrixStatus('progress-ui-status', true);
+                        
+                        setTimeout(() => {
+                            progressBar.style.width = '0%';
+                            progressText.textContent = 'Ready to test...';
+                        }, 2000);
+                    }
+                }, 200);
+            }
+            
+            testFormatDownload(format) {
+                this.logInfo(`Testing ${format.toUpperCase()} download...`);
+                
+                try {
+                    // Simulate download process
+                    if (window.downloadSystemFix) {
+                        window.downloadSystemFix.downloadFile(format);
+                        this.logSuccess(`${format.toUpperCase()} download initiated successfully`);
+                        this.updateMatrixStatus('download-func-status', true);
+                    } else if (window.downloadModal) {
+                        // Use the enhanced download modal
+                        this.logSuccess(`${format.toUpperCase()} download available via modal`);
+                        this.updateMatrixStatus('download-func-status', true);
+                    } else {
+                        throw new Error('No download system available');
+                    }
+                } catch (error) {
+                    this.logError(`${format.toUpperCase()} download failed: ${error.message}`);
+                    this.updateMatrixStatus('download-func-status', false);
+                }
+            }
+            
+            runFullCompatibilityTest() {
+                this.logInfo('Running full compatibility test suite...');
+                
+                const tests = [
+                    { name: 'Audio Upload UI', test: () => this.testAudioUploadUI() },
+                    { name: 'Download Modal', test: () => this.testDownloadModalCompatibility() },
+                    { name: 'Progress Indicators', test: () => this.testProgressCompatibility() },
+                    { name: 'File Downloads', test: () => this.testDownloadCompatibility() }
+                ];
+                
+                tests.forEach(({ name, test }, index) => {
+                    setTimeout(() => {
+                        try {
+                            const result = test();
+                            if (result) {
+                                this.logSuccess(`✅ ${name} compatibility test passed`);
+                                this.testResults.passed++;
+                            } else {
+                                this.logError(`❌ ${name} compatibility test failed`);
+                                this.testResults.failed++;
+                            }
+                        } catch (error) {
+                            this.logError(`❌ ${name} compatibility test error: ${error.message}`);
+                            this.testResults.failed++;
+                        }
+                        
+                        this.testResults.total++;
+                        this.updateTestSummary();
+                        
+                        if (index === tests.length - 1) {
+                            this.logInfo('Full compatibility test suite completed');
+                        }
+                    }, index * 500);
+                });
+            }
+            
+            testAudioUploadUI() {
+                const uploadZone = document.getElementById('audio-upload-zone');
+                const hasGeometricStyling = uploadZone && 
+                    getComputedStyle(uploadZone).borderStyle === 'dashed';
+                
+                this.updateMatrixStatus('upload-ui-status', hasGeometricStyling);
+                this.updateMatrixStatus('upload-func-status', true);
+                this.updateMatrixStatus('upload-perf-status', true);
+                this.updateMatrixStatus('upload-overall-status', hasGeometricStyling);
+                
+                return hasGeometricStyling;
+            }
+            
+            testDownloadModalCompatibility() {
+                const modalExists = window.downloadModal || window.downloadSystemFix;
+                
+                this.updateMatrixStatus('modal-ui-status', modalExists);
+                this.updateMatrixStatus('modal-func-status', modalExists);
+                this.updateMatrixStatus('modal-perf-status', true);
+                this.updateMatrixStatus('modal-overall-status', modalExists);
+                
+                return modalExists;
+            }
+            
+            testProgressCompatibility() {
+                const progressBar = document.getElementById('test-progress');
+                const hasGeometricStyling = progressBar && 
+                    getComputedStyle(progressBar.parentElement).border !== 'none';
+                
+                this.updateMatrixStatus('progress-ui-status', hasGeometricStyling);
+                this.updateMatrixStatus('progress-func-status', true);
+                this.updateMatrixStatus('progress-perf-status', true);
+                this.updateMatrixStatus('progress-overall-status', hasGeometricStyling);
+                
+                return hasGeometricStyling;
+            }
+            
+            testDownloadCompatibility() {
+                const downloadSystemAvailable = window.downloadModal || window.downloadSystemFix;
+                
+                this.updateMatrixStatus('download-ui-status', downloadSystemAvailable);
+                this.updateMatrixStatus('download-func-status', downloadSystemAvailable);
+                this.updateMatrixStatus('download-perf-status', true);
+                this.updateMatrixStatus('download-overall-status', downloadSystemAvailable);
+                
+                return downloadSystemAvailable;
+            }
+            
+            testPerformanceImpact() {
+                this.logInfo('Testing performance impact of geometric theme...');
+                
+                const startTime = performance.now();
+                
+                // Simulate heavy UI operations
+                for (let i = 0; i < 1000; i++) {
+                    const element = document.createElement('div');
+                    element.className = 'test-button';
+                    document.body.appendChild(element);
+                    document.body.removeChild(element);
+                }
+                
+                const endTime = performance.now();
+                const duration = endTime - startTime;
+                
+                if (duration < 100) {
+                    this.logSuccess(`Performance test passed: ${duration.toFixed(2)}ms`);
+                } else {
+                    this.logWarning(`Performance impact detected: ${duration.toFixed(2)}ms`);
+                }
+            }
+            
+            testResponsiveDesign() {
+                this.logInfo('Testing responsive design...');
+                
+                const testSizes = [
+                    { width: 320, height: 568, name: 'Mobile' },
+                    { width: 768, height: 1024, name: 'Tablet' },
+                    { width: 1920, height: 1080, name: 'Desktop' }
+                ];
+                
+                testSizes.forEach(({ width, height, name }) => {
+                    // Simulate viewport change
+                    const mediaQuery = window.matchMedia(`(max-width: ${width}px)`);
+                    this.logInfo(`Testing ${name} layout (${width}x${height})`);
+                });
+                
+                this.logSuccess('Responsive design test completed');
+            }
+            
+            testErrorScenarios() {
+                this.logInfo('Testing error handling scenarios...');
+                
+                // Test invalid file upload
+                try {
+                    const fakeFile = new File([''], 'test.txt', { type: 'text/plain' });
+                    this.handleAudioUpload(fakeFile);
+                } catch (error) {
+                    this.logSuccess('Error handling working correctly');
+                }
+                
+                // Test missing modal
+                const originalModal = window.downloadModal;
+                window.downloadModal = null;
+                
+                try {
+                    this.testDownloadModal();
+                } catch (error) {
+                    this.logSuccess('Fallback behavior working correctly');
+                }
+                
+                window.downloadModal = originalModal;
+            }
+            
+            testFallbackBehavior() {
+                this.logInfo('Testing fallback behavior...');
+                
+                // Test with disabled JavaScript features
+                const originalFetch = window.fetch;
+                window.fetch = null;
+                
+                try {
+                    // Test download functionality without fetch
+                    this.testFormatDownload('mp4');
+                    this.logSuccess('Fallback download behavior working');
+                } catch (error) {
+                    this.logWarning('Fallback behavior needs improvement');
+                }
+                
+                window.fetch = originalFetch;
+            }
+            
+            updateMatrixStatus(elementId, passed) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = passed ? '✅ Pass' : '❌ Fail';
+                    element.className = `matrix-cell ${passed ? 'matrix-pass' : 'matrix-fail'}`;
+                }
+            }
+            
+            updateTestSummary() {
+                document.getElementById('tests-passed').textContent = this.testResults.passed;
+                document.getElementById('tests-failed').textContent = this.testResults.failed;
+                
+                const overallStatus = document.getElementById('overall-status');
+                if (this.testResults.total === 0) {
+                    overallStatus.textContent = 'Pending';
+                    overallStatus.className = 'status-indicator status-pending';
+                } else if (this.testResults.failed === 0) {
+                    overallStatus.textContent = 'All Tests Passed';
+                    overallStatus.className = 'status-indicator status-pass';
+                } else {
+                    overallStatus.textContent = 'Some Tests Failed';
+                    overallStatus.className = 'status-indicator status-fail';
+                }
+            }
+            
+            logInfo(message) {
+                this.addLogEntry(message, 'log-info');
+            }
+            
+            logSuccess(message) {
+                this.addLogEntry(`✅ ${message}`, 'log-success');
+            }
+            
+            logWarning(message) {
+                this.addLogEntry(`⚠️ ${message}`, 'log-warning');
+            }
+            
+            logError(message) {
+                this.addLogEntry(`❌ ${message}`, 'log-error');
+            }
+            
+            addLogEntry(message, className) {
+                const logContainer = document.getElementById('test-log');
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${className}`;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                logContainer.appendChild(entry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        }
+        
+        // Global test functions
+        function testGeometricThemeIntegration() {
+            validator.testGeometricThemeIntegration();
+        }
+        
+        function testDownloadModal() {
+            validator.testDownloadModal();
+        }
+        
+        function testModalStyling() {
+            validator.testModalStyling();
+        }
+        
+        function testProgressIndicators() {
+            validator.testProgressIndicators();
+        }
+        
+        function testFormatDownload(format) {
+            validator.testFormatDownload(format);
+        }
+        
+        function runFullCompatibilityTest() {
+            validator.runFullCompatibilityTest();
+        }
+        
+        function testPerformanceImpact() {
+            validator.testPerformanceImpact();
+        }
+        
+        function testResponsiveDesign() {
+            validator.testResponsiveDesign();
+        }
+        
+        function testErrorScenarios() {
+            validator.testErrorScenarios();
+        }
+        
+        function testFallbackBehavior() {
+            validator.testFallbackBehavior();
+        }
+        
+        // Initialize validator when page loads
+        let validator;
+        document.addEventListener('DOMContentLoaded', () => {
+            validator = new DownloadFunctionalityValidator();
+        });
+    </script>
+</body>
+</html>

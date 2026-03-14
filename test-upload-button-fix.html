@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Button Diagnostic</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .test-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .upload-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-btn:hover {
+            background: rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+        .hidden-input {
+            position: absolute;
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            z-index: -1;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            border-left-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Upload Button Diagnostic</h1>
+    
+    <div class="test-box">
+        <h2>Test 1: Direct Input Click</h2>
+        <input type="file" id="test1" accept="audio/*">
+        <div id="result1"></div>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 2: Label with Hidden Input (Current Setup)</h2>
+        <label for="test2" class="upload-btn">📁 Upload Audio</label>
+        <input type="file" id="test2" accept="audio/*" class="hidden-input">
+        <div id="result2"></div>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 3: Label with Manual Click Handler</h2>
+        <label id="test3-label" class="upload-btn">📁 Upload Audio</label>
+        <input type="file" id="test3" accept="audio/*" class="hidden-input">
+        <div id="result3"></div>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 4: Button with Click Handler</h2>
+        <button type="button" id="test4-btn" class="upload-btn">📁 Upload Audio</button>
+        <input type="file" id="test4" accept="audio/*" class="hidden-input">
+        <div id="result4"></div>
+    </div>
+
+    <script>
+        // Test 1: Direct input
+        document.getElementById('test1').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('result1').innerHTML = 
+                    `<div class="result">✅ File selected: ${file.name}</div>`;
+            }
+        });
+
+        // Test 2: Label with for attribute
+        document.getElementById('test2').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('result2').innerHTML = 
+                    `<div class="result">✅ File selected: ${file.name}</div>`;
+            }
+        });
+
+        // Test 3: Label with manual click
+        const test3Label = document.getElementById('test3-label');
+        const test3Input = document.getElementById('test3');
+        
+        test3Label.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Label clicked, triggering input');
+            test3Input.click();
+        });
+        
+        test3Input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('result3').innerHTML = 
+                    `<div class="result">✅ File selected: ${file.name}</div>`;
+            }
+        });
+
+        // Test 4: Button with click handler
+        document.getElementById('test4-btn').addEventListener('click', () => {
+            console.log('Button clicked, triggering input');
+            document.getElementById('test4').click();
+        });
+        
+        document.getElementById('test4').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('result4').innerHTML = 
+                    `<div class="result">✅ File selected: ${file.name}</div>`;
+            }
+        });
+
+        // Log initial state
+        console.log('🔍 Diagnostic page loaded');
+        console.log('Test 2 input:', document.getElementById('test2'));
+        console.log('Test 2 label:', document.querySelector('label[for="test2"]'));
+    </script>
+</body>
+</html>
