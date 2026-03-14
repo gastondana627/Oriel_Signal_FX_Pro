@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="auth-geometric-styles.css">
     <link rel="stylesheet" href="responsive-geometric-enhancements.css">
     <link rel="stylesheet" href="mobile-geometric-enhancements.css">
+    <link rel="stylesheet" href="refactored-ui.css">
     <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
     
     <!-- Preload critical JavaScript -->
@@ -29,10 +30,9 @@
 
 <body>
     <div id="graph-container"></div>
-    <button id="play-pause-button">Play Music</button>
 
-    <!-- User Status Bar -->
-    <div id="user-status" class="user-status-bar">
+    <!-- User Status Bar (Top-Right) -->
+    <div id="user-status" class="user-status-bar glass-panel">
         <!-- Anonymous User Status -->
         <div id="anonymous-status" class="status-section">
             <span id="downloads-remaining"></span>
@@ -55,32 +55,43 @@
         </div>
     </div>
 
-    <div class="control-panel">
+    <!-- Toolbox Sidebar (Left) -->
+    <div class="toolbox-sidebar control-panel glass-panel">
         <div class="control-group">
             <div class="control"><label for="glowColor">Glow Color</label><input type="color" id="glowColor"
                     value="#8309D5"></div>
             <div class="control"><label for="pulse">Pulse Intensity</label><input type="range" id="pulse" min="0"
                     max="3" step="0.1" value="1.5"></div>
         </div>
-        <div class="control-group shape-selector"></div>
+
+        <div class="shape-selector-container">
+            <label>Shapes</label>
+            <div class="shape-selector"></div>
+        </div>
+
         <button type="button" id="randomize-button" class="dynamic-color">Randomize</button>
+
         <div class="control">
             <label for="audioUpload" class="upload-btn">Upload Audio</label>
             <input type="file" id="audioUpload" accept="audio/*" class="hidden-input">
         </div>
-        <!-- Upgrade Button (replaces Buy Me a Coffee) -->
-        <button type="button" id="upgrade-button" class="dynamic-color hidden">✨ Upgrade Plan</button>
 
-        <!-- Buy Credits Button -->
-        <button type="button" id="buy-credits-button" class="dynamic-color hidden">💎 Buy Credits</button>
-
-        <!-- Legacy Buy Me a Coffee (for anonymous users) -->
-        <a href="https://www.buymeacoffee.com/gastondana627" target="_blank" rel="noopener" id="bmac-button"
-            class="dynamic-color">✨ Buy Me a Coffee</a>
+        <!-- Buy More / Upgrade Actions -->
+        <div class="buy-more-container">
+            <button type="button" id="upgrade-button" class="dynamic-color hidden">✨ Upgrade Plan</button>
+            <button type="button" id="buy-credits-button" class="dynamic-color hidden">💎 Buy Credits</button>
+            <a href="https://www.buymeacoffee.com/gastondana627" target="_blank" rel="noopener" id="bmac-button"
+                class="dynamic-color">✨ Buy Me a Coffee</a>
+        </div>
     </div>
 
     <img src="assets/qr-code.png" id="bmac-qrcode" class="qrcode-hidden" alt="Buy Me a Coffee QR Code">
-    <button id="download-button" class="dynamic-color">Download</button>
+
+    <!-- Transport Bar (Bottom-Center) -->
+    <div class="transport-bar glass-panel">
+        <button id="play-pause-button" class="dynamic-color">Play Music</button>
+        <button id="download-button" class="dynamic-color">Download</button>
+    </div>
 
     <!-- Login Modal -->
     <div id="login-modal" class="auth-modal modal-hidden">

@@ -26,18 +26,88 @@ document.addEventListener('DOMContentLoaded', async () => {
     let audioInitialized = false;
     let isAnimationPaused = false;
 
+    // --- Master list of all available shapes ---
+    const allShapes = [
+        { id: 'cube', name: 'Cube' }, { id: 'sphere', name: 'Sphere' },
+        { id: 'icosahedron', name: 'Crystal' }, { id: 'torus', name: 'Donut' },
+        { id: 'dodecahedron', name: 'Gem' }, { id: 'torusKnot', name: 'Knot' },
+        { id: 'cone', name: 'Cone' }, { id: 'cylinder', name: 'Cylinder' },
+        { id: 'octahedron', name: 'Octahedron' }, { id: 'tetrahedron', name: 'Pyramid' },
+        { id: 'ring', name: 'Ring' }, { id: 'plane', name: 'Plane' },
+        { id: 'spikySphere', name: 'Spiky' }, { id: 'torusLarge', name: 'Hoop' },
+        { id: 'conePointy', name: 'Spire' }, { id: 'crystalTall', name: 'Shard' },
+        { id: 'twistedBox', name: 'Twisted Box' }, { id: 'wavyPlane', name: 'Wavy Plane' },
+        { id: 'polyStar', name: 'Star' }, { id: 'randomPoly', name: 'Asteroid' }
+    ];
+    let currentShapes = [];
+
+    // --- Function to update the shape buttons in the UI ---
+    function updateShapeButtons() {
+        if (!shapeSelector) return;
+        shapeSelector.innerHTML = '';
+        let availableShapes = allShapes.filter(shape => !currentShapes.some(current => current.id === shape.id));
+        if (availableShapes.length < 3) {
+            availableShapes = allShapes;
+            currentShapes = [];
+        }
+        const newRandomShapes = [...availableShapes].sort(() => 0.5 - Math.random()).slice(0, 3);
+        currentShapes = newRandomShapes;
+        newRandomShapes.forEach(shapeInfo => {
+            const button = document.createElement('button');
+            button.className = 'shape-btn dynamic-color';
+            button.textContent = shapeInfo.name;
+            button.setAttribute('data-shape', shapeInfo.id);
+            // Default color if glowColorInput is not yet fully initialized or changed
+            button.style.backgroundColor = glowColorInput?.value || '#8309D5';
+            button.addEventListener('click', () => {
+                if (window.config && window.recreateShape) {
+                    window.config.shape = shapeInfo.id;
+                    window.recreateShape();
+                }
+            });
+            shapeSelector.appendChild(button);
+        });
+    }
+
+    function updateDownloadCounter() {
+        // Update downloads remaining display
+        if (window.authUI) {
+            window.authUI.updateUI();
+        } else if (downloadsRemainingText) {
+            // Fallback display
+            const count = localStorage.getItem('orielFxDownloads');
+            const remaining = count === null ? 3 : parseInt(count);
+            downloadsRemainingText.textContent = `${remaining} free downloads remaining.`;
+        }
+    }
+
+    // --- Initial Setup ---
+    // Initialize UI components BEFORE waiting for SaaS to ensure the app is usable immediately
+    updateDownloadCounter();
+    updateShapeButtons();
+
     // --- Wait for SaaS System Initialization ---
     console.log('🎵 Oriel FX - Waiting for SaaS system initialization...');
     
+    // Use a timeout to ensure we don't block forever if the backend is down
+    const saasInitTimeout = new Promise(resolve => setTimeout(() => resolve('timeout'), 5000));
+
     try {
-        // Wait for SaaS initialization to complete
-        await window.saasInitializer.waitForInitialization();
-        console.log('✅ SaaS system initialized successfully');
+        const result = await Promise.race([
+            window.saasInitializer?.waitForInitialization() || Promise.resolve('not_available'),
+            saasInitTimeout
+        ]);
         
-        // Get initialized components
-        const components = window.saasInitializer.getStatus();
-        console.log('📊 Available components:', components.components);
-        
+        if (result === 'timeout') {
+            console.warn('⚠️ SaaS initialization timed out. Using offline mode.');
+        } else {
+            console.log('✅ SaaS system initialized successfully');
+            // Get initialized components
+            if (window.saasInitializer) {
+                const components = window.saasInitializer.getStatus();
+                console.log('📊 Available components:', components.components);
+            }
+        }
     } catch (error) {
         console.error('❌ SaaS initialization failed:', error);
         // Continue with basic functionality
@@ -115,7 +185,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- MODAL CONTROL LOGIC ---
-    downloadButton.addEventListener('click', async () => {
+    window.openDownloadModal = async function() {
         // Check download permission first
         const canDownload = await checkDownloadPermission();
         if (!canDownload) {
@@ -129,6 +199,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Update modal based on user's plan
         updateDownloadModalForUserPlan();
+    };
+
+    // Use event delegation for the download button since saas-init.js clones and replaces it
+    document.addEventListener('click', (e) => {
+        if (e.target && (e.target.id === 'download-button' || e.target.closest('#download-button'))) {
+            // If SaaS system has replaced the button, saas-init.js handles it.
+            // If not (e.g. SaaS failed to init), we handle it here.
+            if (!window.saasInitializer || !window.saasInitializer.isInitialized) {
+                window.openDownloadModal();
+            }
+        }
     });
 
     closeModalBtn.addEventListener('click', () => {
@@ -495,46 +576,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         downloadMp3Button.addEventListener('click', downloadAudioFile);
     }
 
-    // --- Master list of all available shapes ---
-    const allShapes = [
-        { id: 'cube', name: 'Cube' }, { id: 'sphere', name: 'Sphere' },
-        { id: 'icosahedron', name: 'Crystal' }, { id: 'torus', name: 'Donut' },
-        { id: 'dodecahedron', name: 'Gem' }, { id: 'torusKnot', name: 'Knot' },
-        { id: 'cone', name: 'Cone' }, { id: 'cylinder', name: 'Cylinder' },
-        { id: 'octahedron', name: 'Octahedron' }, { id: 'tetrahedron', name: 'Pyramid' },
-        { id: 'ring', name: 'Ring' }, { id: 'plane', name: 'Plane' },
-        { id: 'spikySphere', name: 'Spiky' }, { id: 'torusLarge', name: 'Hoop' },
-        { id: 'conePointy', name: 'Spire' }, { id: 'crystalTall', name: 'Shard' },
-        { id: 'twistedBox', name: 'Twisted Box' }, { id: 'wavyPlane', name: 'Wavy Plane' },
-        { id: 'polyStar', name: 'Star' }, { id: 'randomPoly', name: 'Asteroid' }
-    ];
-    let currentShapes = [];
-
-    // --- Function to update the shape buttons in the UI ---
-    function updateShapeButtons() {
-        shapeSelector.innerHTML = '';
-        let availableShapes = allShapes.filter(shape => !currentShapes.some(current => current.id === shape.id));
-        if (availableShapes.length < 3) {
-            availableShapes = allShapes;
-            currentShapes = [];
-        }
-        const newRandomShapes = [...availableShapes].sort(() => 0.5 - Math.random()).slice(0, 3);
-        currentShapes = newRandomShapes;
-        newRandomShapes.forEach(shapeInfo => {
-            const button = document.createElement('button');
-            button.className = 'shape-btn dynamic-color';
-            button.textContent = shapeInfo.name;
-            button.setAttribute('data-shape', shapeInfo.id);
-            button.style.backgroundColor = glowColorInput.value;
-            button.addEventListener('click', () => {
-                if (window.config && window.recreateShape) {
-                    window.config.shape = shapeInfo.id;
-                    window.recreateShape();
-                }
-            });
-            shapeSelector.appendChild(button);
-        });
-    }
 
     // --- Play/Pause Logic ---
     window.togglePlayPause = function() {
@@ -602,10 +643,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     bmacButton.addEventListener('mouseover', () => { bmacQrcode.classList.remove('qrcode-hidden'); });
     bmacButton.addEventListener('mouseout', () => { bmacQrcode.classList.add('qrcode-hidden'); });
 
-    // --- Initial Setup ---
-    updateDownloadCounter();
-    updateShapeButtons();
-    
     // Set up dashboard button handler
     const dashboardBtn = document.getElementById('dashboard-btn');
     if (dashboardBtn) {
