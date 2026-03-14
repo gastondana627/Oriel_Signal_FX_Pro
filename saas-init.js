@@ -242,11 +242,13 @@ class SaaSInitializer {
             }
 
             // Proceed with existing download logic
-            // Call the main download function from script.js
-            if (window.downloadAudioFile) {
+            // Prefer the modal opening function if available, otherwise fallback to direct download
+            if (window.openDownloadModal) {
+                await window.openDownloadModal();
+            } else if (window.downloadAudioFile) {
                 await window.downloadAudioFile();
             } else {
-                console.warn('Download handler not found - downloadAudioFile function missing');
+                console.warn('Download handler not found - neither openDownloadModal nor downloadAudioFile functions found');
             }
 
         } catch (error) {

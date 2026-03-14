@@ -1,0 +1,269 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Global font override */
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #050505;
+    margin: 0;
+    padding: 0;
+}
+
+/* Glassmorphic Panel Base Style */
+body .glass-panel {
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+/* Navigation Header (Top-Right) */
+body #user-status.user-status-bar.glass-panel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    left: auto;
+    padding: 12px 20px;
+    width: auto;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-radius: 12px;
+    z-index: 11000; /* Higher than error notifications (10000) */
+}
+
+body #user-status .status-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+body #downloads-remaining {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    font-weight: 500;
+    margin: 0;
+    opacity: 1;
+}
+
+body #user-status .auth-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Toolbox Sidebar (Left) */
+body .toolbox-sidebar.control-panel.glass-panel {
+    position: fixed;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* gap-4 (1rem) */
+    width: 280px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 12px;
+}
+
+/* Transport Bar (Bottom-Center) */
+body .transport-bar.glass-panel {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 16px 32px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    justify-content: center;
+    min-width: 380px;
+    border-radius: 12px;
+    z-index: 11000;
+}
+
+/* Standardize All Buttons to 10px radius */
+body button:not(.close-button),
+body .auth-btn,
+body .user-btn,
+body .upload-btn,
+body .dynamic-color,
+body .shape-btn,
+body #play-pause-button,
+body #download-button,
+body #randomize-button,
+body #upgrade-button,
+body #buy-credits-button,
+body #bmac-button {
+    border-radius: 10px;
+    transition: all 0.2s ease-in-out;
+    text-transform: none;
+    letter-spacing: 0.01em;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    padding: 12px 20px;
+    width: 100%; /* Sidebar buttons vertical stack */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Transport Bar button sizing */
+body .transport-bar button {
+    width: auto;
+    min-width: 160px;
+}
+
+/* Override fixed positioning from legacy style.css and other systems */
+body #play-pause-button,
+body #download-button {
+    position: static !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+}
+
+/* Button Colors */
+body .auth-btn, body #randomize-button, body #play-pause-button {
+    background: #8309D5;
+    color: white;
+}
+
+body #download-button {
+    background: #00D4FF;
+    color: #000;
+}
+
+body #bmac-button {
+    background: #FFDD00;
+    color: #000000;
+}
+
+/* Control Labels */
+body .control-group label,
+body .shape-selector-container label,
+body .control label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Shape Selector Grid - Stacked Vertically as per instructions */
+body .shape-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* gap-4 */
+    width: 100%;
+}
+
+body .shape-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body .shape-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Sidebar consistency */
+body .toolbox-sidebar .control,
+body .toolbox-sidebar .control-group {
+    margin-bottom: 16px;
+}
+
+/* Upload Audio Button */
+body .upload-btn {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+body .buy-more-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 20px;
+}
+
+/* QR code positioning */
+body #bmac-qrcode {
+    position: fixed;
+    left: 320px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 180px;
+    height: 180px;
+    z-index: 2000;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: white;
+    padding: 10px;
+}
+
+/* Hide legacy elements */
+body .control-panel-toggle {
+    display: none !important;
+}
+
+/* Range Inputs */
+body input[type="range"] {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    appearance: none;
+}
+
+body input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #8309D5;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid white;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    body .toolbox-sidebar.control-panel.glass-panel {
+        position: relative;
+        top: auto;
+        left: 0;
+        transform: none;
+        width: 100%;
+        margin: 20px 0;
+        max-height: none;
+    }
+
+    body .transport-bar.glass-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        transform: none;
+        width: 100%;
+        min-width: 0;
+        border-radius: 0;
+    }
+}
